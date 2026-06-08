@@ -71,7 +71,7 @@ export default function SidebarEmpresa() {
 				))}
 			</SidebarContent>
 			<SidebarFooter>
-				<Link href="/logout/empresa">
+				<Link href={route('aplicacao.autenticacao.empresa.logout')}>
 					<Button variant="destructive" className="w-full">
 						Sair <LogOut />
 					</Button>

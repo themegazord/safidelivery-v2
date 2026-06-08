@@ -1,0 +1,162 @@
+{
+    "info": {
+        "name": "SAFI Delivery v2",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://delivery.safi.local:8000",
+            "type": "string"
+        },
+        {
+            "key": "cnpj",
+            "value": "00000000000000",
+            "type": "string"
+        },
+        {
+            "key": "xsrf_token",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "event": [
+        {
+            "listen": "prerequest",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    "const xsrf = pm.cookies.get('XSRF-TOKEN');",
+                    "if (xsrf) {",
+                    "    pm.collectionVariables.set('xsrf_token', decodeURIComponent(xsrf));",
+                    "}"
+                ]
+            }
+        }
+    ],
+    "item": [
+        {
+            "name": "Autenticação",
+            "item": [
+                {
+                    "name": "1. GET Login (obtém sessão e cookie CSRF)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const xsrf = pm.cookies.get('XSRF-TOKEN');",
+                                    "if (xsrf) pm.collectionVariables.set('xsrf_token', decodeURIComponent(xsrf));"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            { "key": "Accept", "value": "text/html" }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/autenticacao/empresa/login",
+                            "host": ["{{base_url}}"],
+                            "path": ["autenticacao", "empresa", "login"]
+                        }
+                    }
+                },
+                {
+                    "name": "2. POST Login",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Content-Type", "value": "application/json" },
+                            { "key": "Accept", "value": "application/json" },
+                            { "key": "X-Requested-With", "value": "XMLHttpRequest" },
+                            { "key": "X-XSRF-TOKEN", "value": "{{xsrf_token}}" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"empresa@exemplo.com\",\n    \"password\": \"senha123\"\n}",
+                            "options": { "raw": { "language": "json" } }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/autenticacao/empresa/login",
+                            "host": ["{{base_url}}"],
+                            "path": ["autenticacao", "empresa", "login"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Desempenho",
+            "item": [
+                {
+                    "name": "Painel de Desempenho",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            { "key": "Accept", "value": "application/json" },
+                            { "key": "X-Inertia", "value": "true" },
+                            { "key": "X-Inertia-Version", "value": "" },
+                            { "key": "X-Requested-With", "value": "XMLHttpRequest" }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/{{cnpj}}/desempenho",
+                            "host": ["{{base_url}}"],
+                            "path": ["{{cnpj}}", "desempenho"]
+                        }
+                    }
+                },
+                {
+                    "name": "Buscar Pedidos por Data",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Content-Type", "value": "application/json" },
+                            { "key": "Accept", "value": "application/json" },
+                            { "key": "X-Requested-With", "value": "XMLHttpRequest" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"data_inicio\": \"01/06/2026\",\n    \"data_fim\": \"08/06/2026\"\n}",
+                            "options": { "raw": { "language": "json" } }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/{{cnpj}}/desempenho/buscaPedidosPorData",
+                            "host": ["{{base_url}}"],
+                            "path": ["{{cnpj}}", "desempenho", "buscaPedidosPorData"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Configurações",
+            "item": [
+                {
+                    "name": "Configurar Recebimento iFood",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            { "key": "Content-Type", "value": "application/json" },
+                            { "key": "Accept", "value": "application/json" },
+                            { "key": "X-Requested-With", "value": "XMLHttpRequest" },
+                            { "key": "X-XSRF-TOKEN", "value": "{{xsrf_token}}" }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"esta_recebendo_pedidos_ifood\": true\n}",
+                            "options": { "raw": { "language": "json" } }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/{{cnpj}}/configuracoes",
+                            "host": ["{{base_url}}"],
+                            "path": ["{{cnpj}}", "configuracoes"]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

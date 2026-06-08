@@ -13,7 +13,7 @@ class DesempenhoController extends Controller
     public Empresa $empresa;
     public function __construct(public readonly DesempenhoService $desempenhoService)
     {
-        $this->empresa = Empresa::where('cnpj', request('cnpj'))->first();
+        $this->empresa = Empresa::where('cnpj', request('cnpj'))->firstOrFail();
     }
     public function index()
     {
@@ -27,9 +27,9 @@ class DesempenhoController extends Controller
     }
 
     public function buscaPedidosPorData(Request $request) {
-        $dados = $request->only(['data_inicio', 'data_fim']);
+        $dados = $request->only(['dias']);
         $this->desempenhoService->empresa = $this->empresa;
-        $resposta = $this->desempenhoService->buscaPedidosPorData($dados['data_inicio'], $dados['data_fim']);
+        $resposta = $this->desempenhoService->atualizaDados($dados['dias']);
         return response()->json($resposta);
     }
 }

@@ -19,6 +19,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'auth.empresa' => RedirecionarLoginEspecifico::class,
         ]);
+        $middleware->validateCsrfTokens(except: [
+            '*/desempenho/buscaPedidosPorData',
+            '*/configuracoes',
+            'autenticacao/empresa/login',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

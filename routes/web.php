@@ -4,6 +4,7 @@ use App\Http\Controllers\Autenticacao\LoginEmpresaController;
 use App\Http\Controllers\Empresa\ConfiguracaoController;
 use App\Http\Controllers\Empresa\DesempenhoController;
 use App\Http\Controllers\HomeController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 
@@ -13,6 +14,10 @@ Route::prefix('autenticacao')->group(function () {
     Route::prefix('empresa')->group(function () {
         Route::get('login', [LoginEmpresaController::class, 'index'])->name('aplicacao.autenticacao.empresa.login');
         Route::post('login', [LoginEmpresaController::class, 'store'])->name('aplicacao.autenticacao.empresa.login.post');
+        Route::get('logout', function () {
+            Auth::logout();
+            redirect(route('aplicacao.autenticacao.empresa.login'));
+        })->name('aplicacao.autenticacao.empresa.logout');
     });
 });
 
