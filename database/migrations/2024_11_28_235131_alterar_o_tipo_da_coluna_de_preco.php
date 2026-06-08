@@ -1,0 +1,27 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+  /**
+   * Run the migrations.
+   */
+  public function up(): void
+  {
+    Schema::table('complementos', function (Blueprint $table) {
+      $table->decimal('preco', 10, 2)->change(); // Nullable for 'por_tamanho'
+    });
+  }
+
+  /**
+   * Reverse the migrations.
+   */
+  public function down(): void
+  {
+    Schema::table('complementos', function (Blueprint $table) {
+      $table->float('preco')->change();
+    });
+  }
+};
