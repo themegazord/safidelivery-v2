@@ -15,6 +15,10 @@ export default defineConfig({
         inertia({ssr: false}),
     ],
     server: {
+        host: process.env.VITE_HMR_HOST ? '0.0.0.0' : 'localhost',
+        hmr: {
+            host: process.env.VITE_HMR_HOST ?? 'localhost',
+        },
         watch: {
             ignored: ['**/storage/framework/views/**'],
         },

@@ -135,12 +135,12 @@ class DesempenhoService
             ->where('configuracao', 'fuso_horario')
             ->value('valor') ?? 'America/Sao_Paulo';
 
-        $inicio = $this->agora()->startOfDay();
+        $inicio = $this->agora()->endOfDay();
         $fim    = $this->agora()->copy()->subDays($this->diasFiltro)->startOfDay();
 
         $this->pedidos = Pedido::where('empresa_id', $this->empresa->getAttribute('id'))
             ->whereBetween('created_at', [$fim, $inicio])
-            ->with('financeiro')
+            ->with('financeiro.formaPagamento')
             ->get();
 
         $this->financeiroPedidos = $this->pedidos
@@ -148,10 +148,17 @@ class DesempenhoService
             ->map(fn($pedido) => $pedido->financeiro)
             ->filter();
 
-        $this->pedidosPeriodoAnterior = Pedido::query()->whereBetween('created_at', [
-            $this->agora()->subDays($this->diasFiltro * 2)->startOfDay(),
-            $this->agora()->subDays($this->diasFiltro)->endOfDay(),
-        ])->with('financeiro')->get();
+        $this->financeiroPedidosHoje = $this->pedidos
+            ->where('status', 'entregue')
+            ->where('created_at', $this->agora()->format('Y-m-d'))
+            ->map(fn($pedido) => $pedido->financeiro)
+            ->filter();
+
+        $this->pedidosPeriodoAnterior = Pedido::where('empresa_id', $this->empresa->getAttribute('id'))
+            ->whereBetween('created_at', [
+                $this->agora()->subDays($this->diasFiltro * 2)->startOfDay(),
+                $this->agora()->subDays($this->diasFiltro)->endOfDay(),
+            ])->with('financeiro')->get();
 
         $metricas = $this->calculaMetricas();
         $this->alimentaCharts();
@@ -159,7 +166,8 @@ class DesempenhoService
         return [
             'pedidos' => $this->pedidos,
             'pedidos_hoje' => $this->pedidos->where('created_at', $this->agora()),
-            'financeiro_pedidos' => $this->pedidos->where('status', 'entregue'),
+            'financeiro_pedidos' => $this->financeiroPedidos,
+            'financeiro_pedidos_hoje' => $this->financeiroPedidosHoje,
             'metricas' => $metricas,
             'charts'   => [
                 'faturamentoDiario' => $this->chartFaturamentoDiario,
@@ -252,43 +260,64 @@ class DesempenhoService
     {
         $cores = [
             'pix'            => '#22c55e',
+            'PIX'            => '#22c55e',
             'dinheiro'       => '#eab308',
+            'DIN'            => '#eab308',
             'master_credito' => '#ef4444',
             'visa_credito'   => '#3b82f6',
+            'CTC'            => '#3b82f6',
             'master_debito'  => '#f97316',
             'visa_debito'    => '#06b6d4',
+            'CTD'            => '#06b6d4',
             'elo_credito'    => '#8b5cf6',
             'elo_debito'     => '#a855f7',
             'amex_credito'   => '#14b8a6',
             'vr_refeicao'    => '#f43f5e',
             'alelo_refeicao' => '#84cc16',
             'outro_refeicao' => '#64748b',
+            'VRE'            => '#f43f5e',
+            'VIR'            => '#a855f7',
         ];
 
         $nomes = [
             'pix'            => 'Pix',
+            'PIX'            => 'Pix',
             'dinheiro'       => 'Dinheiro',
+            'DIN'            => 'Dinheiro',
             'master_credito' => 'Master Crédito',
             'visa_credito'   => 'Visa Crédito',
+            'CTC'            => 'Cartão de Crédito',
             'master_debito'  => 'Master Débito',
             'visa_debito'    => 'Visa Débito',
+            'CTD'            => 'Cartão de Débito',
             'elo_credito'    => 'Elo Crédito',
             'elo_debito'     => 'Elo Débito',
             'amex_credito'   => 'Amex Crédito',
             'vr_refeicao'    => 'VR Refeição',
             'alelo_refeicao' => 'Alelo Refeição',
             'outro_refeicao' => 'Outro Vale Refeição',
+            'VAL'            => 'Vale alimentação',
+            'VRE'            => 'Vale Refeição',
+            'VIR'            => 'Cashback',
         ];
 
         $pedidosComPagamento = $this->pedidos
             ->where('status', 'entregue')
             ->where('tipo', 'D')
             ->map(fn($pedido) => $pedido->financeiro)
-            ->filter()
-            ->filter(fn($financeiro) => ! empty($financeiro->forma_pagamento));
+            ->filter();
 
         $formasPagamento = $pedidosComPagamento
-            ->groupBy('forma_pagamento')
+            ->groupBy(function ($financeiro) {
+                if (! empty($financeiro->forma_pagamento)) {
+                    return $financeiro->forma_pagamento;
+                }
+                if ($financeiro->forma_pagamento_id && $financeiro->formaPagamento) {
+                    return $financeiro->formaPagamento->tipo;
+                }
+                return null;
+            })
+            ->filter(fn($_, $key) => $key !== null)
             ->map(fn($grupo) => $grupo->count());
 
         $pedidosComCashback = $pedidosComPagamento

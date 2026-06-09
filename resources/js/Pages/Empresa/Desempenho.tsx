@@ -1,6 +1,23 @@
-import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+    Alert,
+    AlertAction,
+    AlertDescription,
+    AlertTitle,
+} from "@/components/ui/alert";
 import LayoutAutenticado from "@/Layouts/LayoutsAutenticado";
-import { AlertCircleIcon, CheckCircle, Clock, ConciergeBell, DollarSign, Motorbike, Flame, Truck, Calendar, TrendingUp, TrendingDown } from "lucide-react";
+import {
+    AlertCircleIcon,
+    CheckCircle,
+    Clock,
+    ConciergeBell,
+    DollarSign,
+    Motorbike,
+    Flame,
+    Truck,
+    Calendar,
+    TrendingUp,
+    TrendingDown,
+} from "lucide-react";
 import { Link, router, usePage } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
 import { H1, H2 } from "@/components/utils/Heading";
@@ -8,31 +25,58 @@ import { Switch } from "@/components/ui/switch";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Label } from "@/components/ui/label";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 import Stats from "@/components/utils/Stats";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 import { DadosDesempenho } from "@/types/desempenho";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import {
+    ChartContainer,
+    ChartLegend,
+    ChartLegendContent,
+    ChartTooltip,
+    ChartTooltipContent,
+} from "@/components/ui/chart";
+import {
+    Area,
+    AreaChart,
+    Bar,
+    BarChart,
+    CartesianGrid,
+    Pie,
+    PieChart,
+    XAxis,
+    YAxis,
+} from "recharts";
 
 interface IProps {
-    necessidadesConfiguracao: INecessidade[],
-    temTokenIfood: boolean,
-    estaRecebendoIfood: boolean,
-    linkDelivery: string,
-    linkMesa: string
+    necessidadesConfiguracao: INecessidade[];
+    temTokenIfood: boolean;
+    estaRecebendoIfood: boolean;
+    linkDelivery: string;
+    linkMesa: string;
 }
 
 interface INecessidade {
-    titulo: string,
-    mensagem: string,
-    link: ILink
+    titulo: string;
+    mensagem: string;
+    link: ILink;
 }
 
 interface ILink {
-    nomeRota: string,
-    paramRota: string
+    nomeRota: string;
+    paramRota: string;
 }
 
 export default function Desempenho({
@@ -40,54 +84,70 @@ export default function Desempenho({
     temTokenIfood,
     estaRecebendoIfood: estaRecebendoIfoodInicial,
     linkDelivery,
-    linkMesa
+    linkMesa,
 }: IProps) {
-    const { cnpj } = usePage().props
-    const diaPadrao = 7
-    const [estaRecebendoIfood, setEstaRecebendoIfood] = useState(estaRecebendoIfoodInicial)
-    const [dataInicioFiltro, setDataInicioFiltro] = useState(diaPadrao)
-    const [dadosBackend, setDadosBackend] = useState<DadosDesempenho | null>(null)
+    const { cnpj } = usePage().props;
+    const diaPadrao = 7;
+    const [estaRecebendoIfood, setEstaRecebendoIfood] = useState(
+        estaRecebendoIfoodInicial,
+    );
+    const [dataInicioFiltro, setDataInicioFiltro] = useState(diaPadrao);
+    const [dadosBackend, setDadosBackend] = useState<DadosDesempenho | null>(
+        null,
+    );
 
     useEffect(() => {
-        axios.post(route('aplicacao.empresa.desempenho.buscaPedidosPorData', { cnpj }), {
-            dias: dataInicioFiltro
-        }).then(({ data }) => {
-            setDadosBackend(data)
-            console.log(data)
-        }).catch(console.error)
-    }, [dataInicioFiltro])
+        axios
+            .post(
+                route("aplicacao.empresa.desempenho.buscaPedidosPorData", {
+                    cnpj,
+                }),
+                {
+                    dias: dataInicioFiltro,
+                },
+            )
+            .then(({ data }) => {
+                setDadosBackend(data);
+                console.log(data);
+            })
+            .catch(console.error);
+    }, [dataInicioFiltro]);
 
     function configuraRecebimentoIfood(novoValor: boolean) {
-        setEstaRecebendoIfood(novoValor)
-        router.patch(route('aplicacao.empresa.configuracoes', { cnpj }), {
+        setEstaRecebendoIfood(novoValor);
+        router.patch(route("aplicacao.empresa.configuracoes", { cnpj }), {
             esta_recebendo_pedidos_ifood: novoValor,
-        })
+        });
     }
 
     function copiar(link: string) {
         if (navigator.clipboard) {
-            navigator.clipboard.writeText(link)
-            return
+            navigator.clipboard.writeText(link);
+            return;
         }
-        const textarea = document.createElement('textarea')
-        textarea.value = link
-        textarea.style.position = 'fixed'
-        textarea.style.opacity = '0'
-        document.body.appendChild(textarea)
-        textarea.select()
-        document.execCommand('copy')
-        document.body.removeChild(textarea)
+        const textarea = document.createElement("textarea");
+        textarea.value = link;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
     }
 
     function intervaloData(): string {
-        const hoje = new Date()
-        const inicio = new Date()
-        inicio.setDate(inicio.getDate() - dataInicioFiltro)
+        const hoje = new Date();
+        const inicio = new Date();
+        inicio.setDate(inicio.getDate() - dataInicioFiltro);
 
         const formatar = (d: Date) =>
-            d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+            d.toLocaleDateString("pt-BR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+            });
 
-        return `${formatar(inicio)} a ${formatar(hoje)}`
+        return `${formatar(inicio)} a ${formatar(hoje)}`;
     }
 
     return (
@@ -96,12 +156,25 @@ export default function Desempenho({
                 {necessidadesConfiguracao.length >= 1 && (
                     <div className="container w-full flex flex-col gap-4">
                         {necessidadesConfiguracao.map((necessidade, idx) => (
-                            <Alert className="border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-50" key={idx}>
-                                <AlertTitle className="flex gap-4"><AlertCircleIcon />{necessidade.titulo}</AlertTitle>
-                                <AlertDescription>{necessidade.mensagem}</AlertDescription>
+                            <Alert
+                                className="border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-50"
+                                key={idx}
+                            >
+                                <AlertTitle className="flex gap-4">
+                                    <AlertCircleIcon />
+                                    {necessidade.titulo}
+                                </AlertTitle>
+                                <AlertDescription>
+                                    {necessidade.mensagem}
+                                </AlertDescription>
                                 <AlertAction>
                                     <Button variant={"outline"} asChild>
-                                        <Link href={route(necessidade.link.nomeRota, necessidade.link.paramRota)}>
+                                        <Link
+                                            href={route(
+                                                necessidade.link.nomeRota,
+                                                necessidade.link.paramRota,
+                                            )}
+                                        >
                                             Configurar
                                         </Link>
                                     </Button>
@@ -114,13 +187,23 @@ export default function Desempenho({
                 <div className="my-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
                         <H1 className="font-bold">Painel de desempenho</H1>
-                        <p className="text-base-content/70">Visão geral do seu negócio</p>
+                        <p className="text-base-content/70">
+                            Visão geral do seu negócio
+                        </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-4">
                         {temTokenIfood && (
                             <div className="flex gap-2">
-                                <Switch checked={estaRecebendoIfood} onCheckedChange={(valor) => configuraRecebimentoIfood(valor)} id="esta-recebendo-ifood" />
-                                <Label htmlFor="esta-recebendo-ifood">Está recebendo pedidos do IFood?</Label>
+                                <Switch
+                                    checked={estaRecebendoIfood}
+                                    onCheckedChange={(valor) =>
+                                        configuraRecebimentoIfood(valor)
+                                    }
+                                    id="esta-recebendo-ifood"
+                                />
+                                <Label htmlFor="esta-recebendo-ifood">
+                                    Está recebendo pedidos do IFood?
+                                </Label>
                             </div>
                         )}
                     </div>
@@ -128,7 +211,12 @@ export default function Desempenho({
                         <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <Button variant="outline" size="sm" className="cursor-pointer" onClick={() => copiar(linkDelivery)}>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="cursor-pointer"
+                                        onClick={() => copiar(linkDelivery)}
+                                    >
                                         <Motorbike />
                                     </Button>
                                 </TooltipTrigger>
@@ -138,7 +226,12 @@ export default function Desempenho({
                             </Tooltip>
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <Button variant="outline" size="sm" className="cursor-pointer" onClick={() => copiar(linkMesa)}>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="cursor-pointer"
+                                        onClick={() => copiar(linkMesa)}
+                                    >
                                         <ConciergeBell />
                                     </Button>
                                 </TooltipTrigger>
@@ -160,26 +253,26 @@ export default function Desempenho({
                     <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                         <Stats
                             title="Faturamento"
-                            value={100}
+                            value={dadosBackend?.financeiro_pedidos_hoje?.reduce((acc, sum) => acc + (sum.total ?? 0), 0)}
                             icon={<DollarSign />}
                             color="green"
                             isMoney
                         />
                         <Stats
                             title="Pedidos entregues"
-                            value={10}
+                            value={(dadosBackend?.pedidos_hoje ?? []).filter((pedido) => ['entregue'].includes(pedido.status)).length}
                             icon={<CheckCircle />}
                             color="blue"
                         />
                         <Stats
                             title="Em produção"
-                            value={4}
+                            value={(dadosBackend?.pedidos_hoje ?? []).filter((pedido) => ['pendente', 'sendo preparado', 'pedido feito'].includes(pedido.status)).length}
                             icon={<Flame />}
-                            color="red"
+                            color="amber"
                         />
                         <Stats
                             title="Em entrega"
-                            value={5}
+                            value={(dadosBackend?.pedidos_hoje ?? []).filter((pedido) => pedido.tipo === 'D' && ['sendo entregue', 'pronto para entrega'].includes(pedido.status)).length}
                             icon={<Truck />}
                             color="purple"
                         />
@@ -193,7 +286,13 @@ export default function Desempenho({
                     </div>
                     <ToggleGroup type="single">
                         {[7, 15, 30].map((dia) => (
-                            <ToggleGroupItem onClick={() => setDataInicioFiltro(dia)} key={dia} value={String(dia)}>{dia} dias</ToggleGroupItem>
+                            <ToggleGroupItem
+                                onClick={() => setDataInicioFiltro(dia)}
+                                key={dia}
+                                value={String(dia)}
+                            >
+                                {dia} dias
+                            </ToggleGroupItem>
                         ))}
                     </ToggleGroup>
                 </div>
@@ -202,14 +301,32 @@ export default function Desempenho({
                     <Card>
                         <CardHeader>
                             <CardTitle>Faturamento</CardTitle>
-                            <CardDescription className="font-bold text-xl">R$ {dadosBackend?.metricas?.faturamentoPeriodo.toFixed(2)}</CardDescription>
+                            <CardDescription className="font-bold text-xl">
+                                R${" "}
+                                {dadosBackend?.metricas?.faturamentoPeriodo.toFixed(
+                                    2,
+                                )}
+                            </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            {dadosBackend?.metricas?.crescimentoFaturamento != 0 && (
-                                <div className={`${(dadosBackend?.metricas?.crescimentoFaturamento ?? 0) > 0 ? 'text-green-500' : 'text-red-500'} mt-1 flex items-center gap-1 text-sm`}>
+                            {dadosBackend?.metricas?.crescimentoFaturamento !=
+                                0 && (
+                                <div
+                                    className={`${(dadosBackend?.metricas?.crescimentoFaturamento ?? 0) > 0 ? "text-green-500" : "text-red-500"} mt-1 flex items-center gap-1 text-sm`}
+                                >
                                     <div className="flex gap-2 items-center">
-                                        {(dadosBackend?.metricas?.crescimentoFaturamento ?? 0) > 0 ? (<TrendingUp />) : (<TrendingDown />)}
-                                        {Math.abs(dadosBackend?.metricas?.crescimentoFaturamento ?? 0).toFixed(2)} %
+                                        {(dadosBackend?.metricas
+                                            ?.crescimentoFaturamento ?? 0) >
+                                        0 ? (
+                                            <TrendingUp />
+                                        ) : (
+                                            <TrendingDown />
+                                        )}
+                                        {Math.abs(
+                                            dadosBackend?.metricas
+                                                ?.crescimentoFaturamento ?? 0,
+                                        ).toFixed(2)}{" "}
+                                        %
                                     </div>
                                 </div>
                             )}
@@ -218,19 +335,30 @@ export default function Desempenho({
                     <Card>
                         <CardHeader>
                             <CardTitle>Pedidos entregues:</CardTitle>
-                            <CardDescription className="font-bold text-xl">{dadosBackend?.metricas?.totalPedidosEntregues} pedidos</CardDescription>
+                            <CardDescription className="font-bold text-xl">
+                                {dadosBackend?.metricas?.totalPedidosEntregues}{" "}
+                                pedidos
+                            </CardDescription>
                         </CardHeader>
                     </Card>
                     <Card>
                         <CardHeader>
                             <CardTitle>Ticket médio:</CardTitle>
-                            <CardDescription className="font-bold text-xl">R$ {dadosBackend?.metricas?.ticketMedio.toFixed(2)}</CardDescription>
+                            <CardDescription className="font-bold text-xl">
+                                R${" "}
+                                {dadosBackend?.metricas?.ticketMedio.toFixed(2)}
+                            </CardDescription>
                         </CardHeader>
                     </Card>
                     <Card>
                         <CardHeader>
                             <CardTitle>Cancelamentos:</CardTitle>
-                            <CardDescription className={`${dadosBackend?.metricas?.totalPedidosEntregues ?? 0 > 10 ? 'text-red-500' : ''} font-bold text-xl`}>{dadosBackend?.metricas?.totalPedidosCancelados} pedidos</CardDescription>
+                            <CardDescription
+                                className={`${(dadosBackend?.metricas?.totalPedidosEntregues ?? 0 > 10) ? "text-red-500" : ""} font-bold text-xl`}
+                            >
+                                {dadosBackend?.metricas?.totalPedidosCancelados}{" "}
+                                pedidos
+                            </CardDescription>
                         </CardHeader>
                         <CardContent>
                             {dadosBackend?.metricas?.taxaCancelamento}% do total
@@ -239,13 +367,17 @@ export default function Desempenho({
                     <Card>
                         <CardHeader>
                             <CardTitle>Via IFOOD:</CardTitle>
-                            <CardDescription className="font-bold text-xl">{dadosBackend?.metricas?.pedidosIfood} pedidos</CardDescription>
+                            <CardDescription className="font-bold text-xl">
+                                {dadosBackend?.metricas?.pedidosIfood} pedidos
+                            </CardDescription>
                         </CardHeader>
                     </Card>
                     <Card>
                         <CardHeader>
                             <CardTitle>Pedido direto:</CardTitle>
-                            <CardDescription className="font-bold text-xl">{dadosBackend?.metricas?.pedidosDireto} pedidos</CardDescription>
+                            <CardDescription className="font-bold text-xl">
+                                {dadosBackend?.metricas?.pedidosDireto} pedidos
+                            </CardDescription>
                         </CardHeader>
                     </Card>
                 </div>
@@ -256,19 +388,54 @@ export default function Desempenho({
                             <CardTitle>Faturamento diário</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            {(dadosBackend?.charts?.faturamentoDiario?.data.length ?? 0) > 0 ? (
-                                <ChartContainer config={dadosBackend?.charts?.faturamentoDiario?.config ?? {}} className="aspect-auto h-62.5 w-full">
-                                    <AreaChart data={dadosBackend?.charts?.faturamentoDiario?.data}>
+                            {(dadosBackend?.charts?.faturamentoDiario?.data
+                                .length ?? 0) > 0 ? (
+                                <ChartContainer
+                                    config={
+                                        dadosBackend?.charts?.faturamentoDiario
+                                            ?.config ?? {}
+                                    }
+                                    className="aspect-auto h-62.5 w-full"
+                                >
+                                    <AreaChart
+                                        data={
+                                            dadosBackend?.charts
+                                                ?.faturamentoDiario?.data
+                                        }
+                                    >
                                         <defs>
-                                            <linearGradient id="gradFaturamento" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="var(--color-faturamento)" stopOpacity={0.4} />
-                                                <stop offset="95%" stopColor="var(--color-faturamento)" stopOpacity={0.05} />
+                                            <linearGradient
+                                                id="gradFaturamento"
+                                                x1="0"
+                                                y1="0"
+                                                x2="0"
+                                                y2="1"
+                                            >
+                                                <stop
+                                                    offset="5%"
+                                                    stopColor="var(--color-faturamento)"
+                                                    stopOpacity={0.4}
+                                                />
+                                                <stop
+                                                    offset="95%"
+                                                    stopColor="var(--color-faturamento)"
+                                                    stopOpacity={0.05}
+                                                />
                                             </linearGradient>
                                         </defs>
                                         <CartesianGrid vertical={false} />
-                                        <XAxis dataKey="date" tickLine={false} axisLine={false} />
-                                        <YAxis tickLine={false} axisLine={false} />
-                                        <ChartTooltip content={<ChartTooltipContent />} />
+                                        <XAxis
+                                            dataKey="date"
+                                            tickLine={false}
+                                            axisLine={false}
+                                        />
+                                        <YAxis
+                                            tickLine={false}
+                                            axisLine={false}
+                                        />
+                                        <ChartTooltip
+                                            content={<ChartTooltipContent />}
+                                        />
                                         <Area
                                             type="monotone"
                                             dataKey="faturamento"
@@ -280,7 +447,9 @@ export default function Desempenho({
                                     </AreaChart>
                                 </ChartContainer>
                             ) : (
-                                <div className="flex h-64 items-center justify-center">Sem dados para exibir</div>
+                                <div className="flex h-64 items-center justify-center">
+                                    Sem dados para exibir
+                                </div>
                             )}
                         </CardContent>
                     </Card>
@@ -290,16 +459,26 @@ export default function Desempenho({
                             <CardTitle>Horários de Pico</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            {(dadosBackend?.charts?.horariosPico?.data.length ?? 0) > 0 ? (
+                            {(dadosBackend?.charts?.horariosPico?.data.length ??
+                                0) > 0 ? (
                                 <ChartContainer
                                     config={
-                                        dadosBackend?.charts?.horariosPico?.config ?? {
-                                            pedidos: { label: 'Pedidos', color: '#6366f1' },
+                                        dadosBackend?.charts?.horariosPico
+                                            ?.config ?? {
+                                            pedidos: {
+                                                label: "Pedidos",
+                                                color: "#6366f1",
+                                            },
                                         }
                                     }
                                     className="h-64 w-full"
                                 >
-                                    <BarChart data={dadosBackend?.charts?.horariosPico?.data ?? []}>
+                                    <BarChart
+                                        data={
+                                            dadosBackend?.charts?.horariosPico
+                                                ?.data ?? []
+                                        }
+                                    >
                                         <CartesianGrid vertical={false} />
                                         <XAxis
                                             dataKey="hora"
@@ -310,7 +489,11 @@ export default function Desempenho({
                                         <YAxis hide />
                                         <ChartTooltip
                                             cursor={false}
-                                            content={<ChartTooltipContent hideLabel />}
+                                            content={
+                                                <ChartTooltipContent
+                                                    hideLabel
+                                                />
+                                            }
                                         />
                                         <Bar
                                             dataKey="pedidos"
@@ -320,7 +503,9 @@ export default function Desempenho({
                                     </BarChart>
                                 </ChartContainer>
                             ) : (
-                                <div className="flex h-64 items-center justify-center">Sem dados para exibir</div>
+                                <div className="flex h-64 items-center justify-center">
+                                    Sem dados para exibir
+                                </div>
                             )}
                         </CardContent>
                     </Card>
@@ -329,12 +514,163 @@ export default function Desempenho({
                         <CardHeader>
                             <CardTitle>Formas de Pagamento</CardTitle>
                         </CardHeader>
+                        <CardContent className="flex-1 pb-0">
+                            {(dadosBackend?.charts?.formasPagamento?.data
+                                .length ?? 0 > 0) ? (
+                                <ChartContainer
+                                    config={
+                                        dadosBackend?.charts?.formasPagamento
+                                            ?.config ?? {}
+                                    }
+                                    className="mx-auto aspect-square max-h-75"
+                                >
+                                    <PieChart>
+                                        <ChartTooltip
+                                            cursor={false}
+                                            content={
+                                                <ChartTooltipContent
+                                                    hideLabel
+                                                />
+                                            }
+                                        />
+                                        <Pie
+                                            data={
+                                                dadosBackend?.charts
+                                                    ?.formasPagamento?.data ??
+                                                []
+                                            }
+                                            dataKey="quantidade"
+                                            nameKey="forma"
+                                            innerRadius={60}
+                                        />
+                                        <ChartLegend
+                                            content={
+                                                <ChartLegendContent nameKey="forma" />
+                                            }
+                                            className="-translate-y-2 flex-wrap gap-2 *:basis-1/4 *:justify-center"
+                                        />
+                                    </PieChart>
+                                </ChartContainer>
+                            ) : (
+                                <div className="flex h-64 items-center justify-center">
+                                    Sem dados para exibir
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Pedidos por modalidade</CardTitle>
+                        </CardHeader>
+                        <CardContent className="flex-1 pb-0">
+                            {(dadosBackend?.charts?.modalidade?.data.length ??
+                            0 > 0) ? (
+                                <ChartContainer
+                                    config={
+                                        dadosBackend?.charts?.modalidade
+                                            ?.config ?? {}
+                                    }
+                                    className="mx-auto aspect-square max-h-75"
+                                >
+                                    <PieChart>
+                                        <ChartTooltip
+                                            cursor={false}
+                                            content={
+                                                <ChartTooltipContent
+                                                    hideLabel
+                                                />
+                                            }
+                                        />
+                                        <Pie
+                                            data={
+                                                dadosBackend?.charts?.modalidade
+                                                    ?.data ?? []
+                                            }
+                                            dataKey="pedidos"
+                                            nameKey="modalidade"
+                                            innerRadius={60}
+                                        />
+                                        <ChartLegend
+                                            content={
+                                                <ChartLegendContent nameKey="modalidade" />
+                                            }
+                                            className="-translate-y-2 flex-wrap gap-2 *:basis-1/4 *:justify-center"
+                                        />
+                                    </PieChart>
+                                </ChartContainer>
+                            ) : (
+                                <div className="flex h-64 items-center justify-center">
+                                    Sem dados para exibir
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Origem dos pedidos</CardTitle>
+                        </CardHeader>
                         <CardContent>
-                            
+                            <div className="flex h-48 items-center justify-around">
+                                <div className="flex flex-col items-center">
+                                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-orange-100">
+                                        <span className="text-2xl font-bold text-orange-500">
+                                            {
+                                                dadosBackend?.metricas
+                                                    ?.pedidosIfood
+                                            }
+                                        </span>
+                                    </div>
+                                    <span className="mt-2 text-sm font-medium">
+                                        iFood
+                                    </span>
+                                    {(dadosBackend?.metricas
+                                        ?.totalPedidosEntregues ?? 0) > 0 && (
+                                        <span className="text-xs text-base-content/50">
+                                            {((dadosBackend?.metricas
+                                                ?.pedidosIfood ?? 0) /
+                                                (dadosBackend?.metricas
+                                                    ?.totalPedidosEntregues ??
+                                                    0)) *
+                                                100}
+                                            %
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="text-4xl text-base-content/20">
+                                    vs
+                                </div>
+                                <div className="flex flex-col items-center">
+                                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
+                                        <span className="text-2xl font-bold text-primary">
+                                            {
+                                                dadosBackend?.metricas
+                                                    ?.pedidosDireto
+                                            }
+                                        </span>
+                                    </div>
+                                    <span className="mt-2 text-sm font-medium">
+                                        Direto
+                                    </span>
+                                    {(dadosBackend?.metricas
+                                        ?.totalPedidosEntregues ?? 0) > 0 && (
+                                        <span className="text-xs text-base-content/50">
+                                            {((dadosBackend?.metricas
+                                                ?.pedidosDireto ?? 0) /
+                                                (dadosBackend?.metricas
+                                                    ?.totalPedidosEntregues ??
+                                                    0)) *
+                                                100}
+                                            %
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>
             </div>
         </LayoutAutenticado>
-    )
+    );
 }

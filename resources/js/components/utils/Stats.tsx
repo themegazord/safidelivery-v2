@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 type TooltipPosition = "top" | "bottom" | "left" | "right"
 
-type Color = "green" | "red" | "blue" | "yellow" | "orange" | "purple" | "pink" | "gray"
+type Color = "green" | "red" | "blue" | "yellow" | "orange" | "purple" | "pink" | "gray" | "amber"
 
 const colorMap: Record<Color, { bg: string; text: string }> = {
     green:  { bg: "bg-green-100",  text: "text-green-600" },
@@ -15,6 +15,7 @@ const colorMap: Record<Color, { bg: string; text: string }> = {
     purple: { bg: "bg-purple-100", text: "text-purple-600" },
     pink:   { bg: "bg-pink-100",   text: "text-pink-600" },
     gray:   { bg: "bg-gray-100",   text: "text-gray-600" },
+    amber:  { bg: "bg-amber-100",  text: "text-amber-600" }
 }
 
 interface IProps {
