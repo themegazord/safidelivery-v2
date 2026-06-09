@@ -1,4 +1,16 @@
 
+export interface ILink {
+    nomeRota: string;
+    paramRota: string;
+}
+
+
+export interface INecessidade {
+    titulo: string;
+    mensagem: string;
+    link: ILink;
+}
+
 
 export interface MetricasDesempenho {
     faturamentoPeriodo: number

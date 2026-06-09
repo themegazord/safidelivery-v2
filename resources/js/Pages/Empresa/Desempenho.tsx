@@ -1,9 +1,3 @@
-import {
-    Alert,
-    AlertAction,
-    AlertDescription,
-    AlertTitle,
-} from "@/components/ui/alert";
 import LayoutAutenticado from "@/Layouts/LayoutsAutenticado";
 import {
     AlertCircleIcon,
@@ -40,7 +34,7 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { DadosDesempenho } from "@/types/desempenho";
+import { DadosDesempenho, INecessidade } from "@/types/desempenho";
 import {
     ChartContainer,
     ChartLegend,
@@ -59,6 +53,8 @@ import {
     XAxis,
     YAxis,
 } from "recharts";
+import NecessidadeConfiguracaoSection from "@/components/Empresa/Desempenho/NecessidadeConfiguracaoSection";
+import HeaderDesempenho from "@/components/Empresa/Desempenho/HeaderDesempenho";
 
 interface IProps {
     necessidadesConfiguracao: INecessidade[];
@@ -66,17 +62,6 @@ interface IProps {
     estaRecebendoIfood: boolean;
     linkDelivery: string;
     linkMesa: string;
-}
-
-interface INecessidade {
-    titulo: string;
-    mensagem: string;
-    link: ILink;
-}
-
-interface ILink {
-    nomeRota: string;
-    paramRota: string;
 }
 
 export default function Desempenho({
@@ -89,7 +74,7 @@ export default function Desempenho({
     const { cnpj } = usePage().props;
     const diaPadrao = 7;
     const [estaRecebendoIfood, setEstaRecebendoIfood] = useState(
-        estaRecebendoIfoodInicial,
+        estaRecebendoIfoodInicial
     );
     const [dataInicioFiltro, setDataInicioFiltro] = useState(diaPadrao);
     const [dadosBackend, setDadosBackend] = useState<DadosDesempenho | null>(
@@ -153,95 +138,16 @@ export default function Desempenho({
     return (
         <LayoutAutenticado>
             <div className="container w-full">
-                {necessidadesConfiguracao.length >= 1 && (
-                    <div className="container w-full flex flex-col gap-4">
-                        {necessidadesConfiguracao.map((necessidade, idx) => (
-                            <Alert
-                                className="border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-50"
-                                key={idx}
-                            >
-                                <AlertTitle className="flex gap-4">
-                                    <AlertCircleIcon />
-                                    {necessidade.titulo}
-                                </AlertTitle>
-                                <AlertDescription>
-                                    {necessidade.mensagem}
-                                </AlertDescription>
-                                <AlertAction>
-                                    <Button variant={"outline"} asChild>
-                                        <Link
-                                            href={route(
-                                                necessidade.link.nomeRota,
-                                                necessidade.link.paramRota,
-                                            )}
-                                        >
-                                            Configurar
-                                        </Link>
-                                    </Button>
-                                </AlertAction>
-                            </Alert>
-                        ))}
-                    </div>
-                )}
+                <NecessidadeConfiguracaoSection necessidades={necessidadesConfiguracao} />
 
-                <div className="my-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                    <div>
-                        <H1 className="font-bold">Painel de desempenho</H1>
-                        <p className="text-base-content/70">
-                            Visão geral do seu negócio
-                        </p>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-4">
-                        {temTokenIfood && (
-                            <div className="flex gap-2">
-                                <Switch
-                                    checked={estaRecebendoIfood}
-                                    onCheckedChange={(valor) =>
-                                        configuraRecebimentoIfood(valor)
-                                    }
-                                    id="esta-recebendo-ifood"
-                                />
-                                <Label htmlFor="esta-recebendo-ifood">
-                                    Está recebendo pedidos do IFood?
-                                </Label>
-                            </div>
-                        )}
-                    </div>
-                    <div className="flex gap-2">
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="cursor-pointer"
-                                        onClick={() => copiar(linkDelivery)}
-                                    >
-                                        <Motorbike />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    Link para Delivery
-                                </TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="cursor-pointer"
-                                        onClick={() => copiar(linkMesa)}
-                                    >
-                                        <ConciergeBell />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    Link para atendimento em mesa
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    </div>
-                </div>
+                <HeaderDesempenho 
+                    temTokenIfood={temTokenIfood}
+                    checkedValue={estaRecebendoIfood}
+                    setCheckedValue={configuraRecebimentoIfood}
+                    fnCopiar={copiar}
+                    linkDelivery={linkDelivery}
+                    linkMesa={linkMesa}
+                />
 
                 <div className="flex flex-col gap-4 mb-8">
                     <H2 className="flex gap-2 items-center">
