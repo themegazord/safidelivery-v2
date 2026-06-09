@@ -23,7 +23,7 @@ export default function HeaderDesempenho({
   linkMesa
 }: IProps) {
     return (
-        <div className="my-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <section className="my-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
                 <H1 className="font-bold">Painel de desempenho</H1>
                 <p className="text-base-content/70">
@@ -78,6 +78,6 @@ export default function HeaderDesempenho({
                     </Tooltip>
                 </TooltipProvider>
             </div>
-        </div>
+        </section>
     );
 }
