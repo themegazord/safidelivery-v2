@@ -56,6 +56,7 @@ import {
 import NecessidadeConfiguracaoSection from "@/components/Empresa/Desempenho/NecessidadeConfiguracaoSection";
 import HeaderDesempenho from "@/components/Empresa/Desempenho/HeaderDesempenho";
 import VisaoGeralHojeSection from "@/components/Empresa/Desempenho/VisaoGeralHojeSection";
+import PerformanceSection from "@/components/Empresa/Desempenho/PerformanceSection";
 
 interface IProps {
     necessidadesConfiguracao: INecessidade[];
@@ -155,108 +156,11 @@ export default function Desempenho({
                     pedidosHoje={dadosBackend?.pedidos_hoje ?? []}
                 />
 
-                <div className="mb-6 flex flex-col items-start justify-between gap-4 rounded-lg bg-primary-200 p-4 sm:flex-row sm:items-center">
-                    <div className="flex items-center gap-2">
-                        <Calendar />
-                        <span className="font-medium">{intervaloData()}</span>
-                    </div>
-                    <ToggleGroup type="single">
-                        {[7, 15, 30].map((dia) => (
-                            <ToggleGroupItem
-                                onClick={() => setDataInicioFiltro(dia)}
-                                key={dia}
-                                value={String(dia)}
-                            >
-                                {dia} dias
-                            </ToggleGroupItem>
-                        ))}
-                    </ToggleGroup>
-                </div>
-
-                <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Faturamento</CardTitle>
-                            <CardDescription className="font-bold text-xl">
-                                R${" "}
-                                {dadosBackend?.metricas?.faturamentoPeriodo.toFixed(
-                                    2,
-                                )}
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            {dadosBackend?.metricas?.crescimentoFaturamento !=
-                                0 && (
-                                <div
-                                    className={`${(dadosBackend?.metricas?.crescimentoFaturamento ?? 0) > 0 ? "text-green-500" : "text-red-500"} mt-1 flex items-center gap-1 text-sm`}
-                                >
-                                    <div className="flex gap-2 items-center">
-                                        {(dadosBackend?.metricas
-                                            ?.crescimentoFaturamento ?? 0) >
-                                        0 ? (
-                                            <TrendingUp />
-                                        ) : (
-                                            <TrendingDown />
-                                        )}
-                                        {Math.abs(
-                                            dadosBackend?.metricas
-                                                ?.crescimentoFaturamento ?? 0,
-                                        ).toFixed(2)}{" "}
-                                        %
-                                    </div>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Pedidos entregues:</CardTitle>
-                            <CardDescription className="font-bold text-xl">
-                                {dadosBackend?.metricas?.totalPedidosEntregues}{" "}
-                                pedidos
-                            </CardDescription>
-                        </CardHeader>
-                    </Card>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Ticket médio:</CardTitle>
-                            <CardDescription className="font-bold text-xl">
-                                R${" "}
-                                {dadosBackend?.metricas?.ticketMedio.toFixed(2)}
-                            </CardDescription>
-                        </CardHeader>
-                    </Card>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Cancelamentos:</CardTitle>
-                            <CardDescription
-                                className={`${(dadosBackend?.metricas?.totalPedidosEntregues ?? 0 > 10) ? "text-red-500" : ""} font-bold text-xl`}
-                            >
-                                {dadosBackend?.metricas?.totalPedidosCancelados}{" "}
-                                pedidos
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            {dadosBackend?.metricas?.taxaCancelamento}% do total
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Via IFOOD:</CardTitle>
-                            <CardDescription className="font-bold text-xl">
-                                {dadosBackend?.metricas?.pedidosIfood} pedidos
-                            </CardDescription>
-                        </CardHeader>
-                    </Card>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Pedido direto:</CardTitle>
-                            <CardDescription className="font-bold text-xl">
-                                {dadosBackend?.metricas?.pedidosDireto} pedidos
-                            </CardDescription>
-                        </CardHeader>
-                    </Card>
-                </div>
+                <PerformanceSection 
+                    intervaloData={intervaloData}
+                    setDataInicioFiltro={setDataInicioFiltro}
+                    metricas={dadosBackend?.metricas}
+                />
 
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                     <Card className="col-span-1 lg:col-span-2">
