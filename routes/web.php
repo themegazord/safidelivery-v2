@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Autenticacao\LoginEmpresaController;
+use App\Http\Controllers\Empresa\CardapioDigital\CardapioController;
 use App\Http\Controllers\Empresa\ConfiguracaoController;
 use App\Http\Controllers\Empresa\DesempenhoController;
 use App\Http\Controllers\HomeController;
@@ -30,5 +31,11 @@ Route::group([], function () {
         Route::prefix('configuracoes')->group(function () {
             Route::patch('/', [ConfiguracaoController::class, 'configuraRecebimentoPedidoIfood'])->name('aplicacao.empresa.configuracoes');
         });
+    });
+});
+
+Route::group([], function () {
+    Route::prefix('loja/{interacao_id}/{tipo_funcionamento}')->group(function () {
+        Route::get('/', [CardapioController::class, 'index'])->name('aplicacao.empresa.cardapio-digital');
     });
 });
