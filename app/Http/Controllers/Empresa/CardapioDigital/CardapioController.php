@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Empresa\CardapioDigital;
 
 use App\Http\Controllers\Controller;
 use App\Models\Empresa;
+use App\Services\Empresa\CardapioDigital\CardapioService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class CardapioController extends Controller
 {
     public Empresa $empresa;
+    public function __construct(public readonly CardapioService $cardapioService) {}
+
     public function index(string $interacao_id, string $tipo_funcionamento) {
         $this->empresa = Empresa::query()->where('interacao_id', $interacao_id)->first();
 
@@ -18,7 +21,9 @@ class CardapioController extends Controller
             'tipo_funcionamento' => $tipo_funcionamento,
             'capa' => $this->empresa->getAttribute('capa'),
             'logo' => $this->empresa->getAttribute('logo'),
-            'nome_fantasia' => $this->empresa->getAttribute('nome_fantasia')
+            'nome_fantasia' => $this->empresa->getAttribute('nome_fantasia'),
+            'categorias' => $this->cardapioService->categoriasDisponiveis($this->empresa, $tipo_funcionamento),
+            'cardapioHoje' => $this->cardapioService->cardapioHoje()
         ]);
     }
 }
