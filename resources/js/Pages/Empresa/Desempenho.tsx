@@ -8,6 +8,7 @@ import HeaderDesempenho from "@/components/Empresa/Desempenho/HeaderDesempenho";
 import VisaoGeralHojeSection from "@/components/Empresa/Desempenho/VisaoGeralHojeSection";
 import PerformanceSection from "@/components/Empresa/Desempenho/PerformanceSection";
 import GraficosSection from "@/components/Empresa/Desempenho/GraficosSection";
+import { toast } from "sonner";
 
 interface IProps {
     necessidadesConfiguracao: INecessidade[];
@@ -71,6 +72,7 @@ export default function Desempenho({
         textarea.select();
         document.execCommand("copy");
         document.body.removeChild(textarea);
+        toast.success('Link copiado com sucesso!')
     }
 
     function intervaloData(): string {
@@ -93,7 +95,7 @@ export default function Desempenho({
             <div className="container w-full">
                 <NecessidadeConfiguracaoSection necessidades={necessidadesConfiguracao} />
 
-                <HeaderDesempenho 
+                <HeaderDesempenho
                     temTokenIfood={temTokenIfood}
                     checkedValue={estaRecebendoIfood}
                     setCheckedValue={configuraRecebimentoIfood}
@@ -102,18 +104,18 @@ export default function Desempenho({
                     linkMesa={linkMesa}
                 />
 
-                <VisaoGeralHojeSection 
+                <VisaoGeralHojeSection
                     financeiroPedidosHoje={dadosBackend?.financeiro_pedidos_hoje ?? []}
                     pedidosHoje={dadosBackend?.pedidos_hoje ?? []}
                 />
 
-                <PerformanceSection 
+                <PerformanceSection
                     intervaloData={intervaloData}
                     setDataInicioFiltro={setDataInicioFiltro}
                     metricas={dadosBackend?.metricas}
                 />
 
-                <GraficosSection 
+                <GraficosSection
                     charts={dadosBackend?.charts}
                     metricas={dadosBackend?.metricas}
                 />
