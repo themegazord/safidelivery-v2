@@ -12,7 +12,7 @@ interface IProps {
 export default function LayoutCardapio({ children, recebeInteracaoId, recebeTipoFuncionamento }: IProps) {
     return (
         <div className="flex flex-col gap-4">
-            <header>
+            <header className="sticky top-0 z-20 bg-background border-b border-border">
                 <nav className="flex justify-between px-6 py-4 w-full">
                     <Button className="cursor-pointer" variant="ghost" asChild>
                         <Link className="flex gap-2" href={route('aplicacao.empresa.cardapio-digital', { interacao_id: recebeInteracaoId, tipo_funcionamento: recebeTipoFuncionamento })}>

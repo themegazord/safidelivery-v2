@@ -2,6 +2,7 @@ import { MenuItemCard } from "@/components/Empresa/CardapioDigital/MenuItemCard"
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { DragScrollContainer } from "@/components/utils/DragScroll";
 import { H4 } from "@/components/utils/Heading";
 import LayoutCardapio from "@/Layouts/LayoutCardapio";
 import {
@@ -10,6 +11,7 @@ import {
     ITamanhoPizza,
 } from "@/types/cardapio-digital/cardapio";
 import axios from "axios";
+import { Search } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface IProps {
@@ -18,7 +20,7 @@ interface IProps {
     capa?: string;
     logo?: string;
     nome_fantasia: string;
-    categorias: { id: number; nome: string };
+    categorias: { id: number; nome: string }[];
     cardapioHoje: ICardapio;
 }
 
@@ -36,6 +38,7 @@ export default function Cardapio({
     const [filtrado, setFiltrado] = useState<ICategoria[]>(
         cardapioHoje?.categorias ?? [],
     );
+    const [activeCategory, setActiveCategory] = useState<number | null>(null);
     const [loadingItemId, setLoadingItemId] = useState<number | null>(null);
     const [openModalPedido, setOpenModalPedido] = useState<boolean>(false);
 
@@ -178,18 +181,31 @@ export default function Cardapio({
             </section>
             {/* End Hero Section */}
 
-            <section className="flex flex-col gap-4 my-4">
-                <Input
-                    value={pesquisa}
-                    onChange={(e) => setPesquisa(e.target.value)}
+            <div className="sticky top-17 z-10 bg-background pt-4 pb-3 flex flex-col gap-3 border-b border-border">
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+                    <Input
+                        className="pl-9"
+                        placeholder="Pesquisar itens..."
+                        value={pesquisa}
+                        onChange={(e) => setPesquisa(e.target.value)}
+                    />
+                </div>
+                <DragScrollContainer
+                    cards={categorias}
+                    activeCategory={activeCategory}
+                    onSelect={setActiveCategory}
                 />
+            </div>
+
+            <section className="flex flex-col gap-4 mt-4">
 
                 {filtrado
                     .filter((categoria) =>
                         categoria.dias_funcionamento.map(Number).includes(HOJE),
                     )
                     .map((categoria, idx) => (
-                        <Card key={idx} className="w-full">
+                        <Card key={idx} id={`categoria-${categoria.id}`} className="w-full">
                             <CardHeader>
                                 <CardTitle>{categoria.nome}</CardTitle>
                             </CardHeader>
@@ -238,8 +254,8 @@ export default function Cardapio({
                                                                 valor_desconto:
                                                                     item.valor_desconto
                                                                         ? Number(
-                                                                              item.valor_desconto,
-                                                                          )
+                                                                            item.valor_desconto,
+                                                                        )
                                                                         : undefined,
                                                             }}
                                                         />
@@ -341,12 +357,11 @@ export default function Cardapio({
                                                                 >
                                                                     <MenuItemCard
                                                                         item={{
-                                                                            nome: `${tamanho.nome} ${
-                                                                                qtde >
-                                                                                1
+                                                                            nome: `${tamanho.nome} ${qtde >
+                                                                                    1
                                                                                     ? `${qtde} SABORES `
                                                                                     : ""
-                                                                            } (${tamanho.qtde_pedacos} PEDAÇOS)`,
+                                                                                } (${tamanho.qtde_pedacos} PEDAÇOS)`,
                                                                             descricao:
                                                                                 undefined,
                                                                             imagem:
