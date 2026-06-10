@@ -23,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
             '*/desempenho/buscaPedidosPorData',
             '*/configuracoes',
             'autenticacao/empresa/login',
+            'loja/*'
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

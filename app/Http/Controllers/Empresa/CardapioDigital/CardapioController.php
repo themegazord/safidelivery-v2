@@ -26,4 +26,8 @@ class CardapioController extends Controller
             'cardapioHoje' => $this->cardapioService->cardapioHoje()
         ]);
     }
+
+    public function itemPedido(Request $request) {
+        return response()->json($this->cardapioService->getItemPedido($request->id));
+    }
 }

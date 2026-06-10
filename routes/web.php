@@ -37,5 +37,6 @@ Route::group([], function () {
 Route::group([], function () {
     Route::prefix('loja/{interacao_id}/{tipo_funcionamento}')->group(function () {
         Route::get('/', [CardapioController::class, 'index'])->name('aplicacao.empresa.cardapio-digital');
+        Route::post('/item-pedido', [CardapioController::class, 'itemPedido'])->name('aplicacao.empresa.cardapio-digital.item-pedido');
     });
 });
