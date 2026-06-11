@@ -41,7 +41,7 @@ function LayoutCardapioContent({ children }: { children: ReactNode }) {
                     <Button variant="ghost" className="relative cursor-pointer">
                         <ShoppingCart className="size-6" />
                         {quantidadeCarrinho > 0 && (
-                            <Badge className="-right-1com.5 bg-primary text-primary-foreground absolute -top-1.5 flex h-4.5 w-4.5 items-center justify-center rounded-full text-[11px] font-bold">
+                            <Badge className="-right-1.5 bg-primary text-primary-foreground absolute -top-1.5 flex h-4.5 w-4.5 items-center justify-center rounded-full text-[11px] font-bold">
                                 {quantidadeCarrinho}
                             </Badge>
                         )}
