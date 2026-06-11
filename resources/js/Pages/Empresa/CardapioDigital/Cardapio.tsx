@@ -14,7 +14,10 @@ import axios from "axios";
 import { Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import ModalItens from "@/components/Empresa/CardapioDigital/ModalItens";
-import { IItemPedido } from "@/types/cardapio-digital/item-pedido";
+import {
+    IGrupoComplemento,
+    IItemPedido,
+} from "@/types/cardapio-digital/item-pedido";
 
 interface IProps {
     interacao_id: string;
@@ -43,6 +46,9 @@ export default function Cardapio({
     const [activeCategory, setActiveCategory] = useState<number | null>(null);
     const [loadingItemId, setLoadingItemId] = useState<number | null>(null);
     const [openModalPedido, setOpenModalPedido] = useState<boolean>(false);
+    const [grupoComplementosInvalidos, setGrupoComplementoInvalidos] = useState<
+        number[]
+    >([]);
 
     const [itemModal, setItemModal] = useState<IItemPedido>();
 
@@ -63,82 +69,142 @@ export default function Cardapio({
             ?.preco;
     }
 
-function calculaTotal(item: IItemPedido): number {
-    const precoBase = Number(item.desconto ? item.valor_desconto : item.preco)
+    function calculaTotal(item: IItemPedido): number {
+        const precoBase = Number(
+            item.desconto ? item.valor_desconto : item.preco,
+        );
 
-    const totalComplementos = item.grupo_complemento.reduce(
-        (acc, g) => acc + g.complementos.reduce((soma, c) => soma + item.quantidade * (c.quantidade * Number(c.preco)), 0),
-        0
-    )
+        const totalComplementos = item.grupo_complemento.reduce(
+            (acc, g) =>
+                acc +
+                g.complementos.reduce(
+                    (soma, c) =>
+                        soma +
+                        item.quantidade * (c.quantidade * Number(c.preco)),
+                    0,
+                ),
+            0,
+        );
 
-    return item.quantidade * precoBase + totalComplementos
-}
+        return item.quantidade * precoBase + totalComplementos;
+    }
 
-function adicionaQtdeItemSelecionado(alvo: 'item' | 'complemento', grupo_idx?: number, complemento_idx?: number): void {
-    setItemModal(prev => {
-        if (!prev) return prev
+    function adicionaQtdeItemSelecionado(
+        alvo: "item" | "complemento",
+        grupo_idx?: number,
+        complemento_idx?: number,
+    ): void {
+        setItemModal((prev) => {
+            if (!prev) return prev;
 
-        if (alvo === 'item') {
-            const atualizado = { ...prev, quantidade: prev.quantidade + 1 }
-            return { ...atualizado, total: calculaTotal(atualizado) }
-        }
-
-        const grupos = prev.grupo_complemento.map((g, gi) => {
-            if (gi !== grupo_idx) return g
-
-            const novosComplementos = g.complementos.map((c, ci) =>
-                ci === complemento_idx ? { ...c, quantidade: c.quantidade + 1 } : c
-            )
-
-            const novoTotal = novosComplementos.reduce((acc, c) => acc + c.quantidade, 0)
-
-            return {
-                ...g,
-                complementos: novosComplementos,
-                bloqueado: novoTotal >= g.qtd_maxima
-            }
-        })
-
-        const atualizado = { ...prev, grupo_complemento: grupos }
-        return { ...atualizado, total: calculaTotal(atualizado) }
-    })
-}
-
-    function diminuiQtdeItemSelecionado(alvo: 'item' | 'complemento', grupo_idx?: number, complemento_idx?: number): void {
-        setItemModal(prev => {
-            if (!prev) return prev
-
-            if (alvo === 'item') {
-                const atualizado = { ...prev, quantidade: Math.max(1, prev.quantidade - 1) }
-                return {...atualizado, total: calculaTotal(atualizado)}
+            if (alvo === "item") {
+                const atualizado = { ...prev, quantidade: prev.quantidade + 1 };
+                return { ...atualizado, total: calculaTotal(atualizado) };
             }
 
             const grupos = prev.grupo_complemento.map((g, gi) => {
-                if (gi !== grupo_idx) return g
+                if (gi !== grupo_idx) return g;
 
                 const novosComplementos = g.complementos.map((c, ci) =>
-                    ci === complemento_idx ? { ...c, quantidade: c.quantidade - 1 } : c
-                )
+                    ci === complemento_idx
+                        ? { ...c, quantidade: c.quantidade + 1 }
+                        : c,
+                );
 
-                const novoTotal = novosComplementos.reduce((acc, c) => acc - c.quantidade, 0)
+                const novoTotal = novosComplementos.reduce(
+                    (acc, c) => acc + c.quantidade,
+                    0,
+                );
 
                 return {
                     ...g,
                     complementos: novosComplementos,
-                    bloqueado: false
-                }
-            })
+                    bloqueado: novoTotal >= g.qtd_maxima,
+                };
+            });
 
-            const atualizado = { ...prev, grupo_complemento: grupos }
-            return { ...atualizado, total: calculaTotal(atualizado) }
-        })
+            const atualizado = { ...prev, grupo_complemento: grupos };
+            return { ...atualizado, total: calculaTotal(atualizado) };
+        });
+    }
+
+    function diminuiQtdeItemSelecionado(
+        alvo: "item" | "complemento",
+        grupo_idx?: number,
+        complemento_idx?: number,
+    ): void {
+        setItemModal((prev) => {
+            if (!prev) return prev;
+
+            if (alvo === "item") {
+                const atualizado = {
+                    ...prev,
+                    quantidade: Math.max(1, prev.quantidade - 1),
+                };
+                return { ...atualizado, total: calculaTotal(atualizado) };
+            }
+
+            const grupos = prev.grupo_complemento.map((g, gi) => {
+                if (gi !== grupo_idx) return g;
+
+                const novosComplementos = g.complementos.map((c, ci) =>
+                    ci === complemento_idx
+                        ? { ...c, quantidade: c.quantidade - 1 }
+                        : c,
+                );
+
+                const novoTotal = novosComplementos.reduce(
+                    (acc, c) => acc - c.quantidade,
+                    0,
+                );
+
+                return {
+                    ...g,
+                    complementos: novosComplementos,
+                    bloqueado: false,
+                };
+            });
+
+            const atualizado = { ...prev, grupo_complemento: grupos };
+            return { ...atualizado, total: calculaTotal(atualizado) };
+        });
     }
 
     function adicionaObservacao(observacao: string): void {
-        setItemModal(prev => {
-            if (!prev) return prev
-            return { ...prev, observacao: observacao }
-        })
+        setItemModal((prev) => {
+            if (!prev) return prev;
+            return { ...prev, observacao: observacao };
+        });
+    }
+
+    function adicionarItemCarrinho() {
+        const invalidos =
+            itemModal?.grupo_complemento
+                .filter((grupo) => !grupoComplementoValido(grupo))
+                .map((grupo) => grupo.id) ?? [];
+
+        setGrupoComplementoInvalidos(invalidos);
+
+        console.log(grupoComplementosInvalidos)
+
+        if (invalidos.length > 0) return;
+
+        console.log(itemModal)
+    }
+
+    function grupoComplementoValido(
+        grupoComplemento: IGrupoComplemento,
+    ): boolean {
+        if (grupoComplemento.obrigatoriedade) {
+            return (
+                grupoComplemento.complementos.reduce(
+                    (acc, c) => acc + c.quantidade,
+                    0,
+                ) > grupoComplemento.qtd_minima
+            );
+        } else {
+            return true;
+        }
     }
 
     useEffect(() => {
@@ -206,7 +272,7 @@ function adicionaQtdeItemSelecionado(alvo: 'item' | 'complemento', grupo_idx?: n
             );
 
             setItemModal(data.item);
-            setOpenModalPedido(true)
+            setOpenModalPedido(true);
         } catch (error) {
             console.error(error);
         } finally {
@@ -279,13 +345,16 @@ function adicionaQtdeItemSelecionado(alvo: 'item' | 'complemento', grupo_idx?: n
             </div>
 
             <section className="flex flex-col gap-4 mt-4">
-
                 {filtrado
                     .filter((categoria) =>
                         categoria.dias_funcionamento.map(Number).includes(HOJE),
                     )
                     .map((categoria, idx) => (
-                        <Card key={idx} id={`categoria-${categoria.id}`} className="w-full">
+                        <Card
+                            key={idx}
+                            id={`categoria-${categoria.id}`}
+                            className="w-full"
+                        >
                             <CardHeader>
                                 <CardTitle>{categoria.nome}</CardTitle>
                             </CardHeader>
@@ -309,7 +378,10 @@ function adicionaQtdeItemSelecionado(alvo: 'item' | 'complemento', grupo_idx?: n
                                                                 )
                                                             }
                                                             className="cursor-pointer"
-                                                            isLoading={loadingItemId === item.id}
+                                                            isLoading={
+                                                                loadingItemId ===
+                                                                item.id
+                                                            }
                                                             item={{
                                                                 nome: item.nome,
                                                                 preco: Number(
@@ -334,8 +406,8 @@ function adicionaQtdeItemSelecionado(alvo: 'item' | 'complemento', grupo_idx?: n
                                                                 valor_desconto:
                                                                     item.valor_desconto
                                                                         ? Number(
-                                                                            item.valor_desconto,
-                                                                        )
+                                                                              item.valor_desconto,
+                                                                          )
                                                                         : undefined,
                                                             }}
                                                         />
@@ -437,11 +509,12 @@ function adicionaQtdeItemSelecionado(alvo: 'item' | 'complemento', grupo_idx?: n
                                                                 >
                                                                     <MenuItemCard
                                                                         item={{
-                                                                            nome: `${tamanho.nome} ${qtde >
+                                                                            nome: `${tamanho.nome} ${
+                                                                                qtde >
                                                                                 1
-                                                                                ? `${qtde} SABORES `
-                                                                                : ""
-                                                                                } (${tamanho.qtde_pedacos} PEDAÇOS)`,
+                                                                                    ? `${qtde} SABORES `
+                                                                                    : ""
+                                                                            } (${tamanho.qtde_pedacos} PEDAÇOS)`,
                                                                             descricao:
                                                                                 undefined,
                                                                             imagem:
@@ -465,7 +538,16 @@ function adicionaQtdeItemSelecionado(alvo: 'item' | 'complemento', grupo_idx?: n
                     ))}
             </section>
 
-            <ModalItens item={itemModal} open={openModalPedido} setOpen={setOpenModalPedido} adicionaQtde={adicionaQtdeItemSelecionado} diminuiQtde={diminuiQtdeItemSelecionado} adicionaObservacao={adicionaObservacao}/>
+            <ModalItens
+                item={itemModal}
+                open={openModalPedido}
+                setOpen={setOpenModalPedido}
+                adicionaQtde={adicionaQtdeItemSelecionado}
+                diminuiQtde={diminuiQtdeItemSelecionado}
+                adicionaObservacao={adicionaObservacao}
+                adicionaItemCarrinho={adicionarItemCarrinho}
+                gruposComplementosInvalidos={grupoComplementosInvalidos}
+            />
         </LayoutCardapio>
     );
 }

@@ -12,7 +12,7 @@ export interface IItemPedido {
 }
 
 
-interface IGrupoComplemento {
+export interface IGrupoComplemento {
     id: number
     item_id: number
     nome: string

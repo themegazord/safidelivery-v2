@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { H4, H6 } from "@/components/utils/Heading";
+import { cn } from "@/lib/utils";
 import { IItemPedido } from "@/types/cardapio-digital/item-pedido";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
 
@@ -18,9 +19,11 @@ interface IProps {
     adicionaQtde: (alvo: 'item' | 'complemento', grupo_idx?: number, complemento_idx?: number) => void
     diminuiQtde: (alvo: 'item' | 'complemento', grupo_idx?: number, complemento_idx?: number) => void
     adicionaObservacao: (observacao: string) => void
+    adicionaItemCarrinho: () => void
+    gruposComplementosInvalidos: number[]
 }
 
-export default function ModalItens({ item, open, setOpen, adicionaQtde, diminuiQtde, adicionaObservacao }: IProps) {
+export default function ModalItens({ item, open, setOpen, adicionaQtde, diminuiQtde, adicionaObservacao, adicionaItemCarrinho, gruposComplementosInvalidos }: IProps) {
     function converteReal(valor?: number | string) {
         return Number(valor).toLocaleString('pt-BR', {
             minimumFractionDigits: 2,
@@ -58,7 +61,10 @@ export default function ModalItens({ item, open, setOpen, adicionaQtde, diminuiQ
                             )}
                         </div>
                         {item?.grupo_complemento.map((grupo, grupoIdx) => (
-                            <Card className="w-full mb-4" key={grupoIdx}>
+                            <Card className={cn(
+                                'w-full mb-4',
+                                gruposComplementosInvalidos.includes(grupo.id) ? 'border border-red-500' : ''
+                            )} key={grupoIdx}>
                                 <CardHeader>
                                     <div className="flex justify-between items-center">
                                         <CardTitle>{grupo.nome}</CardTitle>
@@ -108,7 +114,7 @@ export default function ModalItens({ item, open, setOpen, adicionaQtde, diminuiQ
                                 <Button className="cursor-pointer" onClick={() => adicionaQtde('item')}><Plus /></Button>
                             </ButtonGroup>
                         </div>
-                        <Button size={"lg"} className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300 hover:bg-green-50/20 dark:hover:bg-green-950/20 cursor-pointer w-full md:w-auto">
+                        <Button onClick={() => adicionaItemCarrinho()} size={"lg"} className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300 hover:bg-green-50/20 dark:hover:bg-green-950/20 cursor-pointer w-full md:w-auto">
                             <ShoppingCart /> Adicionar R$ {converteReal(item?.total)}
                         </Button>
                     </div>
