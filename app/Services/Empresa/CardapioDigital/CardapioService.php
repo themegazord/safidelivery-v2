@@ -55,6 +55,8 @@ class CardapioService
     return [
       'item' => [
         ...$item->only(['id', 'nome', 'preco', 'desconto', 'valor_desconto', 'descricao', 'imagem']),
+        'quantidade' => 1,
+        'observacao' => "",
         'grupo_complemento' => $item->grupo_complemento->map(fn($grupo) => [
           ...$grupo->only(['id', 'item_id', 'nome', 'obrigatoriedade', 'qtd_minima', 'qtd_maxima']),
           'bloqueado' => false,

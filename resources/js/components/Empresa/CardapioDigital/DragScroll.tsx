@@ -1,5 +1,5 @@
 import { useDragScroll } from '@/hooks/useDragScroll'
-import { Button } from '../ui/button';
+import { Button } from '../../ui/button';
 
 interface IProps {
     cards: { id: number; nome: string }[]

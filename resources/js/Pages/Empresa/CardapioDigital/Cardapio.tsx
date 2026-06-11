@@ -2,7 +2,7 @@ import { MenuItemCard } from "@/components/Empresa/CardapioDigital/MenuItemCard"
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { DragScrollContainer } from "@/components/utils/DragScroll";
+import { DragScrollContainer } from "@/components/Empresa/CardapioDigital/DragScroll";
 import { H4 } from "@/components/utils/Heading";
 import LayoutCardapio from "@/Layouts/LayoutCardapio";
 import {
@@ -13,6 +13,8 @@ import {
 import axios from "axios";
 import { Search } from "lucide-react";
 import { useEffect, useState } from "react";
+import ModalItens from "@/components/Empresa/CardapioDigital/ModalItens";
+import { IItemPedido } from "@/types/cardapio-digital/item-pedido";
 
 interface IProps {
     interacao_id: string;
@@ -42,7 +44,7 @@ export default function Cardapio({
     const [loadingItemId, setLoadingItemId] = useState<number | null>(null);
     const [openModalPedido, setOpenModalPedido] = useState<boolean>(false);
 
-    const [itemModal, setItemModal] = useState(null);
+    const [itemModal, setItemModal] = useState<IItemPedido>();
 
     function getItensAtivosPizza(tamanho: ITamanhoPizza) {
         return tamanho.precos_por_tamanho.filter((ppt) => {
@@ -59,6 +61,65 @@ export default function Cardapio({
 
         return itensAtivos.sort((a, b) => Number(a.preco) - Number(b.preco))[0]
             ?.preco;
+    }
+
+    function adicionaQtdeItemSelecionado(alvo: 'item' | 'complemento', grupo_idx?: number, complemento_idx?: number): void {
+        setItemModal(prev => {
+            if (!prev) return prev
+
+            if (alvo === 'item') {
+                return { ...prev, quantidade: Math.max(1, prev.quantidade + 1) }
+            }
+
+            const grupos = prev.grupo_complemento.map((g, gi) => {
+                if (gi !== grupo_idx) return g
+
+                const novosComplementos = g.complementos.map((c, ci) => ci === complemento_idx ? { ...c, quantidade: Math.max(0, c.quantidade + 1) } : c)
+
+                const novoTotal = novosComplementos.reduce((acc, c) => acc + c.quantidade, 0)
+
+                return {
+                    ...g,
+                    complementos: novosComplementos,
+                    bloqueado: novoTotal >= g.qtd_maxima
+                }
+            })
+
+            return { ...prev, grupo_complemento: grupos }
+        })
+    }
+
+    function diminuiQtdeItemSelecionado(alvo: 'item' | 'complemento', grupo_idx?: number, complemento_idx?: number): void {
+        setItemModal(prev => {
+            if (!prev) return prev
+
+            if (alvo === 'item') {
+                return { ...prev, quantidade: Math.max(1, prev.quantidade - 1) }
+            }
+
+            const grupos = prev.grupo_complemento.map((g, gi) => {
+                if (gi !== grupo_idx) return g
+
+                const novosComplementos = g.complementos.map((c, ci) => ci === complemento_idx ? { ...c, quantidade: Math.max(0, c.quantidade - 1) } : c)
+
+                const novoTotal = novosComplementos.reduce((acc, c) => acc + c.quantidade, 0)
+
+                return {
+                    ...g,
+                    complementos: novosComplementos,
+                    bloqueado: false
+                }
+            })
+
+            return { ...prev, grupo_complemento: grupos }
+        })
+    }
+
+    function adicionaObservacao(observacao: string): void {
+        setItemModal(prev => {
+            if (!prev) return prev
+            return { ...prev, observacao: observacao }
+        })
     }
 
     useEffect(() => {
@@ -125,8 +186,8 @@ export default function Cardapio({
                 { id },
             );
 
-            setItemModal(data);
-            console.log(data);
+            setItemModal(data.item);
+            setOpenModalPedido(true)
         } catch (error) {
             console.error(error);
         } finally {
@@ -358,9 +419,9 @@ export default function Cardapio({
                                                                     <MenuItemCard
                                                                         item={{
                                                                             nome: `${tamanho.nome} ${qtde >
-                                                                                    1
-                                                                                    ? `${qtde} SABORES `
-                                                                                    : ""
+                                                                                1
+                                                                                ? `${qtde} SABORES `
+                                                                                : ""
                                                                                 } (${tamanho.qtde_pedacos} PEDAÇOS)`,
                                                                             descricao:
                                                                                 undefined,
@@ -384,6 +445,8 @@ export default function Cardapio({
                         </Card>
                     ))}
             </section>
+
+            <ModalItens item={itemModal} open={openModalPedido} setOpen={setOpenModalPedido} adicionaQtde={adicionaQtdeItemSelecionado} diminuiQtde={diminuiQtdeItemSelecionado} adicionaObservacao={adicionaObservacao}/>
         </LayoutCardapio>
     );
 }
