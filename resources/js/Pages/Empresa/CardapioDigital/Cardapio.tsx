@@ -12,12 +12,14 @@ import {
 } from "@/types/cardapio-digital/cardapio";
 import axios from "axios";
 import { Search } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import ModalItens from "@/components/Empresa/CardapioDigital/ModalItens";
 import {
     IGrupoComplemento,
     IItemPedido,
 } from "@/types/cardapio-digital/item-pedido";
+import { CarrinhoContext } from "@/contexts/CardapioDigital/CarrinhoContext";
+import { ReactNode } from "react";
 
 interface IProps {
     interacao_id: string;
@@ -51,6 +53,8 @@ export default function Cardapio({
     >([]);
 
     const [itemModal, setItemModal] = useState<IItemPedido>();
+
+    const { adicionaItemCarrinho } = useContext(CarrinhoContext)
 
     function getItensAtivosPizza(tamanho: ITamanhoPizza) {
         return tamanho.precos_por_tamanho.filter((ppt) => {
@@ -185,11 +189,10 @@ export default function Cardapio({
 
         setGrupoComplementoInvalidos(invalidos);
 
-        console.log(grupoComplementosInvalidos)
-
         if (invalidos.length > 0) return;
 
-        console.log(itemModal)
+        adicionaItemCarrinho(itemModal)
+        setOpenModalPedido(false)
     }
 
     function grupoComplementoValido(
@@ -293,10 +296,7 @@ export default function Cardapio({
     }
 
     return (
-        <LayoutCardapio
-            recebeInteracaoId={interacao_id}
-            recebeTipoFuncionamento={tipo_funcionamento}
-        >
+        <>
             {/* Hero Section */}
             <section className="flex flex-col gap-4">
                 {capa ? (
@@ -548,6 +548,10 @@ export default function Cardapio({
                 adicionaItemCarrinho={adicionarItemCarrinho}
                 gruposComplementosInvalidos={grupoComplementosInvalidos}
             />
-        </LayoutCardapio>
+        </>
     );
 }
+
+Cardapio.layout = (page: ReactNode) => (
+    <LayoutCardapio>{page}</LayoutCardapio>
+);

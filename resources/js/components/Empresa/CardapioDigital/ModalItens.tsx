@@ -41,7 +41,7 @@ export default function ModalItens({ item, open, setOpen, adicionaQtde, diminuiQ
                         <img src={item?.imagem} alt={`Imagem do produto ${item?.nome}`} className="w-full object-cover rounded-xl h-full" />
                     </div>
                     <div className="flex-1 min-h-0 overflow-y-auto md:max-h-96 w-full space-y-4 pb-2 pr-1">
-                        {(item?.descricao.trim().length ?? 0 > 0) && (
+                        {(item?.descricao?.trim().length ?? 0 > 0) && (
                             <div className="flex flex-col gap-2">
                                 <p className="text-sm">Descrição do item:</p>
                                 <p className="text-foreground mb-4">{item?.descricao}</p>

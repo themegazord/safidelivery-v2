@@ -1,4 +1,5 @@
 export interface IItemPedido {
+    id: number
     nome: string
     preco: string
     desconto: boolean | number
@@ -8,7 +9,8 @@ export interface IItemPedido {
     grupo_complemento: IGrupoComplemento[]
     quantidade: number
     observacao?: string,
-    total: number
+    total: number,
+    tipo: 'I' | 'P'
 }
 
 

@@ -54,7 +54,7 @@ class CardapioService
 
     return [
       'item' => [
-        ...$item->only(['id', 'nome', 'preco', 'desconto', 'valor_desconto', 'descricao', 'imagem']),
+        ...$item->only(['id', 'nome', 'preco', 'desconto', 'valor_desconto', 'descricao', 'imagem', 'tipo']),
         'quantidade' => 1,
         'observacao' => "",
         'total' => (bool) $item->getAttribute('desconto') ? $item->getAttribute('valor_desconto') : $item->getAttribute('preco'),

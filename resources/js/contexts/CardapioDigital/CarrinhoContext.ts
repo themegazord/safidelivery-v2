@@ -1,7 +1,7 @@
 import { IItemPedido } from "@/types/cardapio-digital/item-pedido";
 import { createContext } from "react";
 
-type TFuncoesManipulaItensCarrinho = (item: IItemPedido) => void
+type TFuncoesManipulaItensCarrinho = (item?: IItemPedido) => void
 
 interface ICarrinhoContext {
   carrinho: (IItemPedido)[]
