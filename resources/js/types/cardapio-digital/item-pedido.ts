@@ -7,7 +7,8 @@ export interface IItemPedido {
     imagem?: string
     grupo_complemento: IGrupoComplemento[]
     quantidade: number
-    observacao?: string
+    observacao?: string,
+    total: number
 }
 
 

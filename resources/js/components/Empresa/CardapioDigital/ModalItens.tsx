@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { H4, H6 } from "@/components/utils/Heading";
 import { IItemPedido } from "@/types/cardapio-digital/item-pedido";
-import { Minus, Plus } from "lucide-react";
+import { Minus, Plus, ShoppingCart } from "lucide-react";
 
 interface IProps {
     item?: IItemPedido
@@ -108,8 +108,8 @@ export default function ModalItens({ item, open, setOpen, adicionaQtde, diminuiQ
                                 <Button className="cursor-pointer" onClick={() => adicionaQtde('item')}><Plus /></Button>
                             </ButtonGroup>
                         </div>
-                        <Button className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300 hover:bg-green-50/20 dark:hover:bg-green-950/20 cursor-pointer w-full md:w-auto">
-                            Adicionar <Plus />
+                        <Button size={"lg"} className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300 hover:bg-green-50/20 dark:hover:bg-green-950/20 cursor-pointer w-full md:w-auto">
+                            <ShoppingCart /> Adicionar R$ {converteReal(item?.total)}
                         </Button>
                     </div>
                 </DialogFooter>

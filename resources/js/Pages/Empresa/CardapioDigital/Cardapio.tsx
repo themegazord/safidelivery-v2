@@ -63,46 +63,64 @@ export default function Cardapio({
             ?.preco;
     }
 
-    function adicionaQtdeItemSelecionado(alvo: 'item' | 'complemento', grupo_idx?: number, complemento_idx?: number): void {
-        setItemModal(prev => {
-            if (!prev) return prev
+function calculaTotal(item: IItemPedido): number {
+    const precoBase = Number(item.desconto ? item.valor_desconto : item.preco)
 
-            if (alvo === 'item') {
-                return { ...prev, quantidade: Math.max(1, prev.quantidade + 1) }
+    const totalComplementos = item.grupo_complemento.reduce(
+        (acc, g) => acc + g.complementos.reduce((soma, c) => soma + item.quantidade * (c.quantidade * Number(c.preco)), 0),
+        0
+    )
+
+    return item.quantidade * precoBase + totalComplementos
+}
+
+function adicionaQtdeItemSelecionado(alvo: 'item' | 'complemento', grupo_idx?: number, complemento_idx?: number): void {
+    setItemModal(prev => {
+        if (!prev) return prev
+
+        if (alvo === 'item') {
+            const atualizado = { ...prev, quantidade: prev.quantidade + 1 }
+            return { ...atualizado, total: calculaTotal(atualizado) }
+        }
+
+        const grupos = prev.grupo_complemento.map((g, gi) => {
+            if (gi !== grupo_idx) return g
+
+            const novosComplementos = g.complementos.map((c, ci) =>
+                ci === complemento_idx ? { ...c, quantidade: c.quantidade + 1 } : c
+            )
+
+            const novoTotal = novosComplementos.reduce((acc, c) => acc + c.quantidade, 0)
+
+            return {
+                ...g,
+                complementos: novosComplementos,
+                bloqueado: novoTotal >= g.qtd_maxima
             }
-
-            const grupos = prev.grupo_complemento.map((g, gi) => {
-                if (gi !== grupo_idx) return g
-
-                const novosComplementos = g.complementos.map((c, ci) => ci === complemento_idx ? { ...c, quantidade: Math.max(0, c.quantidade + 1) } : c)
-
-                const novoTotal = novosComplementos.reduce((acc, c) => acc + c.quantidade, 0)
-
-                return {
-                    ...g,
-                    complementos: novosComplementos,
-                    bloqueado: novoTotal >= g.qtd_maxima
-                }
-            })
-
-            return { ...prev, grupo_complemento: grupos }
         })
-    }
+
+        const atualizado = { ...prev, grupo_complemento: grupos }
+        return { ...atualizado, total: calculaTotal(atualizado) }
+    })
+}
 
     function diminuiQtdeItemSelecionado(alvo: 'item' | 'complemento', grupo_idx?: number, complemento_idx?: number): void {
         setItemModal(prev => {
             if (!prev) return prev
 
             if (alvo === 'item') {
-                return { ...prev, quantidade: Math.max(1, prev.quantidade - 1) }
+                const atualizado = { ...prev, quantidade: Math.max(1, prev.quantidade - 1) }
+                return {...atualizado, total: calculaTotal(atualizado)}
             }
 
             const grupos = prev.grupo_complemento.map((g, gi) => {
                 if (gi !== grupo_idx) return g
 
-                const novosComplementos = g.complementos.map((c, ci) => ci === complemento_idx ? { ...c, quantidade: Math.max(0, c.quantidade - 1) } : c)
+                const novosComplementos = g.complementos.map((c, ci) =>
+                    ci === complemento_idx ? { ...c, quantidade: c.quantidade - 1 } : c
+                )
 
-                const novoTotal = novosComplementos.reduce((acc, c) => acc + c.quantidade, 0)
+                const novoTotal = novosComplementos.reduce((acc, c) => acc - c.quantidade, 0)
 
                 return {
                     ...g,
@@ -111,7 +129,8 @@ export default function Cardapio({
                 }
             })
 
-            return { ...prev, grupo_complemento: grupos }
+            const atualizado = { ...prev, grupo_complemento: grupos }
+            return { ...atualizado, total: calculaTotal(atualizado) }
         })
     }
 
