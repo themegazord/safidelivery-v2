@@ -19,7 +19,7 @@ export default function NecessidadeConfiguracaoSection({
     return (
         <section>
             {necessidades.length >= 1 && (
-                <div className="container w-full flex flex-col gap-4">
+                <div className="container flex w-full flex-col gap-4">
                     {necessidades.map((necessidade, idx) => (
                         <Alert
                             className="border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-50"

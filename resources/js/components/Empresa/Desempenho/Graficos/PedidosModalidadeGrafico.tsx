@@ -1,13 +1,19 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import {
+    ChartContainer,
+    ChartLegend,
+    ChartLegendContent,
+    ChartTooltip,
+    ChartTooltipContent,
+} from "@/components/ui/chart";
 import { ChartsDesempenho } from "@/types/desempenho";
 import { Pie, PieChart } from "recharts";
 
 interface IProps {
-  charts: ChartsDesempenho | undefined
+    charts: ChartsDesempenho | undefined;
 }
 
-export default function PedidosModalidadeGrafico({charts}: IProps) {
+export default function PedidosModalidadeGrafico({ charts }: IProps) {
     return (
         <Card>
             <CardHeader>
@@ -25,9 +31,7 @@ export default function PedidosModalidadeGrafico({charts}: IProps) {
                                 content={<ChartTooltipContent hideLabel />}
                             />
                             <Pie
-                                data={
-                                    charts?.modalidade?.data ?? []
-                                }
+                                data={charts?.modalidade?.data ?? []}
                                 dataKey="pedidos"
                                 nameKey="modalidade"
                                 innerRadius={60}

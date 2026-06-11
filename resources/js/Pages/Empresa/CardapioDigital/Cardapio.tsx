@@ -54,7 +54,7 @@ export default function Cardapio({
 
     const [itemModal, setItemModal] = useState<IItemPedido>();
 
-    const { adicionaItemCarrinho } = useContext(CarrinhoContext)
+    const { adicionaItemCarrinho } = useContext(CarrinhoContext);
 
     function getItensAtivosPizza(tamanho: ITamanhoPizza) {
         return tamanho.precos_por_tamanho.filter((ppt) => {
@@ -191,8 +191,8 @@ export default function Cardapio({
 
         if (invalidos.length > 0) return;
 
-        adicionaItemCarrinho(itemModal)
-        setOpenModalPedido(false)
+        adicionaItemCarrinho(itemModal);
+        setOpenModalPedido(false);
     }
 
     function grupoComplementoValido(
@@ -302,23 +302,23 @@ export default function Cardapio({
                 {capa ? (
                     <img
                         src={capa}
-                        className="h-64 flex justify-center items-center w-full border border-border object-cover rounded-xl"
+                        className="border-border flex h-64 w-full items-center justify-center rounded-xl border object-cover"
                         alt={`Capa da loja ${nome_fantasia}`}
                     />
                 ) : (
-                    <div className="h-64 flex justify-center items-center w-full border border-border rounded-xl">
+                    <div className="border-border flex h-64 w-full items-center justify-center rounded-xl border">
                         Não possui capa configurada
                     </div>
                 )}
-                <div className="flex gap-2 items-center">
+                <div className="flex items-center gap-2">
                     {logo ? (
                         <img
                             src={logo}
-                            className="rounded-xl size-20"
+                            className="size-20 rounded-xl"
                             alt={`Logo da loja ${nome_fantasia}`}
                         />
                     ) : (
-                        <div className="rounded-xl size-20 text-wrap border border-border flex justify-center items-center text-center">
+                        <div className="border-border flex size-20 items-center justify-center rounded-xl border text-center text-wrap">
                             Sem logo
                         </div>
                     )}
@@ -327,9 +327,9 @@ export default function Cardapio({
             </section>
             {/* End Hero Section */}
 
-            <div className="sticky top-17 z-10 bg-background pt-4 pb-3 flex flex-col gap-3 border-b border-border">
+            <div className="bg-background border-border sticky top-17 z-10 flex flex-col gap-3 border-b pt-4 pb-3">
                 <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+                    <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
                     <Input
                         className="pl-9"
                         placeholder="Pesquisar itens..."
@@ -344,7 +344,7 @@ export default function Cardapio({
                 />
             </div>
 
-            <section className="flex flex-col gap-4 mt-4">
+            <section className="mt-4 flex flex-col gap-4">
                 {filtrado
                     .filter((categoria) =>
                         categoria.dias_funcionamento.map(Number).includes(HOJE),
@@ -359,7 +359,7 @@ export default function Cardapio({
                                 <CardTitle>{categoria.nome}</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                     {categoria.tipo === "I" &&
                                         (categoria.itens.length ?? 0) > 0 && (
                                             <>
@@ -425,41 +425,37 @@ export default function Cardapio({
                                                             .includes(HOJE),
                                                     )
                                                     .map((combo, idxcombo) => (
-                                                        <Button
+                                                        <MenuItemCard
                                                             onClick={() =>
                                                                 buscaComboPedido(
                                                                     combo.id,
                                                                 )
                                                             }
                                                             className="cursor-pointer"
-                                                            asChild
                                                             key={idxcombo}
-                                                        >
-                                                            <MenuItemCard
-                                                                item={{
-                                                                    nome: combo.nome,
-                                                                    preco:
-                                                                        Number(
-                                                                            combo.preco,
-                                                                        ) ??
-                                                                        undefined,
-                                                                    classificacoes:
-                                                                        [],
-                                                                    desconto: 0,
-                                                                    descricao:
-                                                                        combo.descricao ??
-                                                                        undefined,
-                                                                    imagem:
-                                                                        combo.imagem ??
-                                                                        undefined,
-                                                                    peso: undefined,
-                                                                    qtde_pessoas:
-                                                                        undefined,
-                                                                    valor_desconto:
-                                                                        undefined,
-                                                                }}
-                                                            />
-                                                        </Button>
+                                                            item={{
+                                                                nome: combo.nome,
+                                                                preco:
+                                                                    Number(
+                                                                        combo.preco,
+                                                                    ) ??
+                                                                    undefined,
+                                                                classificacoes:
+                                                                    [],
+                                                                desconto: 0,
+                                                                descricao:
+                                                                    combo.descricao ??
+                                                                    undefined,
+                                                                imagem:
+                                                                    combo.imagem ??
+                                                                    undefined,
+                                                                peso: undefined,
+                                                                qtde_pessoas:
+                                                                    undefined,
+                                                                valor_desconto:
+                                                                    undefined,
+                                                            }}
+                                                        />
                                                     ))}
                                             </>
                                         )}
@@ -493,7 +489,7 @@ export default function Cardapio({
                                                                 qtde,
                                                                 idxSabores,
                                                             ) => (
-                                                                <Button
+                                                                <MenuItemCard
                                                                     onClick={() =>
                                                                         buscaPizzaPedido(
                                                                             tamanho.id,
@@ -502,30 +498,26 @@ export default function Cardapio({
                                                                         )
                                                                     }
                                                                     className="cursor-pointer"
-                                                                    asChild
                                                                     key={
                                                                         idxSabores
                                                                     }
-                                                                >
-                                                                    <MenuItemCard
-                                                                        item={{
-                                                                            nome: `${tamanho.nome} ${
-                                                                                qtde >
-                                                                                1
-                                                                                    ? `${qtde} SABORES `
-                                                                                    : ""
-                                                                            } (${tamanho.qtde_pedacos} PEDAÇOS)`,
-                                                                            descricao:
-                                                                                undefined,
-                                                                            imagem:
-                                                                                primeiroItem?.imagem ??
-                                                                                undefined,
-                                                                            preco: Number(
-                                                                                menorValorTamanho,
-                                                                            ),
-                                                                        }}
-                                                                    />
-                                                                </Button>
+                                                                    item={{
+                                                                        nome: `${tamanho.nome} ${
+                                                                            qtde >
+                                                                            1
+                                                                                ? `${qtde} SABORES `
+                                                                                : ""
+                                                                        } (${tamanho.qtde_pedacos} PEDAÇOS)`,
+                                                                        descricao:
+                                                                            undefined,
+                                                                        imagem:
+                                                                            primeiroItem?.imagem ??
+                                                                            undefined,
+                                                                        preco: Number(
+                                                                            menorValorTamanho,
+                                                                        ),
+                                                                    }}
+                                                                />
                                                             ),
                                                         )}
                                                     </div>
@@ -552,6 +544,4 @@ export default function Cardapio({
     );
 }
 
-Cardapio.layout = (page: ReactNode) => (
-    <LayoutCardapio>{page}</LayoutCardapio>
-);
+Cardapio.layout = (page: ReactNode) => <LayoutCardapio>{page}</LayoutCardapio>;

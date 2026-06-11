@@ -1,31 +1,29 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import {
+    ChartContainer,
+    ChartTooltip,
+    ChartTooltipContent,
+} from "@/components/ui/chart";
 import { ChartsDesempenho } from "@/types/desempenho";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 interface IProps {
-  charts: ChartsDesempenho | undefined
+    charts: ChartsDesempenho | undefined;
 }
 
-export default function FaturamentoDiarioGrafico({charts}: IProps) {
+export default function FaturamentoDiarioGrafico({ charts }: IProps) {
     return (
         <Card className="col-span-1 lg:col-span-2">
             <CardHeader>
                 <CardTitle>Faturamento diário</CardTitle>
             </CardHeader>
             <CardContent>
-                {(charts?.faturamentoDiario?.data.length ?? 0) >
-                0 ? (
+                {(charts?.faturamentoDiario?.data.length ?? 0) > 0 ? (
                     <ChartContainer
-                        config={
-                            charts?.faturamentoDiario?.config ??
-                            {}
-                        }
+                        config={charts?.faturamentoDiario?.config ?? {}}
                         className="aspect-auto h-62.5 w-full"
                     >
-                        <AreaChart
-                            data={charts?.faturamentoDiario?.data}
-                        >
+                        <AreaChart data={charts?.faturamentoDiario?.data}>
                             <defs>
                                 <linearGradient
                                     id="gradFaturamento"

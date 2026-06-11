@@ -28,7 +28,7 @@ export default function Desempenho({
     const { cnpj } = usePage().props;
     const diaPadrao = 7;
     const [estaRecebendoIfood, setEstaRecebendoIfood] = useState(
-        estaRecebendoIfoodInicial
+        estaRecebendoIfoodInicial,
     );
     const [dataInicioFiltro, setDataInicioFiltro] = useState(diaPadrao);
     const [dadosBackend, setDadosBackend] = useState<DadosDesempenho | null>(
@@ -72,7 +72,7 @@ export default function Desempenho({
         textarea.select();
         document.execCommand("copy");
         document.body.removeChild(textarea);
-        toast.success('Link copiado com sucesso!')
+        toast.success("Link copiado com sucesso!");
     }
 
     function intervaloData(): string {
@@ -93,7 +93,9 @@ export default function Desempenho({
     return (
         <LayoutAutenticado>
             <div className="container w-full">
-                <NecessidadeConfiguracaoSection necessidades={necessidadesConfiguracao} />
+                <NecessidadeConfiguracaoSection
+                    necessidades={necessidadesConfiguracao}
+                />
 
                 <HeaderDesempenho
                     temTokenIfood={temTokenIfood}
@@ -105,7 +107,9 @@ export default function Desempenho({
                 />
 
                 <VisaoGeralHojeSection
-                    financeiroPedidosHoje={dadosBackend?.financeiro_pedidos_hoje ?? []}
+                    financeiroPedidosHoje={
+                        dadosBackend?.financeiro_pedidos_hoje ?? []
+                    }
                     pedidosHoje={dadosBackend?.pedidos_hoje ?? []}
                 />
 

@@ -4,14 +4,17 @@ import { IFinanceiroPedidos, IPedido } from "@/types/desempenho";
 import { CheckCircle, Clock, DollarSign, Flame, Truck } from "lucide-react";
 
 interface IProps {
-  financeiroPedidosHoje: IFinanceiroPedidos[],
-  pedidosHoje: IPedido[]
+    financeiroPedidosHoje: IFinanceiroPedidos[];
+    pedidosHoje: IPedido[];
 }
 
-export default function VisaoGeralHojeSection({financeiroPedidosHoje, pedidosHoje}: IProps) {
+export default function VisaoGeralHojeSection({
+    financeiroPedidosHoje,
+    pedidosHoje,
+}: IProps) {
     return (
-        <section className="flex flex-col gap-4 mb-8">
-            <H2 className="flex gap-2 items-center">
+        <section className="mb-8 flex flex-col gap-4">
+            <H2 className="flex items-center gap-2">
                 <>
                     <Clock />
                     Hoje

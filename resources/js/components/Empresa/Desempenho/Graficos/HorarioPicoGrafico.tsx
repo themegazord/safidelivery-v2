@@ -1,13 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import {
+    ChartContainer,
+    ChartTooltip,
+    ChartTooltipContent,
+} from "@/components/ui/chart";
 import { ChartsDesempenho } from "@/types/desempenho";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 interface IProps {
-  charts: ChartsDesempenho | undefined
+    charts: ChartsDesempenho | undefined;
 }
 
-export default function HorarioPicoGrafico({charts}: IProps) {
+export default function HorarioPicoGrafico({ charts }: IProps) {
     return (
         <Card>
             <CardHeader>
@@ -26,11 +30,7 @@ export default function HorarioPicoGrafico({charts}: IProps) {
                         }
                         className="h-64 w-full"
                     >
-                        <BarChart
-                            data={
-                                charts?.horariosPico?.data ?? []
-                            }
-                        >
+                        <BarChart data={charts?.horariosPico?.data ?? []}>
                             <CartesianGrid vertical={false} />
                             <XAxis
                                 dataKey="hora"

@@ -73,13 +73,13 @@ export function MenuItemCard({ item, className, onClick, isLoading }: IProps) {
         <Card
             onClick={onClick}
             className={cn(
-                "overflow-hidden border-border/60 bg-card p-4 transition-all hover:shadow-lg cursor-pointer",
+                "border-border/60 bg-card cursor-pointer overflow-hidden p-4 transition-all hover:shadow-lg",
                 className,
             )}
         >
             {!isLoading ? (
                 <div className="flex gap-4 sm:gap-6">
-                    <div className="relative size-32 shrink-0 overflow-hidden rounded-lg bg-muted sm:h-40 sm:w-40">
+                    <div className="bg-muted relative size-32 shrink-0 overflow-hidden rounded-lg sm:h-40 sm:w-40">
                         {item.imagem ? (
                             <img
                                 src={item.imagem}
@@ -88,18 +88,18 @@ export function MenuItemCard({ item, className, onClick, isLoading }: IProps) {
                             />
                         ) : (
                             <div className="flex h-full w-full items-center justify-center">
-                                <UtensilsCrossed className="h-10 w-10 text-muted-foreground" />
+                                <UtensilsCrossed className="text-muted-foreground h-10 w-10" />
                             </div>
                         )}
                     </div>
 
                     <div className="flex flex-1 flex-col items-center text-center">
-                        <h3 className="text-base font-bold uppercase tracking-wide text-foreground sm:text-lg">
+                        <h3 className="text-foreground text-base font-bold tracking-wide uppercase sm:text-lg">
                             {item.nome}
                         </h3>
 
                         {item.descricao && (
-                            <p className="mt-2 text-xs leading-relaxed text-muted-foreground sm:text-sm">
+                            <p className="text-muted-foreground mt-2 text-xs leading-relaxed sm:text-sm">
                                 {item.descricao}
                             </p>
                         )}
@@ -134,7 +134,7 @@ export function MenuItemCard({ item, className, onClick, isLoading }: IProps) {
                         )}
 
                         {(item.peso || item.qtde_pessoas) && (
-                            <div className="mt-2 flex flex-wrap justify-center gap-3 text-xs text-muted-foreground">
+                            <div className="text-muted-foreground mt-2 flex flex-wrap justify-center gap-3 text-xs">
                                 {item.peso && (
                                     <span className="inline-flex items-center gap-1">
                                         <Scale className="h-3.5 w-3.5" />
@@ -156,17 +156,17 @@ export function MenuItemCard({ item, className, onClick, isLoading }: IProps) {
 
                         <div className="mt-auto pt-3">
                             {!item.desconto ? (
-                                <p className="text-xl font-bold text-primary sm:text-2xl">
+                                <p className="text-primary text-xl font-bold sm:text-2xl">
                                     {formatBRL(item.preco)}
                                 </p>
                             ) : (
                                 <div className="flex items-baseline justify-center gap-2">
-                                    <p className="text-xl font-bold text-primary sm:text-2xl">
+                                    <p className="text-primary text-xl font-bold sm:text-2xl">
                                         {formatBRL(
                                             item.valor_desconto ?? item.preco,
                                         )}
                                     </p>
-                                    <p className="text-sm text-muted-foreground line-through">
+                                    <p className="text-muted-foreground text-sm line-through">
                                         {formatBRL(item.preco)}
                                     </p>
                                 </div>

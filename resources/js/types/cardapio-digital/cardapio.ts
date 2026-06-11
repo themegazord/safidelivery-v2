@@ -1,12 +1,20 @@
 export type DiaFuncionamento =
-    | 0 | 1 | 2 | 3 | 4 | 5 | 6
-    | "0" | "1" | "2" | "3" | "4" | "5" | "6";
+    | 0
+    | 1
+    | 2
+    | 3
+    | 4
+    | 5
+    | 6
+    | "0"
+    | "1"
+    | "2"
+    | "3"
+    | "4"
+    | "5"
+    | "6";
 
-export type TipoFuncionamento =
-    | "mesa"
-    | "delivery"
-    | "retirada"
-    | string;
+export type TipoFuncionamento = "mesa" | "delivery" | "retirada" | string;
 
 export type TipoCategoria = "I" | "P";
 

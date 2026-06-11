@@ -1,10 +1,24 @@
 import { ReactNode } from "react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
-type TooltipPosition = "top" | "bottom" | "left" | "right"
+type TooltipPosition = "top" | "bottom" | "left" | "right";
 
-type Color = "green" | "red" | "blue" | "yellow" | "orange" | "purple" | "pink" | "gray" | "amber"
+type Color =
+    | "green"
+    | "red"
+    | "blue"
+    | "yellow"
+    | "orange"
+    | "purple"
+    | "pink"
+    | "gray"
+    | "amber";
 
 const colorMap: Record<Color, { bg: string; text: string; border: string }> = {
     green: {
@@ -52,45 +66,66 @@ const colorMap: Record<Color, { bg: string; text: string; border: string }> = {
         text: "text-amber-600 dark:text-amber-400",
         border: "border-amber-200 dark:border-amber-900",
     },
-}
+};
 
 interface IProps {
-    value?: string | number,
-    icon?: ReactNode,
-    title?: string,
-    description?: string,
-    color?: Color,
-    tooltip?: string,
-    tooltipPosition?: TooltipPosition,
-    className?: string,
-    isMoney?: boolean
+    value?: string | number;
+    icon?: ReactNode;
+    title?: string;
+    description?: string;
+    color?: Color;
+    tooltip?: string;
+    tooltipPosition?: TooltipPosition;
+    className?: string;
+    isMoney?: boolean;
 }
 
-export default function Stats({ isMoney, value, icon, title, description, color, tooltip, tooltipPosition = "top", className }: IProps) {
-    const colors = color
-    ? colorMap[color]
-    : colorMap.gray
+export default function Stats({
+    isMoney,
+    value,
+    icon,
+    title,
+    description,
+    color,
+    tooltip,
+    tooltipPosition = "top",
+    className,
+}: IProps) {
+    const colors = color ? colorMap[color] : colorMap.gray;
 
     const content = (
-        <div className={cn("rounded-lg border px-5 py-4 w-full transition-colors", colors.bg, colors.border, className)}>
+        <div
+            className={cn(
+                "w-full rounded-lg border px-5 py-4 transition-colors",
+                colors.bg,
+                colors.border,
+                className,
+            )}
+        >
             <div className="flex items-center gap-3">
                 {icon && (
-                    <div className={cn("w-9 h-9 flex items-center justify-center", colors.text)}>
+                    <div
+                        className={cn(
+                            "flex h-9 w-9 items-center justify-center",
+                            colors.text,
+                        )}
+                    >
                         {icon}
                     </div>
                 )}
-                <div className="text-left rtl:text-right truncate">
+                <div className="truncate text-left rtl:text-right">
                     {title && (
                         <div className="text-xs whitespace-nowrap text-zinc-500 dark:text-zinc-400">
                             {title}
                         </div>
                     )}
 
-                    <div className="font-black text-xl text-zinc-900 dark:text-zinc-50">
-                        {isMoney && typeof value === 'number'
-                            ? <>R$ {value.toFixed(2)}</>
-                            : <>{value}</>
-                        }
+                    <div className="text-xl font-black text-zinc-900 dark:text-zinc-50">
+                        {isMoney && typeof value === "number" ? (
+                            <>R$ {value.toFixed(2)}</>
+                        ) : (
+                            <>{value}</>
+                        )}
                     </div>
 
                     {description && (
@@ -101,16 +136,18 @@ export default function Stats({ isMoney, value, icon, title, description, color,
                 </div>
             </div>
         </div>
-    )
+    );
 
-    if (!tooltip) return content
+    if (!tooltip) return content;
 
     return (
         <TooltipProvider>
             <Tooltip>
                 <TooltipTrigger asChild>{content}</TooltipTrigger>
-                <TooltipContent side={tooltipPosition}>{tooltip}</TooltipContent>
+                <TooltipContent side={tooltipPosition}>
+                    {tooltip}
+                </TooltipContent>
             </Tooltip>
         </TooltipProvider>
-    )
+    );
 }

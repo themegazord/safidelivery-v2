@@ -1,7 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { H1 } from "@/components/utils/Heading";
 import { ConciergeBell, Motorbike } from "lucide-react";
 
@@ -15,12 +20,12 @@ interface IProps {
 }
 
 export default function HeaderDesempenho({
-  temTokenIfood,
-  checkedValue,
-  setCheckedValue,
-  fnCopiar,
-  linkDelivery,
-  linkMesa
+    temTokenIfood,
+    checkedValue,
+    setCheckedValue,
+    fnCopiar,
+    linkDelivery,
+    linkMesa,
 }: IProps) {
     return (
         <section className="my-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -35,9 +40,7 @@ export default function HeaderDesempenho({
                     <div className="flex gap-2">
                         <Switch
                             checked={checkedValue}
-                            onCheckedChange={(valor) =>
-                                setCheckedValue(valor)
-                            }
+                            onCheckedChange={(valor) => setCheckedValue(valor)}
                             id="esta-recebendo-ifood"
                         />
                         <Label htmlFor="esta-recebendo-ifood">
@@ -56,7 +59,7 @@ export default function HeaderDesempenho({
                                 className="cursor-pointer"
                                 onClick={() => fnCopiar(linkDelivery)}
                             >
-                                <Motorbike className="size-6"/>
+                                <Motorbike className="size-6" />
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>Link para Delivery</TooltipContent>
@@ -69,7 +72,7 @@ export default function HeaderDesempenho({
                                 className="cursor-pointer"
                                 onClick={() => fnCopiar(linkMesa)}
                             >
-                                <ConciergeBell className="size-6"/>
+                                <ConciergeBell className="size-6" />
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>

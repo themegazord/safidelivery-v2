@@ -1,25 +1,28 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import {
+    ChartContainer,
+    ChartLegend,
+    ChartLegendContent,
+    ChartTooltip,
+    ChartTooltipContent,
+} from "@/components/ui/chart";
 import { ChartsDesempenho } from "@/types/desempenho";
 import { Pie, PieChart } from "recharts";
 
 interface IProps {
-  charts: ChartsDesempenho | undefined
+    charts: ChartsDesempenho | undefined;
 }
 
-export default function FormaPagamentoGrafico({charts}: IProps) {
+export default function FormaPagamentoGrafico({ charts }: IProps) {
     return (
         <Card>
             <CardHeader>
                 <CardTitle>Formas de Pagamento</CardTitle>
             </CardHeader>
             <CardContent className="flex-1 pb-0">
-                {(charts?.formasPagamento?.data.length ??
-                0 > 0) ? (
+                {(charts?.formasPagamento?.data.length ?? 0 > 0) ? (
                     <ChartContainer
-                        config={
-                            charts?.formasPagamento?.config ?? {}
-                        }
+                        config={charts?.formasPagamento?.config ?? {}}
                         className="mx-auto aspect-square max-h-75"
                     >
                         <PieChart>
@@ -28,10 +31,7 @@ export default function FormaPagamentoGrafico({charts}: IProps) {
                                 content={<ChartTooltipContent hideLabel />}
                             />
                             <Pie
-                                data={
-                                    charts?.formasPagamento
-                                        ?.data ?? []
-                                }
+                                data={charts?.formasPagamento?.data ?? []}
                                 dataKey="quantidade"
                                 nameKey="forma"
                                 innerRadius={60}

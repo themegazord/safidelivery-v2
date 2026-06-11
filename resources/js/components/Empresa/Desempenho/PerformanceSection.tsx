@@ -22,7 +22,7 @@ export default function PerformanceSection({
 }: IProps) {
     return (
         <section className="flex flex-col gap-4">
-            <div className="mb-6 flex flex-col items-start justify-between gap-4 rounded-lg bg-primary-200 p-4 sm:flex-row sm:items-center">
+            <div className="bg-primary-200 mb-6 flex flex-col items-start justify-between gap-4 rounded-lg p-4 sm:flex-row sm:items-center">
                 <div className="flex items-center gap-2">
                     <Calendar />
                     <span className="font-medium">{intervaloData()}</span>
@@ -44,7 +44,7 @@ export default function PerformanceSection({
                 <Card>
                     <CardHeader>
                         <CardTitle>Faturamento</CardTitle>
-                        <CardDescription className="font-bold text-xl">
+                        <CardDescription className="text-xl font-bold">
                             R$ {metricas?.faturamentoPeriodo.toFixed(2)}
                         </CardDescription>
                     </CardHeader>
@@ -53,7 +53,7 @@ export default function PerformanceSection({
                             <div
                                 className={`${(metricas?.crescimentoFaturamento ?? 0) > 0 ? "text-green-500" : "text-red-500"} mt-1 flex items-center gap-1 text-sm`}
                             >
-                                <div className="flex gap-2 items-center">
+                                <div className="flex items-center gap-2">
                                     {(metricas?.crescimentoFaturamento ?? 0) >
                                     0 ? (
                                         <TrendingUp />
@@ -72,7 +72,7 @@ export default function PerformanceSection({
                 <Card>
                     <CardHeader>
                         <CardTitle>Pedidos entregues:</CardTitle>
-                        <CardDescription className="font-bold text-xl">
+                        <CardDescription className="text-xl font-bold">
                             {metricas?.totalPedidosEntregues} pedidos
                         </CardDescription>
                     </CardHeader>
@@ -80,7 +80,7 @@ export default function PerformanceSection({
                 <Card>
                     <CardHeader>
                         <CardTitle>Ticket médio:</CardTitle>
-                        <CardDescription className="font-bold text-xl">
+                        <CardDescription className="text-xl font-bold">
                             R$ {metricas?.ticketMedio.toFixed(2)}
                         </CardDescription>
                     </CardHeader>
@@ -89,7 +89,7 @@ export default function PerformanceSection({
                     <CardHeader>
                         <CardTitle>Cancelamentos:</CardTitle>
                         <CardDescription
-                            className={`${(metricas?.totalPedidosEntregues ?? 0 > 10) ? "text-red-500" : ""} font-bold text-xl`}
+                            className={`${(metricas?.totalPedidosEntregues ?? 0 > 10) ? "text-red-500" : ""} text-xl font-bold`}
                         >
                             {metricas?.totalPedidosCancelados} pedidos
                         </CardDescription>
@@ -101,7 +101,7 @@ export default function PerformanceSection({
                 <Card>
                     <CardHeader>
                         <CardTitle>Via IFOOD:</CardTitle>
-                        <CardDescription className="font-bold text-xl">
+                        <CardDescription className="text-xl font-bold">
                             {metricas?.pedidosIfood} pedidos
                         </CardDescription>
                     </CardHeader>
@@ -109,7 +109,7 @@ export default function PerformanceSection({
                 <Card>
                     <CardHeader>
                         <CardTitle>Pedido direto:</CardTitle>
-                        <CardDescription className="font-bold text-xl">
+                        <CardDescription className="text-xl font-bold">
                             {metricas?.pedidosDireto} pedidos
                         </CardDescription>
                     </CardHeader>
