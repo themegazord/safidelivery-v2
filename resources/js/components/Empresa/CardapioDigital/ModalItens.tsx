@@ -29,7 +29,7 @@ export default function ModalItens({ item, open, setOpen, adicionaQtde, diminuiQ
     }
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogContent className="w-11/12 md:max-w-5xl flex flex-col max-h-[90dvh] md:max-h-none md:block overflow-hidden md:overflow-visible">
+            <DialogContent className="w-11/12 md:max-w-5xl flex flex-col max-h-[90dvh] md:max-h-none md:block overflow-hidden md:overflow-visible" aria-describedby={undefined}>
                 <DialogHeader className="shrink-0 md:shrink">
                     <DialogTitle>{item?.nome}</DialogTitle>
                 </DialogHeader>
