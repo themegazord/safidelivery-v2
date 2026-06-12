@@ -34,11 +34,18 @@ import { Separator } from "@/components/ui/separator";
 import { H4, H5, H6 } from "@/components/utils/Heading";
 import { cn } from "@/lib/utils";
 import { IItemPizza } from "@/types/cardapio-digital/item-pedido";
-import { Clock3, InfoIcon, Minus, Pizza, Plus, ShoppingCart } from "lucide-react";
+import {
+    Clock3,
+    InfoIcon,
+    Minus,
+    Pizza,
+    Plus,
+    ShoppingCart,
+} from "lucide-react";
 import { CLASSIFICACOES_DISPONIVEIS, CORES_BADGE } from "./MenuItemCard";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Button } from "@/components/ui/button";
-import { Field, FieldLabel } from "@/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 
 interface IProps {
@@ -61,6 +68,7 @@ interface IProps {
     adicionaItemCarrinho: () => void;
     defineMassaSelecionada: (value: string) => void;
     defineBordaSelecionada: (value: string) => void;
+    pendenciasDeItens: { massa: boolean; borda: boolean; sabores: boolean };
 }
 
 export default function ModalItensPizza({
@@ -73,6 +81,7 @@ export default function ModalItensPizza({
     adicionaItemCarrinho,
     defineMassaSelecionada,
     defineBordaSelecionada,
+    pendenciasDeItens,
 }: IProps) {
     function converteReal(valor?: number | string) {
         const num =
@@ -96,7 +105,7 @@ export default function ModalItensPizza({
                     </DialogTitle>
                 </DialogHeader>
 
-                <div className="min-h-0 flex-1 overflow-y-auto">
+                <div className="min-h-0 flex-1 overflow-y-auto px-4 py-2">
                     <div className="bg-background/20 flex w-full items-center justify-between rounded-lg p-4">
                         <div>
                             <p className="text-foreground text-sm">
@@ -149,18 +158,31 @@ export default function ModalItensPizza({
                                 </CardHeader>
                                 <CardContent className="flex flex-col gap-4 md:grid md:grid-cols-4">
                                     <div className="col-span-3">
-                                        <Select
-                                            onValueChange={(value) =>
-                                                defineMassaSelecionada(value)
+                                        <Field
+                                            data-invalid={
+                                                pendenciasDeItens.massa
                                             }
                                         >
-                                            <SelectTrigger className="w-full">
-                                                <SelectValue placeholder="Selecione a massa..." />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectGroup>
-                                                    {(item?.massas ?? []).map(
-                                                        (massa) => (
+                                            <Select
+                                                onValueChange={(value) =>
+                                                    defineMassaSelecionada(
+                                                        value,
+                                                    )
+                                                }
+                                            >
+                                                <SelectTrigger
+                                                    aria-invalid={
+                                                        pendenciasDeItens.massa
+                                                    }
+                                                    className="w-full"
+                                                >
+                                                    <SelectValue placeholder="Selecione a massa..." />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectGroup>
+                                                        {(
+                                                            item?.massas ?? []
+                                                        ).map((massa) => (
                                                             <SelectItem
                                                                 value={String(
                                                                     massa.id,
@@ -169,11 +191,16 @@ export default function ModalItensPizza({
                                                             >
                                                                 {massa.nome}
                                                             </SelectItem>
-                                                        ),
-                                                    )}
-                                                </SelectGroup>
-                                            </SelectContent>
-                                        </Select>
+                                                        ))}
+                                                    </SelectGroup>
+                                                </SelectContent>
+                                            </Select>
+                                            {pendenciasDeItens.massa && (
+                                                <FieldError>
+                                                    Selecione uma massa
+                                                </FieldError>
+                                            )}
+                                        </Field>
                                     </div>
                                     <InputGroup>
                                         <InputGroupInput
@@ -204,18 +231,22 @@ export default function ModalItensPizza({
                                 </CardHeader>
                                 <CardContent className="flex flex-col gap-4 md:grid md:grid-cols-4">
                                     <div className="col-span-3">
-                                        <Select
-                                            onValueChange={(value) =>
-                                                defineBordaSelecionada(value)
-                                            }
-                                        >
-                                            <SelectTrigger className="w-full">
-                                                <SelectValue placeholder="Selecione a borda..." />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectGroup>
-                                                    {(item?.bordas ?? []).map(
-                                                        (borda) => (
+                                        <Field data-invalid={pendenciasDeItens.borda}>
+                                            <Select
+                                                onValueChange={(value) =>
+                                                    defineBordaSelecionada(
+                                                        value,
+                                                    )
+                                                }
+                                            >
+                                                <SelectTrigger aria-invalid={pendenciasDeItens.borda} className="w-full">
+                                                    <SelectValue placeholder="Selecione a borda..." />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectGroup>
+                                                        {(
+                                                            item?.bordas ?? []
+                                                        ).map((borda) => (
                                                             <SelectItem
                                                                 value={String(
                                                                     borda.id,
@@ -224,11 +255,16 @@ export default function ModalItensPizza({
                                                             >
                                                                 {borda.nome}
                                                             </SelectItem>
-                                                        ),
-                                                    )}
-                                                </SelectGroup>
-                                            </SelectContent>
-                                        </Select>
+                                                        ))}
+                                                    </SelectGroup>
+                                                </SelectContent>
+                                            </Select>
+                                            {pendenciasDeItens.borda && (
+                                                <FieldError>
+                                                    Selecione uma borda.
+                                                </FieldError>
+                                            )}
+                                        </Field>
                                     </div>
                                     <InputGroup>
                                         <InputGroupInput
@@ -265,8 +301,9 @@ export default function ModalItensPizza({
                                 return (
                                     <Card
                                         key={sabor.id}
+                                        aria-invalid={pendenciasDeItens.sabores}
                                         className={cn(
-                                            "transition-all",
+                                            "transition-all aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/60",
                                             itemSelecionado
                                                 ? "border-primary bg-primary/5 border-2"
                                                 : "",
@@ -413,6 +450,10 @@ export default function ModalItensPizza({
                                     </Card>
                                 );
                             })}
+
+                            {pendenciasDeItens.sabores && (
+                                <p className="text-destructive text-sm font-normal">Faltam sabores a serem selecionados: {item?.quantidade_sabores_selecionadas} / {item?.quantidade_sabor}</p>
+                            )}
 
                             <Field>
                                 <FieldLabel htmlFor="observacao">

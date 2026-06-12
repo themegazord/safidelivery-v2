@@ -55,6 +55,7 @@ export default function Cardapio({
     const [grupoComplementosInvalidos, setGrupoComplementoInvalidos] = useState<
         number[]
     >([]);
+    const [pendenciaPizza, setPendenciaPizza] = useState<{massa: boolean, borda: boolean, sabores: boolean}>({massa: false, borda: false, sabores: false})
 
     const [itemModal, setItemModal] = useState<IItemPedido | IItemPizza>();
 
@@ -235,9 +236,23 @@ export default function Cardapio({
             setGrupoComplementoInvalidos(invalidos);
 
             if (invalidos.length > 0) return;
-
-            adicionaItemCarrinho(itemModal);
         }
+
+        if ("sabores" in itemModal) {
+            const invalidos = {
+                massa: itemModal.massaSelecionada === null,
+                borda: itemModal.bordaSelecionada === null,
+                sabores: itemModal.quantidade_sabores_selecionadas !== itemModal.quantidade_sabor
+            }
+
+            if (invalidos.massa || invalidos.borda || invalidos.sabores) {
+                setPendenciaPizza(invalidos)
+                return
+            }
+        }
+
+        adicionaItemCarrinho(itemModal);
+
         setOpenModalPedido(null);
     }
 
@@ -631,7 +646,7 @@ export default function Cardapio({
                 gruposComplementosInvalidos={grupoComplementosInvalidos}
             />
             <ModalItensPizza
-                item={(itemModal !== undefined && "sabores" in itemModal) ? itemModal : undefined}
+                item={ (itemModal !== undefined && "sabores" in itemModal) ? itemModal : undefined }
                 open={openModalPedido === "pizza"}
                 setOpen={setOpenModalPedido}
                 adicionaQtde={adicionaQtdeItemSelecionado}
@@ -640,6 +655,7 @@ export default function Cardapio({
                 adicionaItemCarrinho={adicionarItemCarrinho}
                 defineBordaSelecionada={defineBordaSelecionada}
                 defineMassaSelecionada={defineMassaSelecionada}
+                pendenciasDeItens={pendenciaPizza}
             />
         </>
     );
