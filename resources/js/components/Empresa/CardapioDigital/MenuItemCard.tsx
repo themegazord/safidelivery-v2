@@ -48,7 +48,7 @@ export const CLASSIFICACOES_DISPONIVEIS: Record<string, ClassificacaoView> = {
     },
 };
 
-const CORES_BADGE: Record<string, string> = {
+export const CORES_BADGE: Record<string, string> = {
     "badge-success":
         "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300",
     "badge-info":

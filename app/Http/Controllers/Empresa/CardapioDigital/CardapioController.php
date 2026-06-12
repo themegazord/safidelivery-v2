@@ -30,4 +30,8 @@ class CardapioController extends Controller
     public function itemPedido(Request $request) {
         return response()->json($this->cardapioService->getItemPedido($request->input('id')));
     }
+
+    public function itemPizzaPedido(Request $request) {
+        return response()->json($this->cardapioService->getItemPizzaPedido($request->input('tamanho_id'), $request->input('qtdeSabor'), $request->input('menorValorTamanho')));
+    }
 }

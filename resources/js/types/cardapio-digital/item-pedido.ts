@@ -1,3 +1,49 @@
+export interface IItemPizza {
+    id: number;
+    categoria_id: number;
+    nome: string;
+    qtde_pedacos: number;
+    quantidade_sabores_selecionadas: number;
+    quantidade_sabor: number;
+    qtde_sabores: number[];
+    quantidade: number;
+    menorValorTamanho: number;
+    observacao: string;
+    total: number;
+    categoria: { id: number; nome: string };
+    massas: IMassa[];
+    bordas: IBorda[];
+    massaSelecionada?: IMassa;
+    bordaSelecionada?: IBorda;
+    sabores: ISabor[];
+    tipo: "I" | "P";
+}
+
+interface IMassa {
+    id: number;
+    categoria_id: number;
+    nome: string;
+    preco: number;
+}
+
+interface IBorda {
+    id: number;
+    categoria_id: number;
+    nome: string;
+    preco: number;
+}
+
+interface ISabor {
+    id: number;
+    item_id: number;
+    nome: string;
+    preco: number;
+    imagem: string;
+    descricao: string;
+    classificacao: string[];
+    quantidade: number;
+}
+
 export interface IItemPedido {
     id: number;
     nome: string;

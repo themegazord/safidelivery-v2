@@ -27,7 +27,7 @@ import { Minus, Plus, ShoppingCart } from "lucide-react";
 interface IProps {
     item?: IItemPedido;
     open: boolean;
-    setOpen: (valor: boolean) => void;
+    setOpen: (valor: null) => void;
     adicionaQtde: (
         alvo: "item" | "complemento",
         grupo_idx?: number,
@@ -60,7 +60,7 @@ export default function ModalItens({
         });
     }
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={() => setOpen(null)}>
             <DialogContent
                 className="flex max-h-[90dvh] w-11/12 flex-col overflow-hidden md:block md:max-h-none md:max-w-5xl md:overflow-visible"
                 aria-describedby={undefined}
