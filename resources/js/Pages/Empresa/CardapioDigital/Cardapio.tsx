@@ -13,15 +13,17 @@ import {
 import axios from "axios";
 import { Search } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
-import ModalItens from "@/components/Empresa/CardapioDigital/ModalItens";
+import ModalItens from "@/components/Empresa/CardapioDigital/Modais/ModalItens";
 import {
     IGrupoComplemento,
+    IItemCombo,
     IItemPedido,
     IItemPizza,
 } from "@/types/cardapio-digital/item-pedido";
 import { CarrinhoContext } from "@/contexts/CardapioDigital/CarrinhoContext";
 import { ReactNode } from "react";
-import ModalItensPizza from "@/components/Empresa/CardapioDigital/ModalItensPizza";
+import ModalItensPizza from "@/components/Empresa/CardapioDigital/Modais/ModalItensPizza";
+import ModalItemCombo from "@/components/Empresa/CardapioDigital/Modais/ModalItemCombo";
 
 interface IProps {
     interacao_id: string;
@@ -57,7 +59,7 @@ export default function Cardapio({
     >([]);
     const [pendenciaPizza, setPendenciaPizza] = useState<{massa: boolean, borda: boolean, sabores: boolean}>({massa: false, borda: false, sabores: false})
 
-    const [itemModal, setItemModal] = useState<IItemPedido | IItemPizza>();
+    const [itemModal, setItemModal] = useState<IItemPedido | IItemPizza | IItemCombo>();
 
     const { adicionaItemCarrinho } = useContext(CarrinhoContext);
 
@@ -78,7 +80,7 @@ export default function Cardapio({
             ?.preco;
     }
 
-    function calculaTotal(item: IItemPedido | IItemPizza): number {
+    function calculaTotal(item: IItemPedido | IItemPizza | IItemCombo): number {
         if ("grupo_complemento" in item) {
             const precoBase = Number(
                 item.desconto ? item.valor_desconto : item.preco,
@@ -106,14 +108,17 @@ export default function Cardapio({
             return item.quantidade * (totalSabores + (item.massaSelecionada?.preco ?? 0) + (item.bordaSelecionada?.preco ?? 0))
         }
 
+        if ("grupos" in item) {}
+
         return 0;
     }
 
     function adicionaQtdeItemSelecionado(
-        alvo: "item" | "complemento" | "sabor",
+        alvo: "item" | "complemento" | "sabor" | "itemCombo",
         grupo_idx?: number,
         complemento_idx?: number,
-        sabor_idx?: number
+        sabor_idx?: number,
+        itemCombo_idx?: number
     ): void {
         setItemModal((prev) => {
             if (!prev) return prev;
@@ -162,14 +167,17 @@ export default function Cardapio({
                 const quantidadeSelecionadoRecalculado = atualizado.sabores.reduce((acc, sabor) => acc + sabor.quantidade, 0)
                 return { ...atualizado, total: calculaTotal(atualizado), quantidade_sabores_selecionadas: quantidadeSelecionadoRecalculado};
             }
+
+            if ("grupos" in prev) {}
         });
     }
 
     function diminuiQtdeItemSelecionado(
-        alvo: "item" | "complemento" | "sabor",
+        alvo: "item" | "complemento" | "sabor" | "itemCombo",
         grupo_idx?: number,
         complemento_idx?: number,
         sabor_idx?: number,
+        itemCombo_idx?: number
     ): void {
         setItemModal((prev) => {
             if (!prev) return prev;
@@ -221,6 +229,8 @@ export default function Cardapio({
                 const quantidadeSelecionadoRecalculado = atualizado.sabores.reduce((acc, sabor) => acc + sabor.quantidade, 0)
                 return { ...atualizado, total: calculaTotal(atualizado), quantidade_sabores_selecionadas: quantidadeSelecionadoRecalculado};
             }
+
+            if ("grupos" in prev) {}
         });
     }
 
@@ -250,6 +260,8 @@ export default function Cardapio({
                 return
             }
         }
+
+        if ("grupos" in itemModal) {}
 
         adicionaItemCarrinho(itemModal);
 
@@ -351,8 +363,24 @@ export default function Cardapio({
         }
     }
 
-    function buscaComboPedido(id: number) {
-        console.log(id);
+    async function buscaComboPedido(id: number) {
+        try {
+            setLoadingItemId(id);
+
+            const { data } = await axios.post(
+                route("aplicacao.empresa.cardapio-digital.item-pedido-combo", {
+                    interacao_id: interacao_id,
+                    tipo_funcionamento: tipo_funcionamento,
+                }),
+                { combo_id: id },
+            );
+            setItemModal(data);
+            setOpenModalPedido("combo");
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoadingItemId(null);
+        }
     }
 
     async function buscaPizzaPedido(
@@ -656,6 +684,17 @@ export default function Cardapio({
                 defineBordaSelecionada={defineBordaSelecionada}
                 defineMassaSelecionada={defineMassaSelecionada}
                 pendenciasDeItens={pendenciaPizza}
+            />
+            <ModalItemCombo
+                item={(itemModal !== undefined && "grupos" in itemModal) ? itemModal : undefined}
+                open={openModalPedido === "combo"}
+                setOpen={setOpenModalPedido}
+                adicionaQtde={adicionaQtdeItemSelecionado}
+                diminuiQtde={diminuiQtdeItemSelecionado}
+                adicionaObservacao={adicionaObservacao}
+                adicionaItemCarrinho={adicionarItemCarrinho}
+                gruposComplementosInvalidos={grupoComplementosInvalidos}
+                grupoItensInvalidos={grupoComplementosInvalidos}
             />
         </>
     );

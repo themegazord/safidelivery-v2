@@ -1,7 +1,7 @@
-import { IItemPedido, IItemPizza } from "@/types/cardapio-digital/item-pedido";
+import { IItemCombo, IItemPedido, IItemPizza } from "@/types/cardapio-digital/item-pedido";
 import { createContext } from "react";
 
-type TFuncoesManipulaItensCarrinho = (item?: IItemPedido | IItemPizza) => void;
+type TFuncoesManipulaItensCarrinho = (item?: IItemPedido | IItemPizza | IItemCombo) => void;
 
 interface ICarrinhoContext {
     carrinho: (IItemPedido | IItemPizza)[];

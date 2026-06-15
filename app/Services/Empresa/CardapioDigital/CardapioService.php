@@ -3,6 +3,7 @@
 namespace App\Services\Empresa\CardapioDigital;
 
 use App\Models\CategoriaTamanho;
+use App\Models\Combo;
 use App\Models\Empresa;
 use App\Models\Item;
 use Illuminate\Database\Eloquent\Collection;
@@ -142,6 +143,66 @@ class CardapioService
                     return null;
                 })->filter()->values(),
             ]
+        ];
+    }
+
+    public function setItemComboPedido(int $combo_id): array
+    {
+        $combo = Combo::with([
+            'meta',
+            'grupos' => fn($q) => $q->orderBy('ordem')->with([
+                'entradas' => fn($q) => $q->where('tipo', 'item'),
+            ]),
+            'entradas' => fn($q) => $q->where('tipo', 'complemento')->with([
+                'grupoComplemento' => fn($q) => $q->select(['id', 'nome', 'qtd_maxima', 'obrigatoriedade']),
+            ]),
+        ])->find($combo_id);
+
+        return [
+            'id' => $combo->getAttribute('id'),
+            'nome' => $combo->getAttribute('nome'),
+            'descricao' => $combo->getAttribute('descricao'),
+            'imagem' => $combo->getAttribute('imagem'),
+            'tipo_preco' => $combo->getAttribute('tipo_preco'),
+            'preco_fixo' => (float) ($combo->meta?->getAttribute('preco_combo') ?? $combo->getAttribute('preco') ?? 0),
+            'quantidade' => 1,
+            'preco_unitario' => $combo->getAttribute('tipo_preco') === 'preco_combo' ? (float) ($combo->meta?->getAttribute('preco_combo') ?? $combo->getAttribute('preco') ?? 0) : 0.0,
+            'grupos' => $combo->grupos->map(fn(\App\Models\ComboGrupo $grupo) => [
+                'id' => $grupo->getAttribute('id'),
+                'nome' => $grupo->getAttribute('nome'),
+                'obrigatorio' => (bool) ($grupo->configuracao['obrigatorio'] ?? true),
+                'qtd_minima'  => (int) ($grupo->configuracao['qtd_minima'] ?? 1),
+                'qtd_maxima'  => (int) ($grupo->configuracao['qtd_maxima'] ?? $grupo->getAttribute('qtd_maxima')),
+                'quantidade_selecionada' => 0,
+                'bloqueado' => false,
+                'itens' => $grupo->entradas->map(fn(\App\Models\ComboEntrada $entrada) => [
+                    'referencia_id' => $entrada->getAttribute('referencia_id'),
+                    'nome' => $entrada->getAttribute('nome_snapshot'),
+                    'preco' => (float) $entrada->getAttribute('preco_snapshot'),
+                    'quantidade' => 0
+                ])
+            ]),
+            'grupos_complemento' => $combo->entradas
+                ->filter(fn(\App\Models\ComboEntrada $entrada) => $entrada->grupoComplemento !== null)
+                ->groupBy(fn(\App\Models\ComboEntrada $entrada) => $entrada->grupoComplemento->getAttribute('id'))
+                ->map(fn(\Illuminate\Support\Collection $entradas) => [
+                    'id'                   => $entradas->first()->grupoComplemento->getAttribute('id'),
+                    'nome'                 => $entradas->first()->grupoComplemento->getAttribute('nome'),
+                    'obrigatorio'          => (bool) $entradas->first()->grupoComplemento->getAttribute('obrigatoriedade'),
+                    'qtd_maxima'           => (int) $entradas->first()->grupoComplemento->getAttribute('qtd_maxima'),
+                    'quantidade_selecionada' => 0,
+                    'bloqueado'            => false,
+                    'complementos'         => $entradas->mapWithKeys(fn(\App\Models\ComboEntrada $entrada) => [
+                        $entrada->getAttribute('referencia_id') => [
+                            'referencia_id' => $entrada->getAttribute('referencia_id'),
+                            'nome'          => $entrada->getAttribute('nome_snapshot'),
+                            'preco'         => (float) $entrada->getAttribute('preco_snapshot'),
+                            'quantidade'    => 0,
+                        ],
+                    ]),
+                ]),
+            'observacao' => '',
+            'total' => 0
         ];
     }
 
