@@ -118,6 +118,7 @@ interface IGrupoComplementoCombo {
     nome: string
     obrigatorio: boolean
     qtd_maxima: number
+    qtd_minima: number
     quantidade_selecionada: number
     bloqueado: boolean
     complementos: Record<string, IComplementoCombo>
@@ -131,9 +132,10 @@ interface IComplementoCombo {
 }
 
 export type TManipulaPedidoItem = (
-        alvo: "item" | "complemento" | "sabor" | "itemCombo",
+        alvo: "item" | "complemento" | "sabor" | "itemCombo" | "complementoCombo",
         grupo_idx?: number,
         complemento_idx?: number,
         sabor_idx?: number,
-        itemCombo_idx?: number
+        itemCombo_idx?: number,
+        complementoCombo_idx?: number,
     ) => void

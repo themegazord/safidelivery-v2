@@ -189,6 +189,7 @@ class CardapioService
                     'id'                   => $entradas->first()->grupoComplemento->getAttribute('id'),
                     'nome'                 => $entradas->first()->grupoComplemento->getAttribute('nome'),
                     'obrigatorio'          => (bool) $entradas->first()->grupoComplemento->getAttribute('obrigatoriedade'),
+                    'qtd_minima'           => (int) $entradas->first()->grupoComplemento->getAttribute('qtd_minima'),
                     'qtd_maxima'           => (int) $entradas->first()->grupoComplemento->getAttribute('qtd_maxima'),
                     'quantidade_selecionada' => 0,
                     'bloqueado'            => false,

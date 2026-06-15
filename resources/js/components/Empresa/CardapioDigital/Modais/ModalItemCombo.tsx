@@ -104,7 +104,7 @@ export default function ModalItemCombo({
                                                 undefined,
                                                 undefined,
                                                 undefined,
-                                                itensIdx
+                                                itensIdx,
                                             )
                                         }
                                     >
@@ -124,7 +124,7 @@ export default function ModalItemCombo({
                                                 undefined,
                                                 undefined,
                                                 undefined,
-                                                itensIdx
+                                                itensIdx,
                                             )
                                         }
                                     >
@@ -140,7 +140,100 @@ export default function ModalItemCombo({
             {item &&
                 Object.values(item.grupos_complemento).map(
                     (_grupoComplemento, gcIdx) => (
-                        <div key={gcIdx}></div>
+                        <Card key={gcIdx} className="m-4">
+                            <CardHeader>
+                                <CardTitle className="flex w-full items-center justify-between">
+                                    <span>{_grupoComplemento.nome}</span>
+                                    <Badge
+                                        className={cn(
+                                            _grupoComplemento.obrigatorio
+                                                ? "bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300"
+                                                : "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
+                                        )}
+                                    >
+                                        {_grupoComplemento.obrigatorio
+                                            ? "Obrigatório"
+                                            : "Opcional"}
+                                    </Badge>
+                                </CardTitle>
+                                <CardDescription>
+                                    Escolha pelo menos{" "}
+                                    {_grupoComplemento.qtd_minima} e até{" "}
+                                    {_grupoComplemento.qtd_maxima}{" "}
+                                    {_grupoComplemento.qtd_maxima > 1
+                                        ? "itens"
+                                        : "item"}
+                                    .
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {Object.values(
+                                    _grupoComplemento.complementos,
+                                ).map((_complemento, complementoIdx) => (
+                                    <div className="hover:bg-background/20 flex items-center justify-between rounded-lg p-2">
+                                        <div>
+                                            <p className="font-medium">
+                                                {item.nome}
+                                            </p>
+                                            {item.tipo_preco ===
+                                                "preco_itens" &&
+                                                item.preco_unitario > 0 && (
+                                                    <p className="text-primary text-sm font-bold">
+                                                        R${" "}
+                                                        {converteReal(
+                                                            item.preco_unitario,
+                                                        )}
+                                                    </p>
+                                                )}
+                                        </div>
+                                        <ButtonGroup className="max-w-1/2 md:max-w-2/7">
+                                            <Button
+                                                className="cursor-pointer"
+                                                disabled={
+                                                    _complemento.quantidade ===
+                                                    0
+                                                }
+                                                onClick={() =>
+                                                    diminuiQtde(
+                                                        "complementoCombo",
+                                                        undefined,
+                                                        undefined,
+                                                        undefined,
+                                                        undefined,
+                                                        complementoIdx,
+                                                    )
+                                                }
+                                            >
+                                                <Minus />
+                                            </Button>
+                                            <Input
+                                                className="text-center"
+                                                value={_complemento.quantidade}
+                                                disabled
+                                            />
+                                            <Button
+                                                className="cursor-pointer"
+                                                disabled={Boolean(
+                                                    _grupoComplemento.bloqueado,
+                                                )}
+                                                onClick={() =>
+                                                    adicionaQtde(
+                                                        "complementoCombo",
+                                                        undefined,
+                                                        undefined,
+                                                        undefined,
+                                                        undefined,
+                                                        complementoIdx,
+                                                    )
+                                                }
+                                            >
+                                                <Plus />
+                                            </Button>
+                                        </ButtonGroup>
+                                    </div>
+                                ))}
+                            </CardContent>
+                        </Card>
                     ),
                 )}
         </LayoutModalItem>

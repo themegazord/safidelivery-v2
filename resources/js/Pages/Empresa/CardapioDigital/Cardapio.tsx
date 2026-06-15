@@ -114,11 +114,12 @@ export default function Cardapio({
     }
 
     function adicionaQtdeItemSelecionado(
-        alvo: "item" | "complemento" | "sabor" | "itemCombo",
+        alvo: "item" | "complemento" | "sabor" | "itemCombo" | "complementoCombo",
         grupo_idx?: number,
         complemento_idx?: number,
         sabor_idx?: number,
-        itemCombo_idx?: number
+        itemCombo_idx?: number,
+        complementoCombo_idx?: number,
     ): void {
         setItemModal((prev) => {
             if (!prev) return prev;
@@ -173,11 +174,12 @@ export default function Cardapio({
     }
 
     function diminuiQtdeItemSelecionado(
-        alvo: "item" | "complemento" | "sabor" | "itemCombo",
+        alvo: "item" | "complemento" | "sabor" | "itemCombo" | "complementoCombo",
         grupo_idx?: number,
         complemento_idx?: number,
         sabor_idx?: number,
-        itemCombo_idx?: number
+        itemCombo_idx?: number,
+        complementoCombo_idx?: number,
     ): void {
         setItemModal((prev) => {
             if (!prev) return prev;
