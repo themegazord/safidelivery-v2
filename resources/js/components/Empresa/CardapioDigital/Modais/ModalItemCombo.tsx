@@ -58,7 +58,9 @@ export default function ModalItemCombo({
             item={item}
         >
             {item?.grupos.map((grupo, grupoIdx) => (
-                <Card key={grupoIdx} className="m-4">
+                <Card key={grupoIdx} className={cn('m-4', grupoItensInvalidos.includes(grupo.id)
+                            ? "border border-red-500"
+                            : "",)}>
                     <CardHeader>
                         <CardTitle className="flex w-full items-center justify-between">
                             <span>{grupo.nome}</span>
@@ -81,7 +83,7 @@ export default function ModalItemCombo({
                     <Separator />
                     <CardContent>
                         {grupo.itens.map((itens, itensIdx) => (
-                            <div className="hover:bg-background/20 flex items-center justify-between rounded-lg p-2">
+                            <div className="hover:bg-background/20 flex items-center justify-between rounded-lg p-2" key={itensIdx}>
                                 <div>
                                     <p className="font-medium">{item.nome}</p>
                                     {item.tipo_preco === "preco_itens" &&
@@ -101,7 +103,7 @@ export default function ModalItemCombo({
                                         onClick={() =>
                                             diminuiQtde(
                                                 "itemCombo",
-                                                undefined,
+                                                grupoIdx,
                                                 undefined,
                                                 undefined,
                                                 itensIdx,
@@ -121,7 +123,7 @@ export default function ModalItemCombo({
                                         onClick={() =>
                                             adicionaQtde(
                                                 "itemCombo",
-                                                undefined,
+                                                grupoIdx,
                                                 undefined,
                                                 undefined,
                                                 itensIdx,
@@ -170,7 +172,7 @@ export default function ModalItemCombo({
                                 {Object.values(
                                     _grupoComplemento.complementos,
                                 ).map((_complemento, complementoIdx) => (
-                                    <div className="hover:bg-background/20 flex items-center justify-between rounded-lg p-2">
+                                    <div className="hover:bg-background/20 flex items-center justify-between rounded-lg p-2" key={complementoIdx}>
                                         <div>
                                             <p className="font-medium">
                                                 {item.nome}
@@ -196,7 +198,7 @@ export default function ModalItemCombo({
                                                 onClick={() =>
                                                     diminuiQtde(
                                                         "complementoCombo",
-                                                        undefined,
+                                                        gcIdx,
                                                         undefined,
                                                         undefined,
                                                         undefined,
@@ -219,7 +221,7 @@ export default function ModalItemCombo({
                                                 onClick={() =>
                                                     adicionaQtde(
                                                         "complementoCombo",
-                                                        undefined,
+                                                        gcIdx,
                                                         undefined,
                                                         undefined,
                                                         undefined,

@@ -16,6 +16,7 @@ import { useContext, useEffect, useState } from "react";
 import ModalItens from "@/components/Empresa/CardapioDigital/Modais/ModalItens";
 import {
     IGrupoComplemento,
+    IGrupoItensCombo,
     IItemCombo,
     IItemPedido,
     IItemPizza,
@@ -54,12 +55,22 @@ export default function Cardapio({
     const [openModalPedido, setOpenModalPedido] = useState<
         "item" | "combo" | "pizza" | null
     >(null);
+    const [grupoItensInvalidos, setGruposItensInvalidos] = useState<
+        number[]
+    >([]);
     const [grupoComplementosInvalidos, setGrupoComplementoInvalidos] = useState<
         number[]
     >([]);
-    const [pendenciaPizza, setPendenciaPizza] = useState<{massa: boolean, borda: boolean, sabores: boolean}>({massa: false, borda: false, sabores: false})
 
-    const [itemModal, setItemModal] = useState<IItemPedido | IItemPizza | IItemCombo>();
+    const [pendenciaPizza, setPendenciaPizza] = useState<{
+        massa: boolean;
+        borda: boolean;
+        sabores: boolean;
+    }>({ massa: false, borda: false, sabores: false });
+
+    const [itemModal, setItemModal] = useState<
+        IItemPedido | IItemPizza | IItemCombo
+    >();
 
     const { adicionaItemCarrinho } = useContext(CarrinhoContext);
 
@@ -102,19 +113,32 @@ export default function Cardapio({
         }
 
         if ("sabores" in item) {
+            const totalSabores = item.sabores.reduce(
+                (acc, sabor) => acc + sabor.quantidade * sabor.preco,
+                0,
+            );
 
-            const totalSabores = item.sabores.reduce((acc, sabor) => acc + (sabor.quantidade * sabor.preco), 0)
-
-            return item.quantidade * (totalSabores + (item.massaSelecionada?.preco ?? 0) + (item.bordaSelecionada?.preco ?? 0))
+            return (
+                item.quantidade *
+                (totalSabores +
+                    (item.massaSelecionada?.preco ?? 0) +
+                    (item.bordaSelecionada?.preco ?? 0))
+            );
         }
 
-        if ("grupos" in item) {}
+        if ("grupos" in item) {
+        }
 
         return 0;
     }
 
     function adicionaQtdeItemSelecionado(
-        alvo: "item" | "complemento" | "sabor" | "itemCombo" | "complementoCombo",
+        alvo:
+            | "item"
+            | "complemento"
+            | "sabor"
+            | "itemCombo"
+            | "complementoCombo",
         grupo_idx?: number,
         complemento_idx?: number,
         sabor_idx?: number,
@@ -160,21 +184,89 @@ export default function Cardapio({
                     if (idx !== sabor_idx) return sabor;
 
                     return {
-                        ...sabor, quantidade: sabor.quantidade + 1
-                    }
-                })
+                        ...sabor,
+                        quantidade: sabor.quantidade + 1,
+                    };
+                });
 
                 const atualizado = { ...prev, sabores: sabores };
-                const quantidadeSelecionadoRecalculado = atualizado.sabores.reduce((acc, sabor) => acc + sabor.quantidade, 0)
-                return { ...atualizado, total: calculaTotal(atualizado), quantidade_sabores_selecionadas: quantidadeSelecionadoRecalculado};
+                const quantidadeSelecionadoRecalculado =
+                    atualizado.sabores.reduce(
+                        (acc, sabor) => acc + sabor.quantidade,
+                        0,
+                    );
+                return {
+                    ...atualizado,
+                    total: calculaTotal(atualizado),
+                    quantidade_sabores_selecionadas:
+                        quantidadeSelecionadoRecalculado,
+                };
             }
 
-            if ("grupos" in prev) {}
+            if ("grupos" in prev) {
+                if (itemCombo_idx !== undefined) {
+                    const grupos = prev.grupos.map((g, gi) => {
+                        if (gi !== grupo_idx) return g;
+
+                        const novosItens = g.itens.map((c, ci) =>
+                            ci === itemCombo_idx
+                                ? { ...c, quantidade: c.quantidade + 1 }
+                                : c,
+                        );
+
+                        const novoTotal = novosItens.reduce(
+                            (acc, c) => acc + c.quantidade,
+                            0,
+                        );
+
+                        return {
+                            ...g,
+                            itens: novosItens,
+                            bloqueado: novoTotal >= g.qtd_maxima,
+                        };
+                    });
+                    return { ...prev, grupos };
+                }
+
+                if (complementoCombo_idx !== undefined) {
+                    const gruposComplemento = Object.fromEntries(
+                        Object.entries(prev.grupos_complemento).map(([key, g], gi) => {
+                            if (gi !== grupo_idx) return [key, g];
+
+                            const novosComplementos = Object.fromEntries(
+                                Object.entries(g.complementos).map(([ck, c], ci) => [
+                                    ck,
+                                    ci === complementoCombo_idx
+                                        ? { ...c, quantidade: c.quantidade + 1 }
+                                        : c,
+                                ])
+                            );
+
+                            const novoTotal = Object.values(novosComplementos).reduce(
+                                (acc, c) => acc + c.quantidade,
+                                0,
+                            );
+
+                            return [key, {
+                                ...g,
+                                complementos: novosComplementos,
+                                bloqueado: novoTotal >= g.qtd_maxima,
+                            }];
+                        })
+                    );
+                    return { ...prev, grupos_complemento: gruposComplemento };
+                }
+            }
         });
     }
 
     function diminuiQtdeItemSelecionado(
-        alvo: "item" | "complemento" | "sabor" | "itemCombo" | "complementoCombo",
+        alvo:
+            | "item"
+            | "complemento"
+            | "sabor"
+            | "itemCombo"
+            | "complementoCombo",
         grupo_idx?: number,
         complemento_idx?: number,
         sabor_idx?: number,
@@ -184,13 +276,13 @@ export default function Cardapio({
         setItemModal((prev) => {
             if (!prev) return prev;
 
-                if (alvo === "item") {
-                    const atualizado = {
-                        ...prev,
-                        quantidade: Math.max(1, prev.quantidade - 1),
-                    };
-                    return { ...atualizado, total: calculaTotal(atualizado) };
-                }
+            if (alvo === "item") {
+                const atualizado = {
+                    ...prev,
+                    quantidade: Math.max(1, prev.quantidade - 1),
+                };
+                return { ...atualizado, total: calculaTotal(atualizado) };
+            }
 
             if ("grupo_complemento" in prev) {
                 const grupos = prev.grupo_complemento.map((g, gi) => {
@@ -223,16 +315,79 @@ export default function Cardapio({
                     if (idx !== sabor_idx) return sabor;
 
                     return {
-                        ...sabor, quantidade: sabor.quantidade - 1
-                    }
-                })
+                        ...sabor,
+                        quantidade: sabor.quantidade - 1,
+                    };
+                });
 
                 const atualizado = { ...prev, sabores: sabores };
-                const quantidadeSelecionadoRecalculado = atualizado.sabores.reduce((acc, sabor) => acc + sabor.quantidade, 0)
-                return { ...atualizado, total: calculaTotal(atualizado), quantidade_sabores_selecionadas: quantidadeSelecionadoRecalculado};
+                const quantidadeSelecionadoRecalculado =
+                    atualizado.sabores.reduce(
+                        (acc, sabor) => acc + sabor.quantidade,
+                        0,
+                    );
+                return {
+                    ...atualizado,
+                    total: calculaTotal(atualizado),
+                    quantidade_sabores_selecionadas:
+                        quantidadeSelecionadoRecalculado,
+                };
             }
 
-            if ("grupos" in prev) {}
+            if ("grupos" in prev) {
+                if (itemCombo_idx !== undefined) {
+                    const grupos = prev.grupos.map((g, gi) => {
+                        if (gi !== grupo_idx) return g;
+
+                        const novosItens = g.itens.map((c, ci) =>
+                            ci === itemCombo_idx
+                                ? { ...c, quantidade: Math.max(0, c.quantidade - 1) }
+                                : c,
+                        );
+
+                        const novoTotal = novosItens.reduce(
+                            (acc, c) => acc + c.quantidade,
+                            0,
+                        );
+
+                        return {
+                            ...g,
+                            itens: novosItens,
+                            bloqueado: novoTotal >= g.qtd_maxima,
+                        };
+                    });
+                    return { ...prev, grupos };
+                }
+
+                if (complementoCombo_idx !== undefined) {
+                    const gruposComplemento = Object.fromEntries(
+                        Object.entries(prev.grupos_complemento).map(([key, g], gi) => {
+                            if (gi !== grupo_idx) return [key, g];
+
+                            const novosComplementos = Object.fromEntries(
+                                Object.entries(g.complementos).map(([ck, c], ci) => [
+                                    ck,
+                                    ci === complementoCombo_idx
+                                        ? { ...c, quantidade: Math.max(0, c.quantidade - 1) }
+                                        : c,
+                                ])
+                            );
+
+                            const novoTotal = Object.values(novosComplementos).reduce(
+                                (acc, c) => acc + c.quantidade,
+                                0,
+                            );
+
+                            return [key, {
+                                ...g,
+                                complementos: novosComplementos,
+                                bloqueado: novoTotal >= g.qtd_maxima,
+                            }];
+                        })
+                    );
+                    return { ...prev, grupos_complemento: gruposComplemento };
+                }
+            }
         });
     }
 
@@ -254,16 +409,26 @@ export default function Cardapio({
             const invalidos = {
                 massa: itemModal.massaSelecionada === null,
                 borda: itemModal.bordaSelecionada === null,
-                sabores: itemModal.quantidade_sabores_selecionadas !== itemModal.quantidade_sabor
-            }
+                sabores:
+                    itemModal.quantidade_sabores_selecionadas !==
+                    itemModal.quantidade_sabor,
+            };
 
             if (invalidos.massa || invalidos.borda || invalidos.sabores) {
-                setPendenciaPizza(invalidos)
-                return
+                setPendenciaPizza(invalidos);
+                return;
             }
         }
 
-        if ("grupos" in itemModal) {}
+        if ("grupos" in itemModal) {
+            const giInvalidos = itemModal?.grupos.filter((gi) => !grupoItemValido(gi)).map((gi) => gi.id) ?? []
+
+            console.log(giInvalidos)
+
+            setGruposItensInvalidos(giInvalidos)
+
+            if (giInvalidos.length > 0) return;
+        }
 
         adicionaItemCarrinho(itemModal);
 
@@ -286,6 +451,25 @@ export default function Cardapio({
                     (acc, c) => acc + c.quantidade,
                     0,
                 ) > grupoComplemento.qtd_minima
+            );
+        } else {
+            return true;
+        }
+    }
+
+    function grupoItemValido(
+        grupoItem: IGrupoItensCombo,
+    ): boolean {
+        console.log(grupoItem.itens.reduce(
+                    (acc, c) => acc + c.quantidade,
+                    0,
+                ), grupoItem.qtd_minima, grupoItem.qtd_maxima)
+        if (grupoItem.obrigatorio) {
+            return (
+                grupoItem.itens.reduce(
+                    (acc, c) => acc + c.quantidade,
+                    0,
+                ) >= grupoItem.qtd_minima
             );
         } else {
             return true;
@@ -389,7 +573,7 @@ export default function Cardapio({
         categoria_tamanho_id: number,
         idx: number,
         qtdeSabor: number,
-        menorValorTamanho: number
+        menorValorTamanho: number,
     ) {
         try {
             setLoadingItemId(categoria_tamanho_id + idx);
@@ -399,7 +583,11 @@ export default function Cardapio({
                     interacao_id: interacao_id,
                     tipo_funcionamento: tipo_funcionamento,
                 }),
-                { tamanho_id: categoria_tamanho_id, qtdeSabor: qtdeSabor, menorValorTamanho: menorValorTamanho },
+                {
+                    tamanho_id: categoria_tamanho_id,
+                    qtdeSabor: qtdeSabor,
+                    menorValorTamanho: menorValorTamanho,
+                },
             );
 
             setItemModal(data.tamanho);
@@ -412,19 +600,29 @@ export default function Cardapio({
     }
 
     function defineMassaSelecionada(value: string): void {
-        setItemModal(prev => {
+        setItemModal((prev) => {
             if (!prev || !("sabores" in prev)) return prev;
 
-            const atualizado = { ...prev, massaSelecionada: prev.massas.find(m => m.id === Number(value)) };
+            const atualizado = {
+                ...prev,
+                massaSelecionada: prev.massas.find(
+                    (m) => m.id === Number(value),
+                ),
+            };
             return { ...atualizado, total: calculaTotal(atualizado) };
         });
     }
 
     function defineBordaSelecionada(value: string): void {
-        setItemModal(prev => {
+        setItemModal((prev) => {
             if (!prev || !("sabores" in prev)) return prev;
 
-            const atualizado = { ...prev, bordaSelecionada: prev.bordas.find(b => b.id === Number(value)) };
+            const atualizado = {
+                ...prev,
+                bordaSelecionada: prev.bordas.find(
+                    (b) => b.id === Number(value),
+                ),
+            };
             return { ...atualizado, total: calculaTotal(atualizado) };
         });
     }
@@ -666,7 +864,11 @@ export default function Cardapio({
             </section>
 
             <ModalItens
-                item={(itemModal !== undefined && "grupo_complemento" in itemModal) ? itemModal : undefined}
+                item={
+                    itemModal !== undefined && "grupo_complemento" in itemModal
+                        ? itemModal
+                        : undefined
+                }
                 open={openModalPedido === "item"}
                 setOpen={setOpenModalPedido}
                 adicionaQtde={adicionaQtdeItemSelecionado}
@@ -676,7 +878,11 @@ export default function Cardapio({
                 gruposComplementosInvalidos={grupoComplementosInvalidos}
             />
             <ModalItensPizza
-                item={ (itemModal !== undefined && "sabores" in itemModal) ? itemModal : undefined }
+                item={
+                    itemModal !== undefined && "sabores" in itemModal
+                        ? itemModal
+                        : undefined
+                }
                 open={openModalPedido === "pizza"}
                 setOpen={setOpenModalPedido}
                 adicionaQtde={adicionaQtdeItemSelecionado}
@@ -688,7 +894,11 @@ export default function Cardapio({
                 pendenciasDeItens={pendenciaPizza}
             />
             <ModalItemCombo
-                item={(itemModal !== undefined && "grupos" in itemModal) ? itemModal : undefined}
+                item={
+                    itemModal !== undefined && "grupos" in itemModal
+                        ? itemModal
+                        : undefined
+                }
                 open={openModalPedido === "combo"}
                 setOpen={setOpenModalPedido}
                 adicionaQtde={adicionaQtdeItemSelecionado}
@@ -696,7 +906,7 @@ export default function Cardapio({
                 adicionaObservacao={adicionaObservacao}
                 adicionaItemCarrinho={adicionarItemCarrinho}
                 gruposComplementosInvalidos={grupoComplementosInvalidos}
-                grupoItensInvalidos={grupoComplementosInvalidos}
+                grupoItensInvalidos={grupoItensInvalidos}
             />
         </>
     );

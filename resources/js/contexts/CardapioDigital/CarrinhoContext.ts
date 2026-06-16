@@ -4,7 +4,7 @@ import { createContext } from "react";
 type TFuncoesManipulaItensCarrinho = (item?: IItemPedido | IItemPizza | IItemCombo) => void;
 
 interface ICarrinhoContext {
-    carrinho: (IItemPedido | IItemPizza)[];
+    carrinho: (IItemPedido | IItemPizza | IItemCombo)[];
     adicionaItemCarrinho: TFuncoesManipulaItensCarrinho;
     removeItemCarrinho: TFuncoesManipulaItensCarrinho;
     diminuiItemCarrinho: TFuncoesManipulaItensCarrinho;

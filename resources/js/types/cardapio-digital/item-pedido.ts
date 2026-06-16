@@ -84,7 +84,7 @@ interface IBorda {
     preco: number;
 }
 
-interface ISabor {
+export interface ISabor {
     id: number;
     item_id: number;
     nome: string;
@@ -95,7 +95,7 @@ interface ISabor {
     quantidade: number;
 }
 
-interface IGrupoItensCombo {
+export interface IGrupoItensCombo {
     id: number
     nome: string
     obrigatorio: boolean
@@ -106,14 +106,14 @@ interface IGrupoItensCombo {
     itens: IItensGrupoItensCombo[]
 }
 
-interface IItensGrupoItensCombo {
+export interface IItensGrupoItensCombo {
     referencia_id: number
     nome: string
     preco: number
     quantidade: number
 }
 
-interface IGrupoComplementoCombo {
+export interface IGrupoComplementoCombo {
     id: number
     nome: string
     obrigatorio: boolean
@@ -124,7 +124,7 @@ interface IGrupoComplementoCombo {
     complementos: Record<string, IComplementoCombo>
 }
 
-interface IComplementoCombo {
+export interface IComplementoCombo {
     referencia_id: number
     nome: string
     preco: number
