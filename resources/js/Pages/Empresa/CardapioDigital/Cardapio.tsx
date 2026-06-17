@@ -25,6 +25,7 @@ import { CarrinhoContext } from "@/contexts/CardapioDigital/CarrinhoContext";
 import { ReactNode } from "react";
 import ModalItensPizza from "@/components/Empresa/CardapioDigital/Modais/ModalItensPizza";
 import ModalItemCombo from "@/components/Empresa/CardapioDigital/Modais/ModalItemCombo";
+import { usePage } from "@inertiajs/react";
 
 interface IProps {
     interacao_id: string;
@@ -527,7 +528,7 @@ export default function Cardapio({
 
         setFiltrado(categoriasFiltradas);
     }, [cardapioHoje, pesquisa]);
-
+    
     async function buscaItemPedido(id: number) {
         try {
             setLoadingItemId(id);
