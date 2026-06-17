@@ -13,7 +13,8 @@ class CardapioController extends Controller
     public Empresa $empresa;
     public function __construct(public readonly CardapioService $cardapioService) {}
 
-    public function index(string $interacao_id, string $tipo_funcionamento) {
+    public function index(string $interacao_id, string $tipo_funcionamento)
+    {
         $this->empresa = Empresa::query()->where('interacao_id', $interacao_id)->first();
 
         return Inertia::render('Empresa/CardapioDigital/Cardapio', [
@@ -23,19 +24,27 @@ class CardapioController extends Controller
             'logo' => $this->empresa->getAttribute('logo'),
             'nome_fantasia' => $this->empresa->getAttribute('nome_fantasia'),
             'categorias' => $this->cardapioService->categoriasDisponiveis($this->empresa, $tipo_funcionamento),
-            'cardapioHoje' => $this->cardapioService->cardapioHoje()
+            'cardapioHoje' => $this->cardapioService->cardapioHoje(),
+            'lojaAberta' => $this->cardapioService->validaRecebePedidos($tipo_funcionamento, $this->empresa->getAttribute('id')),
+            'configuracoes' => $this->empresa->configuracoes()
+                ->whereIn('configuracao', ['informa_mesa_comanda', 'modo_atendente'])
+                ->pluck('valor', 'configuracao')
+                ->toArray()
         ]);
     }
 
-    public function itemPedido(Request $request) {
+    public function itemPedido(Request $request)
+    {
         return response()->json($this->cardapioService->getItemPedido($request->input('id')));
     }
 
-    public function itemPizzaPedido(Request $request) {
+    public function itemPizzaPedido(Request $request)
+    {
         return response()->json($this->cardapioService->getItemPizzaPedido($request->input('tamanho_id'), $request->input('qtdeSabor'), $request->input('menorValorTamanho')));
     }
 
-    public function itemComboPedido(Request $request) {
+    public function itemComboPedido(Request $request)
+    {
         return response()->json($this->cardapioService->setItemComboPedido($request->input('combo_id')));
     }
 }

@@ -1,5 +1,4 @@
 import { MenuItemCard } from "@/components/Empresa/CardapioDigital/MenuItemCard";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { DragScrollContainer } from "@/components/Empresa/CardapioDigital/DragScroll";
@@ -25,7 +24,6 @@ import { CarrinhoContext } from "@/contexts/CardapioDigital/CarrinhoContext";
 import { ReactNode } from "react";
 import ModalItensPizza from "@/components/Empresa/CardapioDigital/Modais/ModalItensPizza";
 import ModalItemCombo from "@/components/Empresa/CardapioDigital/Modais/ModalItemCombo";
-import { usePage } from "@inertiajs/react";
 
 interface IProps {
     interacao_id: string;
@@ -128,6 +126,25 @@ export default function Cardapio({
         }
 
         if ("grupos" in item) {
+            const precoBase = item.tipo_preco === "preco_combo" ? item.preco_fixo : 0;
+
+            const totalGrupos = item.tipo_preco === "preco_itens" ? item.grupos.reduce(
+                (acc, g) => acc + g.itens.reduce(
+                    (soma, i) => soma + i.quantidade * Number(i.preco),
+                    0,
+                ),
+                0,
+            ) : 0;
+
+            const totalComplementos = Object.values(item.grupos_complemento).reduce(
+                (acc, g) => acc + Object.values(g.complementos).reduce(
+                    (soma, c) => soma + c.quantidade * Number(c.preco),
+                    0,
+                ),
+                0,
+            );
+
+            return item.quantidade * (precoBase + totalGrupos + totalComplementos);
         }
 
         return 0;
@@ -226,7 +243,8 @@ export default function Cardapio({
                             bloqueado: novoTotal >= g.qtd_maxima,
                         };
                     });
-                    return { ...prev, grupos };
+                    const atualizado = { ...prev, grupos };
+                    return { ...atualizado, total: calculaTotal(atualizado) };
                 }
 
                 if (complementoCombo_idx !== undefined) {
@@ -255,7 +273,8 @@ export default function Cardapio({
                             }];
                         })
                     );
-                    return { ...prev, grupos_complemento: gruposComplemento };
+                    const atualizado = { ...prev, grupos_complemento: gruposComplemento };
+                    return { ...atualizado, total: calculaTotal(atualizado) };
                 }
             }
         });
@@ -357,7 +376,8 @@ export default function Cardapio({
                             bloqueado: novoTotal >= g.qtd_maxima,
                         };
                     });
-                    return { ...prev, grupos };
+                    const atualizado = { ...prev, grupos };
+                    return { ...atualizado, total: calculaTotal(atualizado) };
                 }
 
                 if (complementoCombo_idx !== undefined) {
@@ -386,7 +406,8 @@ export default function Cardapio({
                             }];
                         })
                     );
-                    return { ...prev, grupos_complemento: gruposComplemento };
+                    const atualizado = { ...prev, grupos_complemento: gruposComplemento };
+                    return { ...atualizado, total: calculaTotal(atualizado) };
                 }
             }
         });
@@ -451,7 +472,7 @@ export default function Cardapio({
                 grupoComplemento.complementos.reduce(
                     (acc, c) => acc + c.quantidade,
                     0,
-                ) > grupoComplemento.qtd_minima
+                ) >= grupoComplemento.qtd_minima
             );
         } else {
             return true;

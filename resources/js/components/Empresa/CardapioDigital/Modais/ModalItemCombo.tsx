@@ -17,6 +17,7 @@ import { ButtonGroup } from "@/components/ui/button-group";
 import { Button } from "@/components/ui/button";
 import { Minus, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { converteReal } from "@/utils/utils";
 
 interface IProps {
     item?: IItemCombo;
@@ -41,12 +42,6 @@ export default function ModalItemCombo({
     gruposComplementosInvalidos,
     grupoItensInvalidos,
 }: IProps) {
-    function converteReal(valor?: number | string) {
-        return Number(valor).toLocaleString("pt-BR", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        });
-    }
     return (
         <LayoutModalItem
             open={open}
@@ -85,13 +80,13 @@ export default function ModalItemCombo({
                         {grupo.itens.map((itens, itensIdx) => (
                             <div className="hover:bg-background/20 flex items-center justify-between rounded-lg p-2" key={itensIdx}>
                                 <div>
-                                    <p className="font-medium">{item.nome}</p>
+                                    <p className="font-medium">{itens.nome}</p>
                                     {item.tipo_preco === "preco_itens" &&
                                         item.preco_unitario > 0 && (
                                             <p className="text-primary text-sm font-bold">
                                                 R${" "}
                                                 {converteReal(
-                                                    item.preco_unitario,
+                                                    itens.preco,
                                                 )}
                                             </p>
                                         )}
@@ -175,15 +170,13 @@ export default function ModalItemCombo({
                                     <div className="hover:bg-background/20 flex items-center justify-between rounded-lg p-2" key={complementoIdx}>
                                         <div>
                                             <p className="font-medium">
-                                                {item.nome}
+                                                {_complemento.nome}
                                             </p>
-                                            {item.tipo_preco ===
-                                                "preco_itens" &&
-                                                item.preco_unitario > 0 && (
+                                            {item.preco_unitario > 0 && (
                                                     <p className="text-primary text-sm font-bold">
                                                         R${" "}
                                                         {converteReal(
-                                                            item.preco_unitario,
+                                                            _complemento.preco,
                                                         )}
                                                     </p>
                                                 )}

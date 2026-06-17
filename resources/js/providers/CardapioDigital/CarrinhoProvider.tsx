@@ -8,7 +8,7 @@ import {
     IItemPizza,
     ISabor,
 } from "@/types/cardapio-digital/item-pedido";
-import { ReactNode, useState } from "react";
+import { ReactNode, useMemo, useState } from "react";
 
 export default function CarrinhoProvider({
     children,
@@ -18,6 +18,9 @@ export default function CarrinhoProvider({
     const [carrinho, setCarrinho] = useState<
         (IItemPedido | IItemPizza | IItemCombo)[]
     >([]);
+        const total = useMemo(() => {
+        return carrinho.reduce((acc, item) => acc + (item.quantidade * item.total), 0)
+    }, [carrinho])
 
     function grupoComplementoSaoIguais(
         grupo1: IGrupoComplemento[],
@@ -113,10 +116,11 @@ export default function CarrinhoProvider({
             });
 
             if (itemExistente) {
+                console.log('item existente aqui')
                 setCarrinho((prev) =>
                     prev.map((i) =>
                         i === itemExistente
-                            ? { ...i, quantidade: i.quantidade + 1 }
+                            ? { ...i, quantidade: item.quantidade + i.quantidade }
                             : i,
                     ),
                 );
@@ -186,6 +190,7 @@ export default function CarrinhoProvider({
         <CarrinhoContext.Provider
             value={{
                 carrinho: carrinho,
+                total: total,
                 adicionaItemCarrinho: adicionaItemCarrinho,
                 removeItemCarrinho: () => {},
                 diminuiItemCarrinho: () => {},

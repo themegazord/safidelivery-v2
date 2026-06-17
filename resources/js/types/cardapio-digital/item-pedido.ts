@@ -10,13 +10,13 @@ export interface IItemPizza {
     menorValorTamanho: number;
     observacao: string;
     total: number;
-    categoria: { id: number; nome: string };
+    categoria: ICategoria;
     massas: IMassa[];
     bordas: IBorda[];
     massaSelecionada?: IMassa;
     bordaSelecionada?: IBorda;
     sabores: ISabor[];
-    tipo: "I" | "P";
+    tipo: "PIZ";
 }
 
 export interface IItemPedido {
@@ -31,22 +31,31 @@ export interface IItemPedido {
     quantidade: number;
     observacao?: string;
     total: number;
-    tipo: "I" | "P";
+    tipo: "PRE" | "BEB" | "IND";
+    preco_unitario: number;
+    categoria: ICategoria;
 }
 
 export interface IItemCombo {
-    id: number
-    nome: string
-    descricao?: string
-    imagem?: string
-    tipo_preco: 'preco_combo' | 'preco_itens'
-    preco_fixo: number
-    quantidade: number
-    preco_unitario: number
-    grupos: IGrupoItensCombo[]
-    grupos_complemento: Record<string, IGrupoComplementoCombo>
-    observacao: string
-    total: number
+    id: number;
+    nome: string;
+    descricao?: string;
+    imagem?: string;
+    tipo_preco: "preco_combo" | "preco_itens";
+    preco_fixo: number;
+    quantidade: number;
+    preco_unitario: number;
+    grupos: IGrupoItensCombo[];
+    grupos_complemento: Record<string, IGrupoComplementoCombo>;
+    observacao: string;
+    total: number;
+    tipo: "CON";
+    categoria: ICategoria;
+}
+
+interface ICategoria {
+    id: number;
+    nome: string;
 }
 
 export interface IGrupoComplemento {
@@ -96,46 +105,46 @@ export interface ISabor {
 }
 
 export interface IGrupoItensCombo {
-    id: number
-    nome: string
-    obrigatorio: boolean
-    qtd_minima: number
-    qtd_maxima: number
-    quantidade_selecionada: number
-    bloqueado: boolean
-    itens: IItensGrupoItensCombo[]
+    id: number;
+    nome: string;
+    obrigatorio: boolean;
+    qtd_minima: number;
+    qtd_maxima: number;
+    quantidade_selecionada: number;
+    bloqueado: boolean;
+    itens: IItensGrupoItensCombo[];
 }
 
 export interface IItensGrupoItensCombo {
-    referencia_id: number
-    nome: string
-    preco: number
-    quantidade: number
+    referencia_id: number;
+    nome: string;
+    preco: number;
+    quantidade: number;
 }
 
 export interface IGrupoComplementoCombo {
-    id: number
-    nome: string
-    obrigatorio: boolean
-    qtd_maxima: number
-    qtd_minima: number
-    quantidade_selecionada: number
-    bloqueado: boolean
-    complementos: Record<string, IComplementoCombo>
+    id: number;
+    nome: string;
+    obrigatorio: boolean;
+    qtd_maxima: number;
+    qtd_minima: number;
+    quantidade_selecionada: number;
+    bloqueado: boolean;
+    complementos: Record<string, IComplementoCombo>;
 }
 
 export interface IComplementoCombo {
-    referencia_id: number
-    nome: string
-    preco: number
-    quantidade: number
+    referencia_id: number;
+    nome: string;
+    preco: number;
+    quantidade: number;
 }
 
 export type TManipulaPedidoItem = (
-        alvo: "item" | "complemento" | "sabor" | "itemCombo" | "complementoCombo",
-        grupo_idx?: number,
-        complemento_idx?: number,
-        sabor_idx?: number,
-        itemCombo_idx?: number,
-        complementoCombo_idx?: number,
-    ) => void
+    alvo: "item" | "complemento" | "sabor" | "itemCombo" | "complementoCombo",
+    grupo_idx?: number,
+    complemento_idx?: number,
+    sabor_idx?: number,
+    itemCombo_idx?: number,
+    complementoCombo_idx?: number,
+) => void;

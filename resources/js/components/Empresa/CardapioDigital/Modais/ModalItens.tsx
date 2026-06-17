@@ -18,6 +18,7 @@ import {
 } from "@/types/cardapio-digital/item-pedido";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
 import LayoutModalItem from "./LayoutModalItem";
+import { converteReal } from "@/utils/utils";
 
 interface IProps {
     item?: IItemPedido;
@@ -40,12 +41,6 @@ export default function ModalItens({
     adicionaItemCarrinho,
     gruposComplementosInvalidos,
 }: IProps) {
-    function converteReal(valor?: number | string) {
-        return Number(valor).toLocaleString("pt-BR", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        });
-    }
     return (
         <LayoutModalItem
             open={open}

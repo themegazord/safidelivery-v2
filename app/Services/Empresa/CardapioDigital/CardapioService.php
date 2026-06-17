@@ -4,8 +4,12 @@ namespace App\Services\Empresa\CardapioDigital;
 
 use App\Models\CategoriaTamanho;
 use App\Models\Combo;
+use App\Models\Configuracao;
 use App\Models\Empresa;
+use App\Models\HorarioFuncionamento;
+use App\Models\HorarioIndisponibilidade;
 use App\Models\Item;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 
 class CardapioService
@@ -51,12 +55,14 @@ class CardapioService
     public function getItemPedido(int $item_id): array
     {
         $item = Item::query()
-            ->with('grupo_complemento.complementos')
-            ->find($item_id, ['id', 'nome', 'preco', 'desconto', 'valor_desconto', 'descricao', 'imagem']);
+            ->with('grupo_complemento.complementos', 'categoria')
+            ->find($item_id, ['id', 'nome', 'preco', 'desconto', 'valor_desconto', 'descricao', 'imagem', 'tipo', 'categoria_id']);
 
         return [
             'item' => [
                 ...$item->only(['id', 'nome', 'preco', 'desconto', 'valor_desconto', 'descricao', 'imagem', 'tipo']),
+                'categoria' => $item->categoria->only(['id', 'nome']),
+                'preco_unitario' => (bool) $item->getAttribute('desconto') ? $item->getAttribute('valor_desconto') : $item->getAttribute('preco'),
                 'quantidade' => 1,
                 'observacao' => "",
                 'total' => (bool) $item->getAttribute('desconto') ? $item->getAttribute('valor_desconto') : $item->getAttribute('preco'),
@@ -156,6 +162,7 @@ class CardapioService
             'entradas' => fn($q) => $q->where('tipo', 'complemento')->with([
                 'grupoComplemento' => fn($q) => $q->select(['id', 'nome', 'qtd_maxima', 'obrigatoriedade']),
             ]),
+            'categoria'
         ])->find($combo_id);
 
         return [
@@ -164,8 +171,10 @@ class CardapioService
             'descricao' => $combo->getAttribute('descricao'),
             'imagem' => $combo->getAttribute('imagem'),
             'tipo_preco' => $combo->getAttribute('tipo_preco'),
+            'tipo' => 'CON',
             'preco_fixo' => (float) ($combo->meta?->getAttribute('preco_combo') ?? $combo->getAttribute('preco') ?? 0),
             'quantidade' => 1,
+            'categoria' => $combo->categoria->only(['id', 'nome']),
             'preco_unitario' => $combo->getAttribute('tipo_preco') === 'preco_combo' ? (float) ($combo->meta?->getAttribute('preco_combo') ?? $combo->getAttribute('preco') ?? 0) : 0.0,
             'grupos' => $combo->grupos->map(fn(\App\Models\ComboGrupo $grupo) => [
                 'id' => $grupo->getAttribute('id'),
@@ -203,8 +212,78 @@ class CardapioService
                     ]),
                 ]),
             'observacao' => '',
-            'total' => 0
+            'total' => (float) ($combo->meta?->getAttribute('preco_combo') ?? $combo->getAttribute('preco') ?? 0)
         ];
+    }
+
+    public function validaRecebePedidos(string $tipo_funcionamento, int $empresa_id): bool
+    {
+        // Obtém a empresa pelo ID
+        $empresa = Empresa::find($empresa_id);
+
+        // Obtém o fuso horário da empresa
+        $fusoEmpresa = array_values(array_filter($empresa->fusosHorarios(), fn($fuso) => $fuso['id'] === intval($empresa->configuracoes->where('configuracao', 'fuso_horario')->first()->valor)))[0];
+
+        // Obtém a data e hora atual no fuso horário da empresa
+        $hoje = Carbon::now($fusoEmpresa['name'])->toDateString();
+        $horaAtual = Carbon::now()->format('H:i');
+        $diaSemana = Carbon::now()->dayOfWeek;
+        $diaAnterior = ($diaSemana === 0) ? 6 : $diaSemana - 1; // Ajuste para considerar o domingo (0) como o dia anterior ao sábado (6)
+
+
+        // Verifica se há alguma indisponibilidade programada para a empresa no dia atual
+        if (HorarioIndisponibilidade::whereDate('data_inicio', '<=', $hoje)->whereDate('data_fim', '>=', $hoje)->exists()) {
+            return false;
+        }
+
+        // Verifica configurações globais de funcionamento da empresa
+        $configuracao = Configuracao::whereEmpresaId($empresa_id)->whereConfiguracao('funcionamentoEstabelecimento')->first()?->valor;
+        if ($configuracao === null)
+            return false; // Empresa sem configuração
+        if ($configuracao === 'fechado')
+            return false; // Empresa fechada
+        if ($configuracao === 'sempre')
+            return true; // Empresa sempre aberta
+
+        // Obtém os horários de funcionamento normais para o dia atual e tipo de funcionamento
+        $horariosHoje = HorarioFuncionamento::whereEmpresaId($empresa_id)
+            ->where('dia_semana', $diaSemana)
+            ->where('tipo_funcionamento', $tipo_funcionamento)
+            ->whereStatus(true)
+            ->get();
+
+        // Verifica se o horário atual está dentro de algum período de funcionamento do dia
+        foreach ($horariosHoje as $horario) {
+            if ($horaAtual >= $horario->hora_inicio && $horaAtual <= $horario->hora_fim) {
+                return true;
+            }
+        }
+
+        // Verifica se o horário atual está dentro de algum período de funcionamento do dia
+        foreach ($horariosHoje as $horario) {
+            if ($horario->hora_inicio > $horario->hora_fim && $horaAtual >= $horario->hora_inicio && $horaAtual <= "23:59") {
+                return true;
+            }
+        }
+
+        // Obtém os horários que começaram no dia anterior e atravessam a meia-noite
+        $horariosOntem = HorarioFuncionamento::whereEmpresaId($empresa_id)
+            ->where('dia_semana', $diaAnterior)
+            ->where('tipo_funcionamento', $tipo_funcionamento)
+            ->whereStatus(true)
+            ->where('hora_inicio', '>', '12:00:00') // Considera horários que começaram à noite
+            ->where('hora_fim', '<', '12:00:00') // Considera horários que terminam na madrugada
+            ->get();
+
+        // Verifica se o horário atual está dentro do intervalo desses horários noturnos
+        foreach ($horariosOntem as $horario) {
+            if ($horaAtual <= $horario->hora_fim) {
+                return true;
+            }
+        }
+
+        // Se nenhuma das verificações permitir o funcionamento, retorna falso
+        return false;
     }
 
     private function carregaCardapios(Empresa $empresa, string $tipo_funcionamento): void

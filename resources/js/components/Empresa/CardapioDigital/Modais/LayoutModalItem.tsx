@@ -15,6 +15,7 @@ import {
     IItemPedido,
     TManipulaPedidoItem,
 } from "@/types/cardapio-digital/item-pedido";
+import { converteReal } from "@/utils/utils";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
 import { ReactNode } from "react";
 
@@ -39,12 +40,6 @@ export default function LayoutModalItem({
     adicionaObservacao,
     adicionaItemCarrinho,
 }: IProps) {
-    function converteReal(valor?: number | string) {
-        return Number(valor).toLocaleString("pt-BR", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        });
-    }
     return (
         <Dialog open={open} onOpenChange={() => setOpen(null)}>
             <DialogContent

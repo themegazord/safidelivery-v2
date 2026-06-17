@@ -47,6 +47,7 @@ import { ButtonGroup } from "@/components/ui/button-group";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
+import { converteReal } from "@/utils/utils";
 
 interface IProps {
     item?: IItemPizza;
@@ -73,16 +74,6 @@ export default function ModalItensPizza({
     defineBordaSelecionada,
     pendenciasDeItens,
 }: IProps) {
-    function converteReal(valor?: number | string) {
-        const num =
-            typeof valor === "string"
-                ? parseFloat(valor.replace(",", "."))
-                : Number(valor);
-        return num.toLocaleString("pt-BR", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        });
-    }
     return (
         <Dialog open={open} onOpenChange={() => setOpen(null)}>
             <DialogContent
