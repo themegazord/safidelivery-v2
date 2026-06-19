@@ -100,7 +100,7 @@ export default function Carrinho({ open, setOpen }: IProps) {
                                     </Alert>
                                 )}
                                 {!Boolean(Number(configuracoes.modo_atendente)) && (
-                                    <Button className="w-full" disabled={auth.user === null}>Ir para pagamento</Button>
+                                    <Button className="w-full cursor-pointer" disabled={!lojaAberta}>Ir para pagamento</Button>
                                 )}
                             </div>
                         </DrawerFooter>
