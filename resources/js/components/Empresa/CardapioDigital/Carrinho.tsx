@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import {
     Drawer,
     DrawerContent,
+    DrawerDescription,
     DrawerFooter,
     DrawerHeader,
     DrawerTitle,
@@ -40,6 +41,9 @@ export default function Carrinho({ open, setOpen, setOpenAutenticacao }: IProps)
             <DrawerContent>
                 <DrawerHeader>
                     <DrawerTitle>Carrinho de Compras</DrawerTitle>
+                    <DrawerDescription className="sr-only">
+                        Itens adicionados ao carrinho
+                    </DrawerDescription>
                 </DrawerHeader>
                 {carrinho.length > 0 && (
                     <>

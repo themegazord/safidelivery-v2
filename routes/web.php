@@ -23,6 +23,7 @@ Route::prefix('autenticacao')->group(function () {
     });
     Route::prefix('cliente')->group(function () {
         Route::post('consultaDadosCliente', [LoginClienteController::class, 'consultaDadosCliente'])->name('aplicacao.autenticacao.cliente.consultaDadosCliente');
+        Route::post('autenticaCliente', [LoginClienteController::class, 'autenticaCliente'])->name('aplicacao.autenticacao.cliente.autenticaCliente');
     });
 });
 

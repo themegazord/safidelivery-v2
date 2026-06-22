@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Drawer } from "@/components/ui/drawer";
 import { CarrinhoContext } from "@/contexts/CardapioDigital/CarrinhoContext";
 import CarrinhoProvider from "@/providers/CardapioDigital/CarrinhoProvider";
+import UsuarioAutenticadoProvider from "@/providers/Usuario/UsuarioAutenticadoProvider";
 import { Link, usePage } from "@inertiajs/react";
 import { ConciergeBell, Motorbike, ShoppingCart } from "lucide-react";
 import { ReactNode, useContext, useState } from "react";
@@ -62,8 +63,10 @@ function LayoutCardapioContent({ children }: { children: ReactNode }) {
 
 export default function LayoutCardapio({ children }: { children: ReactNode }) {
     return (
-        <CarrinhoProvider>
-            <LayoutCardapioContent>{children}</LayoutCardapioContent>
-        </CarrinhoProvider>
+        <UsuarioAutenticadoProvider>
+            <CarrinhoProvider>
+                <LayoutCardapioContent>{children}</LayoutCardapioContent>
+            </CarrinhoProvider>
+        </UsuarioAutenticadoProvider>
     );
 }
