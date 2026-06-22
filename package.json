@@ -23,6 +23,8 @@
         "@fontsource-variable/geist": "^5.2.9",
         "@inertiajs/react": "^3.3.1",
         "@inertiajs/vite": "^3.3.1",
+        "@maskito/core": "^5.3.1",
+        "@maskito/react": "^5.3.1",
         "@vitejs/plugin-react": "^5.2.0",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",

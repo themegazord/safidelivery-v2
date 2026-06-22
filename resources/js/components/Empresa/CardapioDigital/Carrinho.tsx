@@ -19,9 +19,10 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 interface IProps {
     open: boolean;
     setOpen: (valor: boolean) => void;
+    setOpenAutenticacao: (valor: boolean) => void
 }
 
-export default function Carrinho({ open, setOpen }: IProps) {
+export default function Carrinho({ open, setOpen, setOpenAutenticacao }: IProps) {
     const { carrinho, total } = useContext(CarrinhoContext);
     const { interacao_id, tipo_funcionamento, nome_fantasia, lojaAberta, auth, configuracoes } =
         usePage<{
@@ -100,7 +101,7 @@ export default function Carrinho({ open, setOpen }: IProps) {
                                     </Alert>
                                 )}
                                 {!Boolean(Number(configuracoes.modo_atendente)) && (
-                                    <Button className="w-full cursor-pointer" disabled={!lojaAberta}>Ir para pagamento</Button>
+                                    <Button className="w-full cursor-pointer" disabled={!lojaAberta} onClick={() => setOpenAutenticacao(true)}>Ir para pagamento</Button>
                                 )}
                             </div>
                         </DrawerFooter>

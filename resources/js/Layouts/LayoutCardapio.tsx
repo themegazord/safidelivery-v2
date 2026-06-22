@@ -1,4 +1,5 @@
 import Carrinho from "@/components/Empresa/CardapioDigital/Carrinho";
+import DialogAutenticacaoCliente from "@/components/Empresa/CardapioDigital/Dialogs/DialogAutenticacaoCliente";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Drawer } from "@/components/ui/drawer";
@@ -19,6 +20,7 @@ function LayoutCardapioContent({ children }: { children: ReactNode }) {
         usePage<ICardapioPageProps>().props;
     const quantidadeCarrinho = useContext(CarrinhoContext).carrinho.length;
     const [carrinhoStatus, setCarrinhoStatus] = useState<boolean>(false)
+    const [autenticacaoDialogStatus, setAutenticacaoDialogStatus] = useState<boolean>(false)
 
     return (
         <div className="flex flex-col gap-4">
@@ -52,7 +54,8 @@ function LayoutCardapioContent({ children }: { children: ReactNode }) {
                 </nav>
             </header>
             <main className="container mx-auto">{children}</main>
-            <Carrinho open={carrinhoStatus} setOpen={setCarrinhoStatus} />
+            <Carrinho open={carrinhoStatus} setOpen={setCarrinhoStatus} setOpenAutenticacao={setAutenticacaoDialogStatus}/>
+            <DialogAutenticacaoCliente open={autenticacaoDialogStatus} setOpen={setAutenticacaoDialogStatus}/>
         </div>
     );
 }

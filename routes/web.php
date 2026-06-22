@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Autenticacao\LoginClienteController;
 use App\Http\Controllers\Autenticacao\LoginEmpresaController;
 use App\Http\Controllers\Empresa\CardapioDigital\CardapioController;
 use App\Http\Controllers\Empresa\ConfiguracaoController;
@@ -19,6 +20,9 @@ Route::prefix('autenticacao')->group(function () {
             Auth::logout();
             redirect(route('aplicacao.autenticacao.empresa.login'));
         })->name('aplicacao.autenticacao.empresa.logout');
+    });
+    Route::prefix('cliente')->group(function () {
+        Route::post('consultaDadosCliente', [LoginClienteController::class, 'consultaDadosCliente'])->name('aplicacao.autenticacao.cliente.consultaDadosCliente');
     });
 });
 

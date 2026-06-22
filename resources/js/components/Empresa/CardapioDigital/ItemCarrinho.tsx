@@ -20,7 +20,7 @@ export default function ItemCarrinho({item, idx}: IProps) {
             {item.grupo_complemento.map((grupoComplemento, grupoIdx) => {
                 const complementosSelecionados = grupoComplemento.complementos.filter(c => c.quantidade > 0)
                 return (
-                  <>
+                  <div key={grupoIdx}>
                     {complementosSelecionados.map((complemento, complementoIdx) => {
                       const totalComplemento = complemento.quantidade * Number(complemento.preco)
                       return (
@@ -34,7 +34,7 @@ export default function ItemCarrinho({item, idx}: IProps) {
                         </div>
                       )
                     })}
-                  </>
+                  </div>
                 )
               })}
           </>
@@ -75,7 +75,7 @@ export default function ItemCarrinho({item, idx}: IProps) {
           </>
         </ItemCarrinhoLayout>
       )}
-      
+
       {"grupos" in item && (
         <ItemCarrinhoLayout item={item} idx={idx}>
           {item.grupos.length > 0 && (
