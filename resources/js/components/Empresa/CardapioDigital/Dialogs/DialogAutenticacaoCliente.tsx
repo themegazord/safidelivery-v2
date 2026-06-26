@@ -15,7 +15,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
 import { Loader } from "lucide-react";
-import { CarrinhoContext } from "@/contexts/CardapioDigital/CarrinhoContext";
 import { UsuarioAutenticadoContext } from "@/contexts/Usuario/UsuarioAutenticadoContext";
 
 interface IProps {
@@ -62,7 +61,6 @@ export default function DialogAutenticacaoCliente({ open, setOpen }: IProps) {
     }>().props;
 
     const { adicionaUsuarioLogado } = useContext(UsuarioAutenticadoContext);
-    const { carrinho } = useContext(CarrinhoContext);
 
     const form = useForm({ telefone: "", nome: "" });
 
@@ -98,9 +96,7 @@ export default function DialogAutenticacaoCliente({ open, setOpen }: IProps) {
                 informa_mesa_comanda: Boolean(Number(configuracoes.informa_mesa_comanda)),
             },
             {
-                onSuccess: () => {
-                    localStorage.setItem("carrinho", JSON.stringify(carrinho));
-                },
+                
                 onError: (errors) => {
                     form.setError(errors as Partial<Record<keyof typeof form.data, string>>);
                 },

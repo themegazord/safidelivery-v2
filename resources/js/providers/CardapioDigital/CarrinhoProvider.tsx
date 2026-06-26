@@ -8,16 +8,30 @@ import {
     IItemPizza,
     ISabor,
 } from "@/types/cardapio-digital/item-pedido";
-import { ReactNode, useMemo, useState } from "react";
+import { usePage } from "@inertiajs/react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 
 export default function CarrinhoProvider({
     children,
 }: {
     children: ReactNode;
 }) {
+    const { tipo_funcionamento } = usePage<{ tipo_funcionamento: 'delivery' | 'mesa' | undefined }>().props;
+
     const [carrinho, setCarrinho] = useState<
         (IItemPedido | IItemPizza | IItemCombo)[]
-    >([]);
+    >(() => {
+        try {
+            const salvo = localStorage.getItem(`carrinho-${tipo_funcionamento}`);
+            return salvo ? JSON.parse(salvo) : [];
+        } catch {
+            return [];
+        }
+    });
+
+    useEffect(() => {
+        localStorage.setItem(`carrinho-${tipo_funcionamento}`, JSON.stringify(carrinho));
+    }, [carrinho]);
         const total = useMemo(() => {
         return carrinho.reduce((acc, item) => acc + (item.quantidade * item.total), 0)
     }, [carrinho])
@@ -191,6 +205,7 @@ export default function CarrinhoProvider({
             value={{
                 carrinho: carrinho,
                 total: total,
+                tipo_funcionamento: tipo_funcionamento,
                 adicionaItemCarrinho: adicionaItemCarrinho,
                 removeItemCarrinho: () => {},
                 diminuiItemCarrinho: () => {},

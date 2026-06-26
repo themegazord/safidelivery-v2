@@ -26,6 +26,12 @@ class CardapioController extends Controller
         }
         Session::put('tipo_funcionamento', $tipo_funcionamento);
         Session::put('interacao_id', $interacao_id);
+        Session::put('nome_fantasia', $this->empresa->getAttribute('nome_fantasia'));
+        Session::put('configuracoes', $this->empresa->configuracoes()
+            ->whereIn('configuracao', ['informa_mesa_comanda', 'modo_atendente'])
+            ->pluck('valor', 'configuracao')
+            ->toArray());
+        Session::put('loja_aberta', $this->cardapioService->validaRecebePedidos($tipo_funcionamento, $this->empresa->getAttribute('id')));
 
         return Inertia::render('Empresa/CardapioDigital/Cardapio', [
             'interacao_id' => $interacao_id,

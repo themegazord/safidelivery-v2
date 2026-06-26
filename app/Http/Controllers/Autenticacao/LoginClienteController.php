@@ -40,9 +40,6 @@ class LoginClienteController
             'informa_mesa_comanda' => $dados['informa_mesa_comanda'],
         ]);
 
-
-        Inertia::share('auth.usuario', $usuario);
-
         return to_route('aplicacao.empresa.finalizar-pedido');
     }
 }

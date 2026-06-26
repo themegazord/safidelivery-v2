@@ -47,7 +47,7 @@ Route::group([], function () {
         Route::post('/item-pedido-pizza', [CardapioController::class, 'itemPizzaPedido'])->name('aplicacao.empresa.cardapio-digital.item-pedido-pizza');
         Route::post('/item-pedido-combo', [CardapioController::class, 'itemComboPedido'])->name('aplicacao.empresa.cardapio-digital.item-pedido-combo');
     });
-    Route::prefix('finalizarPedido')->group(function () {
+    Route::prefix('finalizar-pedido')->group(function () {
         Route::get('/', [FinalizarPedidoController::class, 'index'])->name('aplicacao.empresa.finalizar-pedido');
     });
 });

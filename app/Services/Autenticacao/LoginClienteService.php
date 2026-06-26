@@ -20,6 +20,8 @@ class LoginClienteService
     public function autenticaCliente(string $telefone, string $nome, string $tipoFuncionamento, bool $modoAtendente): User|null
     {
         if ($tipoFuncionamento === 'mesa' && $modoAtendente) {
+            session('telefone_cliente_modoatendente', $telefone);
+            session('nome_cliente_modoatendente', $telefone);
             return null;
         }
 

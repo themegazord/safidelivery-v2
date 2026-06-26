@@ -37,3 +37,7 @@ export interface IUsuario {
     updated_at: string;
     cliente: ICliente;
 }
+
+export interface IAuth {
+    user: IUsuario | null;
+}

@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/drawer";
 import { H6 } from "@/components/utils/Heading";
 import { CarrinhoContext } from "@/contexts/CardapioDigital/CarrinhoContext";
-import { Link, usePage } from "@inertiajs/react";
+import { Link, router, usePage } from "@inertiajs/react";
 import { AlertTriangle, ChevronRight, ShoppingBag } from "lucide-react";
 import { useContext } from "react";
 import ItemCarrinho from "./ItemCarrinho";
@@ -105,7 +105,7 @@ export default function Carrinho({ open, setOpen, setOpenAutenticacao }: IProps)
                                     </Alert>
                                 )}
                                 {!Boolean(Number(configuracoes.modo_atendente)) && (
-                                    <Button className="w-full cursor-pointer" disabled={!lojaAberta} onClick={() => setOpenAutenticacao(true)}>Ir para pagamento</Button>
+                                    <Button className="w-full cursor-pointer" disabled={!lojaAberta} onClick={(e) => { (e.currentTarget as HTMLButtonElement).blur(); auth.user ? router.visit(route('aplicacao.empresa.finalizar-pedido')) : setOpenAutenticacao(true); }}>Ir para pagamento</Button>
                                 )}
                             </div>
                         </DrawerFooter>

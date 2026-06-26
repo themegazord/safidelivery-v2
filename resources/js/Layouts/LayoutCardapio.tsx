@@ -8,9 +8,9 @@ import CarrinhoProvider from "@/providers/CardapioDigital/CarrinhoProvider";
 import UsuarioAutenticadoProvider from "@/providers/Usuario/UsuarioAutenticadoProvider";
 import { Link, usePage } from "@inertiajs/react";
 import { ConciergeBell, Motorbike, ShoppingCart } from "lucide-react";
-import { ReactNode, useContext, useState } from "react";
+import { ReactNode, useContext, useEffect, useState } from "react";
 
-interface ICardapioPageProps {
+export interface ICardapioPageProps {
     interacao_id: string;
     tipo_funcionamento: string;
     [key: string]: unknown;
@@ -22,6 +22,12 @@ function LayoutCardapioContent({ children }: { children: ReactNode }) {
     const quantidadeCarrinho = useContext(CarrinhoContext).carrinho.length;
     const [carrinhoStatus, setCarrinhoStatus] = useState<boolean>(false)
     const [autenticacaoDialogStatus, setAutenticacaoDialogStatus] = useState<boolean>(false)
+
+    const { url: currentUrl } = usePage();
+    useEffect(() => {
+        setCarrinhoStatus(false);
+        setAutenticacaoDialogStatus(false);
+    }, [currentUrl]);
 
     return (
         <div className="flex flex-col gap-4">
@@ -44,7 +50,7 @@ function LayoutCardapioContent({ children }: { children: ReactNode }) {
                         </Link>
                     </Button>
 
-                    <Button variant="ghost" className="relative cursor-pointer" onClick={() => setCarrinhoStatus(true)}>
+                    <Button variant="ghost" className="relative cursor-pointer" onClick={(e) => { (e.currentTarget as HTMLButtonElement).blur(); setCarrinhoStatus(true); }}>
                         <ShoppingCart className="size-6" />
                         {quantidadeCarrinho > 0 && (
                             <Badge className="-right-1.5 bg-primary text-primary-foreground absolute -top-1.5 flex h-4.5 w-4.5 items-center justify-center rounded-full text-[11px] font-bold">

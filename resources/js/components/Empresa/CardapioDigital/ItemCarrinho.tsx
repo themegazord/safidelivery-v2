@@ -24,7 +24,7 @@ export default function ItemCarrinho({item, idx}: IProps) {
                     {complementosSelecionados.map((complemento, complementoIdx) => {
                       const totalComplemento = complemento.quantidade * Number(complemento.preco)
                       return (
-                        <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center justify-between gap-2" key={complementoIdx}>
                           <span className="min-w-0 truncate">
                             <span className="opacity-60">{complemento.quantidade}x{" "}</span>{complemento.nome}
                           </span>

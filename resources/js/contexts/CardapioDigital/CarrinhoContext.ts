@@ -6,6 +6,7 @@ type TFuncoesManipulaItensCarrinho = (item?: IItemPedido | IItemPizza | IItemCom
 interface ICarrinhoContext {
     carrinho: (IItemPedido | IItemPizza | IItemCombo)[];
     total: number,
+    tipo_funcionamento: 'delivery' | 'mesa' | undefined,
     adicionaItemCarrinho: TFuncoesManipulaItensCarrinho;
     removeItemCarrinho: TFuncoesManipulaItensCarrinho;
     diminuiItemCarrinho: TFuncoesManipulaItensCarrinho;
@@ -14,6 +15,7 @@ interface ICarrinhoContext {
 export const CarrinhoContext = createContext<ICarrinhoContext>({
     carrinho: [],
     total: 0,
+    tipo_funcionamento: undefined, 
     adicionaItemCarrinho: () => {},
     removeItemCarrinho: () => {},
     diminuiItemCarrinho: () => {},
