@@ -3,12 +3,18 @@
 namespace App\Http\Controllers\Autenticacao;
 
 use App\Http\Requests\Autenticacao\LoginClienteRequest;
+use App\Models\Empresa;
 use App\Services\Autenticacao\LoginClienteService;
+use App\Traits\ResolveComandaAtual;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class LoginClienteController
 {
+    use ResolveComandaAtual;
+
     public function __construct(private readonly LoginClienteService $service) {}
 
     public function consultaDadosCliente(Request $request): JsonResponse
@@ -18,7 +24,7 @@ class LoginClienteController
         return response()->json(['cliente' => $cliente]);
     }
 
-    public function autenticaCliente(LoginClienteRequest $request): JsonResponse
+    public function autenticaCliente(LoginClienteRequest $request): RedirectResponse
     {
         $dados = $request->validated();
 
@@ -29,6 +35,14 @@ class LoginClienteController
             $dados['modo_atendente'],
         );
 
-        return response()->json(['usuario' => $usuario]);
+        $this->resolveComandaAtual($dados['telefone'], Empresa::query()->where('interacao_id', $dados['interacao_id'])->first()->getAttribute('id'), [
+            'modo_atendente' => $dados['modo_atendente'],
+            'informa_mesa_comanda' => $dados['informa_mesa_comanda'],
+        ]);
+
+
+        Inertia::share('auth.usuario', $usuario);
+
+        return to_route('aplicacao.empresa.finalizar-pedido');
     }
 }

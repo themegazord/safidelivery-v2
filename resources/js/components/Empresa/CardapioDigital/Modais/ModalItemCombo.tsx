@@ -137,7 +137,7 @@ export default function ModalItemCombo({
             {item &&
                 Object.values(item.grupos_complemento).map(
                     (_grupoComplemento, gcIdx) => (
-                        <Card key={gcIdx} className="m-4">
+                        <Card key={gcIdx} className={cn("m-4", gruposComplementosInvalidos.includes(_grupoComplemento.id) ? "border border-red-500" : "")}>
                             <CardHeader>
                                 <CardTitle className="flex w-full items-center justify-between">
                                     <span>{_grupoComplemento.nome}</span>

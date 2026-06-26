@@ -38,9 +38,6 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'cnpj' => $request->route('cnpj'),
-            'auth' => [
-                'user' => $request->user()
-            ]
         ];
     }
 }

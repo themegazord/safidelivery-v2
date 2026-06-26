@@ -15,6 +15,7 @@ import { useContext, useEffect, useState } from "react";
 import ModalItens from "@/components/Empresa/CardapioDigital/Modais/ModalItens";
 import {
     IGrupoComplemento,
+    IGrupoComplementoCombo,
     IGrupoItensCombo,
     IItemCombo,
     IItemPedido,
@@ -443,13 +444,18 @@ export default function Cardapio({
         }
 
         if ("grupos" in itemModal) {
-            const giInvalidos = itemModal?.grupos.filter((gi) => !grupoItemValido(gi)).map((gi) => gi.id) ?? []
+            const giInvalidos = itemModal.grupos
+                .filter((gi) => !grupoItemValido(gi))
+                .map((gi) => gi.id);
 
-            console.log(giInvalidos)
+            const gcInvalidos = Object.values(itemModal.grupos_complemento)
+                .filter((gc) => !grupoComplementoComboValido(gc))
+                .map((gc) => gc.id);
 
-            setGruposItensInvalidos(giInvalidos)
+            setGruposItensInvalidos(giInvalidos);
+            setGrupoComplementoInvalidos(gcInvalidos);
 
-            if (giInvalidos.length > 0) return;
+            if (giInvalidos.length > 0 || gcInvalidos.length > 0) return;
         }
 
         adicionaItemCarrinho(itemModal);
@@ -467,35 +473,41 @@ export default function Cardapio({
     function grupoComplementoValido(
         grupoComplemento: IGrupoComplemento,
     ): boolean {
-        if (grupoComplemento.obrigatoriedade) {
+        if (Boolean(grupoComplemento.obrigatoriedade)) {
             return (
                 grupoComplemento.complementos.reduce(
                     (acc, c) => acc + c.quantidade,
                     0,
-                ) >= grupoComplemento.qtd_minima
+                ) >= Math.max(1, grupoComplemento.qtd_minima)
             );
-        } else {
-            return true;
         }
+        return true;
     }
 
-    function grupoItemValido(
-        grupoItem: IGrupoItensCombo,
+    function grupoComplementoComboValido(
+        grupoComplemento: IGrupoComplementoCombo,
     ): boolean {
-        console.log(grupoItem.itens.reduce(
+        if (grupoComplemento.obrigatorio) {
+            return (
+                Object.values(grupoComplemento.complementos).reduce(
                     (acc, c) => acc + c.quantidade,
                     0,
-                ), grupoItem.qtd_minima, grupoItem.qtd_maxima)
+                ) >= Math.max(1, grupoComplemento.qtd_minima)
+            );
+        }
+        return true;
+    }
+
+    function grupoItemValido(grupoItem: IGrupoItensCombo): boolean {
         if (grupoItem.obrigatorio) {
             return (
                 grupoItem.itens.reduce(
                     (acc, c) => acc + c.quantidade,
                     0,
-                ) >= grupoItem.qtd_minima
+                ) >= Math.max(1, grupoItem.qtd_minima)
             );
-        } else {
-            return true;
         }
+        return true;
     }
 
     useEffect(() => {

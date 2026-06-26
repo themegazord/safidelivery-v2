@@ -7,7 +7,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Field, FieldLabel } from "@/components/ui/field";
-import { useForm, usePage } from "@inertiajs/react";
+import { router, useForm, usePage } from "@inertiajs/react";
 import { useContext, useState } from "react";
 import type { MaskitoOptions } from "@maskito/core";
 import { useMaskito } from "@maskito/react";
@@ -15,8 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
 import { Loader } from "lucide-react";
+import { CarrinhoContext } from "@/contexts/CardapioDigital/CarrinhoContext";
 import { UsuarioAutenticadoContext } from "@/contexts/Usuario/UsuarioAutenticadoContext";
-import { IUsuario } from "@/types/usuario-autenticado/usuario";
 
 interface IProps {
     open: boolean;
@@ -51,20 +51,18 @@ interface ClienteResponse {
     };
 }
 
-interface UsuarioResponse {
-    usuario: IUsuario;
-}
-
 export default function DialogAutenticacaoCliente({ open, setOpen }: IProps) {
     const telefoneMaskRef = useMaskito({ options: telefoneMask });
     const [isLoading, setIsLoading] = useState(false);
 
-    const { tipo_funcionamento, configuracoes } = usePage<{
+    const { interacao_id, tipo_funcionamento, configuracoes } = usePage<{
+        interacao_id: string;
         tipo_funcionamento: string;
         configuracoes: { informa_mesa_comanda: string; modo_atendente: string };
     }>().props;
 
     const { adicionaUsuarioLogado } = useContext(UsuarioAutenticadoContext);
+    const { carrinho } = useContext(CarrinhoContext);
 
     const form = useForm({ telefone: "", nome: "" });
 
@@ -85,42 +83,30 @@ export default function DialogAutenticacaoCliente({ open, setOpen }: IProps) {
         }
     }
 
-    async function validaCliente() {
-        try {
-            setIsLoading(true);
-            form.clearErrors();
+    function validaCliente() {
+        setIsLoading(true);
+        form.clearErrors();
 
-            const resposta = await axios.post<UsuarioResponse>(
-                route("aplicacao.autenticacao.cliente.autenticaCliente"),
-                {
-                    telefone: form.data.telefone,
-                    nome: form.data.nome,
-                    tipo_funcionamento,
-                    modo_atendente: Boolean(
-                        Number(configuracoes.modo_atendente),
-                    ),
+        router.post(
+            route("aplicacao.autenticacao.cliente.autenticaCliente"),
+            {
+                telefone: form.data.telefone,
+                nome: form.data.nome,
+                tipo_funcionamento,
+                interacao_id,
+                modo_atendente: Boolean(Number(configuracoes.modo_atendente)),
+                informa_mesa_comanda: Boolean(Number(configuracoes.informa_mesa_comanda)),
+            },
+            {
+                onSuccess: () => {
+                    localStorage.setItem("carrinho", JSON.stringify(carrinho));
                 },
-            );
-
-            adicionaUsuarioLogado(resposta.data.usuario);
-        } catch (error) {
-            if (axios.isAxiosError(error) && error.response?.status === 422) {
-                const erros = error.response.data.errors as Record<
-                    string,
-                    string[]
-                >;
-                form.setError(
-                    Object.fromEntries(
-                        Object.entries(erros).map(([campo, msgs]) => [
-                            campo,
-                            msgs[0],
-                        ]),
-                    ) as Partial<Record<keyof typeof form.data, string>>,
-                );
-            }
-        } finally {
-            setIsLoading(false);
-        }
+                onError: (errors) => {
+                    form.setError(errors as Partial<Record<keyof typeof form.data, string>>);
+                },
+                onFinish: () => setIsLoading(false),
+            },
+        );
     }
 
     return (

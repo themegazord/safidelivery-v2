@@ -3,6 +3,7 @@
 use App\Http\Controllers\Autenticacao\LoginClienteController;
 use App\Http\Controllers\Autenticacao\LoginEmpresaController;
 use App\Http\Controllers\Empresa\CardapioDigital\CardapioController;
+use App\Http\Controllers\Empresa\CardapioDigital\FinalizarPedidoController;
 use App\Http\Controllers\Empresa\ConfiguracaoController;
 use App\Http\Controllers\Empresa\DesempenhoController;
 use App\Http\Controllers\HomeController;
@@ -45,5 +46,8 @@ Route::group([], function () {
         Route::post('/item-pedido', [CardapioController::class, 'itemPedido'])->name('aplicacao.empresa.cardapio-digital.item-pedido');
         Route::post('/item-pedido-pizza', [CardapioController::class, 'itemPizzaPedido'])->name('aplicacao.empresa.cardapio-digital.item-pedido-pizza');
         Route::post('/item-pedido-combo', [CardapioController::class, 'itemComboPedido'])->name('aplicacao.empresa.cardapio-digital.item-pedido-combo');
+    });
+    Route::prefix('finalizarPedido')->group(function () {
+        Route::get('/', [FinalizarPedidoController::class, 'index'])->name('aplicacao.empresa.finalizar-pedido');
     });
 });

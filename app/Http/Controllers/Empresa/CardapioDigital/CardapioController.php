@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Empresa;
 use App\Services\Empresa\CardapioDigital\CardapioService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Session;
 use Inertia\Inertia;
 
 class CardapioController extends Controller
@@ -16,6 +17,15 @@ class CardapioController extends Controller
     public function index(string $interacao_id, string $tipo_funcionamento)
     {
         $this->empresa = Empresa::query()->where('interacao_id', $interacao_id)->first();
+
+        if (request()->query('mesa') !== null) {
+            Session::put('mesaQuery', request()->query('mesa'));
+        }
+        if (request()->query('cupom') !== null) {
+            Session::put('cupomQuery', request()->query('cupom'));
+        }
+        Session::put('tipo_funcionamento', $tipo_funcionamento);
+        Session::put('interacao_id', $interacao_id);
 
         return Inertia::render('Empresa/CardapioDigital/Cardapio', [
             'interacao_id' => $interacao_id,

@@ -26,15 +26,18 @@ class LoginClienteRequest extends FormRequest
         return [
             'nome' => 'required',
             'telefone' => 'required',
+            'interacao_id' => 'required',
             'tipo_funcionamento' => [Rule::in(['delivery', 'mesa']), 'required'],
-            'modo_atendente' => ['required', 'boolean']
+            'modo_atendente' => ['required', 'boolean'],
+            'informa_mesa_comanda' => ['required', 'boolean'],
         ];
     }
 
     public function messages(): array {
         return [
             'required' => 'Campo obrigatório',
-            'modo_atendente' => 'Modo atendente deve ser ligado ou desligado na configuração',
+            'modo_atendente.boolean' => 'Modo atendente deve ser ligado ou desligado na configuração',
+            'informa_mesa_comanda.boolean' => 'Modo atendente deve ser ligado ou desligado na configuração',
             'tipo_funcionamento.in' => 'O :attribute deve ser :values'
         ];
     }
