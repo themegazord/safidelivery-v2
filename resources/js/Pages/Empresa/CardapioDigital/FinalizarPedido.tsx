@@ -1,24 +1,43 @@
+import { Alert, AlertAction, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldContent, FieldDescription, FieldLabel, FieldTitle } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { H1, H3, H4, H6 } from "@/components/utils/Heading";
+import { CarrinhoContext } from "@/contexts/CardapioDigital/CarrinhoContext";
 import LayoutCardapio, { ICardapioPageProps } from "@/Layouts/LayoutCardapio";
 import { IAuth } from "@/types/usuario-autenticado/usuario";
+import { converteReal } from "@/utils/utils";
 import { Link, usePage } from "@inertiajs/react";
-import { ChevronLeft } from "lucide-react";
-import { ReactNode, useRef, useState } from "react";
+import axios from "axios";
+import { ArrowRightLeft, ChevronLeft, Clock, MapPin, Plus, TriangleAlert } from "lucide-react";
+import { ReactNode, useContext, useEffect, useState } from "react";
 
 export default function FinalizarPedido() {
-    const { interacao_id, tipo_funcionamento, auth, mesa } = usePage<{
+    const { interacao_id, tipo_funcionamento, auth, mesa, enderecoFormatadoEmpresa, configuracoes } = usePage<{
         interacao_id: string;
         tipo_funcionamento: 'delivery' | 'retirada' | 'mesa';
         auth: IAuth,
-        mesa: number | undefined
+        mesa: number | undefined,
+        enderecoFormatadoEmpresa: string,
+        configuracoes: Record<string, string>
     }>().props;
     const [tipoEntrega, setTipoEntrega] = useState<'delivery' | 'retirada' | 'mesa'>(tipo_funcionamento)
     const [numeroMesa, setNumeroMesa] = useState<number | undefined>(mesa)
+    const [dadosDistanciaRota, setDadosDistaciaRota] = useState<{
+        dadosDistanciaRota: {
+            duracao: string,
+            latCliente: string,
+            lngCliente: string,
+            taxaFrete: number | null,
+            valorMaximoDesconto: boolean
+        },
+        foraAreaEntrega: boolean
+    } | null>(null)
+    const [erroEntrega, setErroEntrega] = useState<string | null>(null)
+    const { carrinho, total } = useContext(CarrinhoContext)
+
 
     const TIPOS_ENTREGA = [
         {
@@ -40,6 +59,27 @@ export default function FinalizarPedido() {
             disabled: ['mesa']
         },
     ]
+
+    useEffect(() => {
+        async function carregaDadosEntrega() {
+            await axios.post(route('aplicacao.empresa.finalizar-pedido.consulta-dados-rota'), {
+                enderecoFormatadoEmpresa,
+                interacao_id,
+                configuracoes,
+                subtotalPedido: total
+            })
+            .then((response) => {
+                setDadosDistaciaRota(response.data)
+            })
+            .catch((error) => {
+                if (error.response?.status === 422) {
+                    setErroEntrega(error.response.data.message)
+                }
+            })
+        }
+
+        carregaDadosEntrega()
+    }, [])
 
     return (
         <div className="bg-background/20 min-h-screen">
@@ -95,6 +135,76 @@ export default function FinalizarPedido() {
                                             <FieldLabel htmlFor="numeroMesa">Número da mesa:</FieldLabel>
                                             <Input type="number" value={numeroMesa ?? ''} onChange={(e) => setNumeroMesa(e.target.value ? Number(e.target.value) : undefined)}/>
                                         </Field>
+                                    )}
+
+                                    {tipo_funcionamento === 'delivery' && (
+                                        <>
+                                            {auth.user && auth.user.cliente && auth.user.cliente.endereco ? (
+                                                <Card>
+                                                    <CardHeader>
+                                                        <CardTitle className="w-full flex justify-between items-center">
+                                                            <div className="flex gap-2">
+                                                            <MapPin className="size-5" />
+                                                                <div className="flex flex-col">
+                                                                    <span className="flex gap-2">
+                                                                        <p className="font-medium">
+                                                                            {auth.user?.cliente.endereco?.logradouro}, {auth.user?.cliente.endereco?.numero}
+                                                                        </p>
+                                                                    </span>
+                                                                    <span className="text-sm text-foreground/60">
+                                                                        {auth.user?.cliente.endereco?.cidade}/{auth.user?.cliente.endereco?.uf}
+                                                                    </span> 
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex flex-col gap-4 sm:flex-row">
+                                                                {(auth.user?.cliente.enderecos.length ?? 0)> 1 && (
+                                                                    <Button className="cursor-pointer" size={"sm"} variant={"ghost"}>Trocar {" "} <ArrowRightLeft /></Button>
+                                                                )}
+                                                                <Button className="cursor-pointer" size={"sm"} variant={"ghost"}>Novo {" "} <Plus /></Button>
+                                                            </div>
+                                                        </CardTitle>
+                                                    </CardHeader>
+                                                    <CardContent>
+                                                        {!erroEntrega ? (
+                                                            <div className="flex items-center gap-2 pt-2">
+                                                                <Clock className="size-5" />
+                                                                <div>
+                                                                    <p className="font-medium">Padrão</p>
+                                                                    <p className="text-sm">Hoje, {dadosDistanciaRota?.dadosDistanciaRota.duracao}</p>
+                                                                    {(dadosDistanciaRota?.dadosDistanciaRota.taxaFrete ?? null) === 0 && Number(configuracoes.frete_gratis_acima ?? 0) > 0 ? (
+                                                                        <p className="text-sm font-medium text-green-400">Frete grátis aplicado!</p>
+                                                                    ) : (
+                                                                        <>
+                                                                            <p className="text-sm font-medium">Taxa de entrega: R$ {converteReal(dadosDistanciaRota?.dadosDistanciaRota.taxaFrete ?? 0)}</p>
+                                                                            {Number(configuracoes.frete_gratis_acima ?? 0) > 0 && total < Number(configuracoes.frete_gratis_acima ?? 0) && (
+                                                                                <p className="text-xs">Faltam: R$ {converteReal(Number(configuracoes.frete_gratis_acima ?? 0) - total)} para frete grátis</p>
+                                                                            )}
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <Alert className="border-red-200 bg-red-50 text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-50">
+                                                                <TriangleAlert />
+                                                                <AlertDescription>
+                                                                    {erroEntrega}
+                                                                </AlertDescription>
+                                                            </Alert>
+                                                        )}
+                                                    </CardContent>
+                                                </Card>
+                                            ) : (
+                                                <Alert className="border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-50">
+                                                    <TriangleAlert />
+                                                    <AlertDescription>Você precisa cadastrar um endereço para continuar.</AlertDescription>
+                                                    <AlertAction>
+                                                        <Button>
+                                                            <Plus />{" "}Cadastrar um endereço
+                                                        </Button>
+                                                    </AlertAction>
+                                                </Alert>
+                                            )}
+                                        </>
                                     )}
                                 </div>
                             </CardContent>

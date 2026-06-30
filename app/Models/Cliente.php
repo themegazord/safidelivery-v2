@@ -23,6 +23,10 @@ class Cliente extends Model
 		'data_nascimento',
 	];
 
+	protected $appends = [
+		'endereco',
+	];
+
 	public function pedidos(): HasMany
 	{
 		return $this->hasMany(Pedido::class, 'cliente_id');
@@ -30,11 +34,17 @@ class Cliente extends Model
 
 	public function enderecos(): BelongsToMany
 	{
-		return $this->belongsToMany(Endereco::class, 'cliente_endereco', 'cliente_id', 'endereco_id');
+		return $this->belongsToMany(Endereco::class, 'cliente_endereco', 'cliente_id', 'endereco_id')
+			->withPivot('principal');
 	}
 
 	public function getEnderecoAttribute(): ?Endereco
 	{
+		if ($this->relationLoaded('enderecos')) {
+			return $this->enderecos->firstWhere('pivot.principal', true)
+				?? $this->enderecos->first();
+		}
+
 		return $this->enderecos()->wherePivot('principal', true)->first()
 			?? $this->enderecos()->first();
 	}

@@ -12,6 +12,7 @@ export interface IEndereco {
     pivot: {
         cliente_id: number;
         endereco_id: number;
+        principal: boolean;
     };
 }
 
@@ -26,6 +27,7 @@ export interface ICliente {
     created_at: string;
     updated_at: string;
     enderecos: IEndereco[];
+    endereco: IEndereco | null;
 }
 
 export interface IUsuario {

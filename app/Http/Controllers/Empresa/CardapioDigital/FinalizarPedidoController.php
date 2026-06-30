@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\Empresa\CardapioDigital;
 
+use App\Actions\FinalizarPedido\CalculaRotaEntregaAction;
 use App\Http\Controllers\Controller;
 use App\Models\Empresa;
 use App\Services\Google\GoogleMapService;
 use App\Traits\ResolveComandaAtual;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -14,7 +17,7 @@ class FinalizarPedidoController extends Controller
     use ResolveComandaAtual;
 
     public array $dadosDistanciaRota = [];
-    public Empresa $empresa;
+    public ?Empresa $empresa;
 
     public function index()
     {
@@ -74,5 +77,19 @@ class FinalizarPedidoController extends Controller
             'cupomDesconto' => $cupomDesconto,
             'enderecoFormatadoEmpresa' => $enderecoFormatadoEmpresa
         ]);
+    }
+
+    public function consultaDadosRota(Request $request): JsonResponse
+    {
+        $action = new CalculaRotaEntregaAction();
+
+        $dados = $action->handle(
+            enderecoFormatadoEmpresa: $request->input('enderecoFormatadoEmpresa'),
+            interacao_id: $request->input('interacao_id'),
+            configuracoes: $request->input('configuracoes'),
+            subtotalPedido: $request->input('subtotal', 0.0),
+        );
+
+        return response()->json($dados);
     }
 }
