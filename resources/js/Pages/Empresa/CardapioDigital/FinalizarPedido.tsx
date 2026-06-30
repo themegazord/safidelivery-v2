@@ -1,21 +1,24 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldContent, FieldDescription, FieldLabel, FieldTitle } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { H1, H3, H4, H6 } from "@/components/utils/Heading";
 import LayoutCardapio, { ICardapioPageProps } from "@/Layouts/LayoutCardapio";
 import { IAuth } from "@/types/usuario-autenticado/usuario";
 import { Link, usePage } from "@inertiajs/react";
 import { ChevronLeft } from "lucide-react";
-import { ReactNode, useState } from "react";
+import { ReactNode, useRef, useState } from "react";
 
 export default function FinalizarPedido() {
-    const { interacao_id, tipo_funcionamento, auth } = usePage<{
+    const { interacao_id, tipo_funcionamento, auth, mesa } = usePage<{
         interacao_id: string;
         tipo_funcionamento: 'delivery' | 'retirada' | 'mesa';
-        auth: IAuth
+        auth: IAuth,
+        mesa: number | undefined
     }>().props;
     const [tipoEntrega, setTipoEntrega] = useState<'delivery' | 'retirada' | 'mesa'>(tipo_funcionamento)
+    const [numeroMesa, setNumeroMesa] = useState<number | undefined>(mesa)
 
     const TIPOS_ENTREGA = [
         {
@@ -86,6 +89,13 @@ export default function FinalizarPedido() {
                                             </FieldLabel>
                                         ))}
                                     </RadioGroup>
+
+                                    {tipo_funcionamento === 'mesa' && (
+                                        <Field>
+                                            <FieldLabel htmlFor="numeroMesa">Número da mesa:</FieldLabel>
+                                            <Input type="number" value={numeroMesa ?? ''} onChange={(e) => setNumeroMesa(e.target.value ? Number(e.target.value) : undefined)}/>
+                                        </Field>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>

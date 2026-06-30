@@ -70,6 +70,9 @@ class FinalizarPedidoController extends Controller
             'nome_fantasia' => $this->empresa->getAttribute('nome_fantasia'),
             'configuracoes' => $configuracoes,
             'lojaAberta' => session('loja_aberta'),
+            'mesa' => $mesa,
+            'cupomDesconto' => $cupomDesconto,
+            'enderecoFormatadoEmpresa' => $enderecoFormatadoEmpresa
         ]);
     }
 }
