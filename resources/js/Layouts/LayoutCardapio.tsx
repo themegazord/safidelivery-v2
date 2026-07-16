@@ -3,6 +3,7 @@ import DialogAutenticacaoCliente from "@/components/Empresa/CardapioDigital/Dial
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Drawer } from "@/components/ui/drawer";
+import { Toaster } from "@/components/ui/sonner";
 import { CarrinhoContext } from "@/contexts/CardapioDigital/CarrinhoContext";
 import CarrinhoProvider from "@/providers/CardapioDigital/CarrinhoProvider";
 import UsuarioAutenticadoProvider from "@/providers/Usuario/UsuarioAutenticadoProvider";
@@ -63,6 +64,7 @@ function LayoutCardapioContent({ children }: { children: ReactNode }) {
             <main className="container mx-auto">{children}</main>
             <Carrinho open={carrinhoStatus} setOpen={setCarrinhoStatus} setOpenAutenticacao={setAutenticacaoDialogStatus}/>
             <DialogAutenticacaoCliente open={autenticacaoDialogStatus} setOpen={setAutenticacaoDialogStatus}/>
+            <Toaster />
         </div>
     );
 }

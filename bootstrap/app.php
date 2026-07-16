@@ -23,7 +23,8 @@ return Application::configure(basePath: dirname(__DIR__))
             '*/desempenho/buscaPedidosPorData',
             '*/configuracoes',
             'autenticacao/empresa/login',
-            'loja/*'
+            'loja/*',
+            'finalizar-pedido/altera-endereco-principal'
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

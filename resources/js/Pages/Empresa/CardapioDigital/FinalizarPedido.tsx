@@ -1,3 +1,4 @@
+import AlteraEnderecoPrincipal from "@/components/Empresa/CardapioDigital/Modais/FinalizarPedido/AlteraEnderecoPrincipal";
 import { Alert, AlertAction, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,6 +37,7 @@ export default function FinalizarPedido() {
         foraAreaEntrega: boolean
     } | null>(null)
     const [erroEntrega, setErroEntrega] = useState<string | null>(null)
+    const [toggleAlteraEnderecoPrincipal, setToggleAlteraEnderecoPrincipal] = useState<boolean>(false)
     const { carrinho, total } = useContext(CarrinhoContext)
 
 
@@ -70,6 +72,7 @@ export default function FinalizarPedido() {
             })
             .then((response) => {
                 setDadosDistaciaRota(response.data)
+                setErroEntrega(null)
             })
             .catch((error) => {
                 if (error.response?.status === 422) {
@@ -79,7 +82,7 @@ export default function FinalizarPedido() {
         }
 
         carregaDadosEntrega()
-    }, [])
+    }, [auth.user?.cliente.endereco?.id])
 
     return (
         <div className="bg-background/20 min-h-screen">
@@ -158,7 +161,7 @@ export default function FinalizarPedido() {
                                                             </div>
                                                             <div className="flex flex-col gap-4 sm:flex-row">
                                                                 {(auth.user?.cliente.enderecos.length ?? 0)> 1 && (
-                                                                    <Button className="cursor-pointer" size={"sm"} variant={"ghost"}>Trocar {" "} <ArrowRightLeft /></Button>
+                                                                    <Button className="cursor-pointer" size={"sm"} variant={"ghost"} onClick={() => setToggleAlteraEnderecoPrincipal(true)}>Trocar {" "} <ArrowRightLeft /></Button>
                                                                 )}
                                                                 <Button className="cursor-pointer" size={"sm"} variant={"ghost"}>Novo {" "} <Plus /></Button>
                                                             </div>
@@ -212,6 +215,7 @@ export default function FinalizarPedido() {
                     </div>
                 </div>
             </div>
+            <AlteraEnderecoPrincipal open={toggleAlteraEnderecoPrincipal} setOpen={setToggleAlteraEnderecoPrincipal} auth={auth}/>
         </div>
     );
 }

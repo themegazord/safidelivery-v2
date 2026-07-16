@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Empresa\CardapioDigital;
 
 use App\Actions\FinalizarPedido\CalculaRotaEntregaAction;
+use App\Actions\FinalizarPedido\AlteraEnderecoPrincipalAction;
 use App\Http\Controllers\Controller;
 use App\Models\Empresa;
 use App\Services\Google\GoogleMapService;
@@ -91,5 +92,13 @@ class FinalizarPedidoController extends Controller
         );
 
         return response()->json($dados);
+    }
+
+    public function alteraEnderecoPrincipal(Request $request): JsonResponse {
+        $action = new AlteraEnderecoPrincipalAction();
+
+        $action->handle($request->input('cliente_id'), $request->input('novo_endereco_principal_id'));
+
+        return response()->json(['mensagem' => "Endereço principal alterado com sucesso."]);
     }
 }

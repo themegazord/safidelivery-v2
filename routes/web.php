@@ -50,5 +50,6 @@ Route::group([], function () {
     Route::prefix('finalizar-pedido')->group(function () {
         Route::get('/', [FinalizarPedidoController::class, 'index'])->name('aplicacao.empresa.finalizar-pedido');
         Route::post('/consulta-dados-rota', [FinalizarPedidoController::class, 'consultaDadosRota'])->name('aplicacao.empresa.finalizar-pedido.consulta-dados-rota');
+        Route::patch('/altera-endereco-principal', [FinalizarPedidoController::class, 'alteraEnderecoPrincipal'])->name('aplicaaco.empresa.finalizar-pedido.altera-endereco-principal');
     });
 });
