@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Empresa\CardapioDigital;
 
 use App\Actions\FinalizarPedido\CalculaRotaEntregaAction;
 use App\Actions\FinalizarPedido\AlteraEnderecoPrincipalAction;
+use App\Actions\FinalizarPedido\CadastraEnderecoNovoAction;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Endereco\CadastroEnderecoRequest;
 use App\Models\Empresa;
 use App\Services\Google\GoogleMapService;
 use App\Traits\ResolveComandaAtual;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -100,5 +103,18 @@ class FinalizarPedidoController extends Controller
         $action->handle($request->input('cliente_id'), $request->input('novo_endereco_principal_id'));
 
         return response()->json(['mensagem' => "Endereço principal alterado com sucesso."]);
+    }
+
+    public function cadastraNovoEndereco(CadastroEnderecoRequest $request): JsonResponse {
+        $enderecoValidado = $request->validated();
+
+        $action = new CadastraEnderecoNovoAction();
+
+        $enderecoCadastrado = $action->handle($enderecoValidado);
+
+        return response()->json([
+            'mensagem' => 'Endereço cadastrado com sucesso.',
+            'endereco' => $enderecoCadastrado,
+        ], Response::HTTP_CREATED);
     }
 }

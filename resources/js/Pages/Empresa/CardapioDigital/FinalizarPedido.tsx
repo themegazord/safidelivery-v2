@@ -1,3 +1,4 @@
+import AdicionarEnderecoNovo from "@/components/Empresa/CardapioDigital/Modais/FinalizarPedido/AdicionarEnderecoNovo";
 import AlteraEnderecoPrincipal from "@/components/Empresa/CardapioDigital/Modais/FinalizarPedido/AlteraEnderecoPrincipal";
 import { Alert, AlertAction, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ export default function FinalizarPedido() {
     } | null>(null)
     const [erroEntrega, setErroEntrega] = useState<string | null>(null)
     const [toggleAlteraEnderecoPrincipal, setToggleAlteraEnderecoPrincipal] = useState<boolean>(false)
+    const [toggleCadastraEnderecoNovo, setToggleCadastraEnderecoNovo] = useState<boolean>(false)
     const { carrinho, total } = useContext(CarrinhoContext)
 
 
@@ -163,7 +165,7 @@ export default function FinalizarPedido() {
                                                                 {(auth.user?.cliente.enderecos.length ?? 0)> 1 && (
                                                                     <Button className="cursor-pointer" size={"sm"} variant={"ghost"} onClick={() => setToggleAlteraEnderecoPrincipal(true)}>Trocar {" "} <ArrowRightLeft /></Button>
                                                                 )}
-                                                                <Button className="cursor-pointer" size={"sm"} variant={"ghost"}>Novo {" "} <Plus /></Button>
+                                                                <Button className="cursor-pointer" size={"sm"} variant={"ghost"} onClick={() => setToggleCadastraEnderecoNovo(true)} >Novo {" "} <Plus /></Button>
                                                             </div>
                                                         </CardTitle>
                                                     </CardHeader>
@@ -216,6 +218,7 @@ export default function FinalizarPedido() {
                 </div>
             </div>
             <AlteraEnderecoPrincipal open={toggleAlteraEnderecoPrincipal} setOpen={setToggleAlteraEnderecoPrincipal} auth={auth}/>
+            <AdicionarEnderecoNovo open={toggleCadastraEnderecoNovo} setOpen={setToggleCadastraEnderecoNovo} />
         </div>
     );
 }
