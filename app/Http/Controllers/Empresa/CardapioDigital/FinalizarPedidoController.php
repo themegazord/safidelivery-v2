@@ -31,6 +31,10 @@ class FinalizarPedidoController extends Controller
         $enderecoFormatadoEmpresa = null;
         $formasPagamentos = null;
 
+        if (!session('interacao_id')) {
+            return to_route('aplicacao.home');
+        }
+
         $this->empresa = Empresa::query()->where('interacao_id', session('interacao_id'))->with(['taxas_entrega', 'configuracoes', 'promocoes', 'cashbackConfig', 'fidelidadeConfig', 'integracoes'])->first();
         $temIntegracaoPagarme = $this->empresa->integracoes()->where('tipo', 'pagarme')->whereNotNull('chavesecreta_pagarme')->exists();
         $configuracoes = $this->empresa->configuracoes

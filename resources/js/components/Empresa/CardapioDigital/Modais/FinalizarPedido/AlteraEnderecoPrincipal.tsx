@@ -25,7 +25,7 @@ export default function AlteraEnderecoPrincipal({
   const [enderecoAtivo, setEnderecoAtivo] = useState<string>(enderecoPrincipal ? String(enderecoPrincipal.id) : '')
 
   function atualizaEnderecoPrincipal() {
-    axios.patch(route('aplicaaco.empresa.finalizar-pedido.altera-endereco-principal'), {
+    axios.patch(route('aplicacao.empresa.finalizar-pedido.altera-endereco-principal'), {
       cliente_id: auth?.user?.cliente.id,
       novo_endereco_principal_id: Number(enderecoAtivo)
     }).then((response) => {
