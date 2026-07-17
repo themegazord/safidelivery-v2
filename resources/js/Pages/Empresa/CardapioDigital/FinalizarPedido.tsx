@@ -2,6 +2,7 @@ import AdicionarEnderecoNovo from "@/components/Empresa/CardapioDigital/Modais/F
 import AlteraEnderecoPrincipal from "@/components/Empresa/CardapioDigital/Modais/FinalizarPedido/AlteraEnderecoPrincipal";
 import DadosEntrega from "@/components/Empresa/FinalizarPedido/Cards/DadosEntrega";
 import FinalizarPedidoHeader from "@/components/Empresa/FinalizarPedido/Cards/FinalizarPedidoHeader";
+import SelecaoFormaPagamento from "@/components/Empresa/FinalizarPedido/Cards/SelecaoFormaPagamento";
 import { CarrinhoContext } from "@/contexts/CardapioDigital/CarrinhoContext";
 import LayoutCardapio from "@/Layouts/LayoutCardapio";
 import { IAuth } from "@/types/usuario-autenticado/usuario";
@@ -20,17 +21,25 @@ export interface IDadosDistanciaRota {
     foraAreaEntrega: boolean
 }
 
+export type TFormaPagamento = {
+    value: number,
+    label: string,
+    tipo: string
+}
+
 export default function FinalizarPedido() {
-    const { interacao_id, tipo_funcionamento, auth, mesa, enderecoFormatadoEmpresa, configuracoes } = usePage<{
+    const { interacao_id, tipo_funcionamento, auth, mesa, enderecoFormatadoEmpresa, configuracoes, formasPagamentos } = usePage<{
         interacao_id: string;
         tipo_funcionamento: 'delivery' | 'retirada' | 'mesa';
         auth: IAuth,
         mesa: number | undefined,
         enderecoFormatadoEmpresa: string,
-        configuracoes: Record<string, string>
+        configuracoes: Record<string, string>,
+        formasPagamentos: TFormaPagamento[]
     }>().props;
     const [tipoEntrega, setTipoEntrega] = useState<'delivery' | 'retirada' | 'mesa'>(tipo_funcionamento)
     const [numeroMesa, setNumeroMesa] = useState<number | undefined>(mesa)
+    const [formaPagamento, setFormaPagamento] = useState<string | undefined>(undefined)
     const [dadosDistanciaRota, setDadosDistaciaRota] = useState< IDadosDistanciaRota | null>(null)
     const [erroEntrega, setErroEntrega] = useState<string | null>(null)
     const [toggleAlteraEnderecoPrincipal, setToggleAlteraEnderecoPrincipal] = useState<boolean>(false)
@@ -78,6 +87,7 @@ export default function FinalizarPedido() {
                             setToggleAlteraEnderecoPrincipal={setToggleAlteraEnderecoPrincipal}
                             setToggleCadastraEnderecoNovo={setToggleCadastraEnderecoNovo}
                         />
+                        <SelecaoFormaPagamento formasPagamentos={formasPagamentos} formaPagamento={formaPagamento} setFormaPagamento={setFormaPagamento} />
                     </div>
                 </div>
             </div>

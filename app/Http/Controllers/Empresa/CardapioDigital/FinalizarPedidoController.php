@@ -8,6 +8,7 @@ use App\Actions\FinalizarPedido\CadastraEnderecoNovoAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Endereco\CadastroEnderecoRequest;
 use App\Models\Empresa;
+use App\Models\FormaPagamento;
 use App\Services\Google\GoogleMapService;
 use App\Traits\ResolveComandaAtual;
 use Illuminate\Http\JsonResponse;
@@ -73,6 +74,15 @@ class FinalizarPedidoController extends Controller
 
         if ($tipo_funcionamento !== 'mesa') {
             $enderecoFormatadoEmpresa = $this->empresa->endereco->enderecoSemComplementoFormatado();
+
+            $formasPagamentos = FormaPagamento::whereEmpresaId($this->empresa->id)
+                ->where('interno', false)
+                ->orderBy('tipo')
+                ->orderBy('descricao')
+                ->get()
+                ->map(fn ($f) => ['value' => $f->id, 'label' => $f->descricao, 'tipo' => $f->tipo])
+                ->values()
+                ->all();
         }
 
         return Inertia::render('Empresa/CardapioDigital/FinalizarPedido', [
@@ -83,7 +93,8 @@ class FinalizarPedidoController extends Controller
             'lojaAberta' => session('loja_aberta'),
             'mesa' => $mesa,
             'cupomDesconto' => $cupomDesconto,
-            'enderecoFormatadoEmpresa' => $enderecoFormatadoEmpresa
+            'enderecoFormatadoEmpresa' => $enderecoFormatadoEmpresa,
+            'formasPagamentos' => $formasPagamentos
         ]);
     }
 
