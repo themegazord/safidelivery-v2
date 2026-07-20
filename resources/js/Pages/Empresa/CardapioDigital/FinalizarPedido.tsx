@@ -2,6 +2,7 @@ import AdicionarEnderecoNovo from "@/components/Empresa/CardapioDigital/Modais/F
 import AlteraEnderecoPrincipal from "@/components/Empresa/CardapioDigital/Modais/FinalizarPedido/AlteraEnderecoPrincipal";
 import DadosEntrega from "@/components/Empresa/FinalizarPedido/Cards/DadosEntrega";
 import FinalizarPedidoHeader from "@/components/Empresa/FinalizarPedido/Cards/FinalizarPedidoHeader";
+import ResumoPedido from "@/components/Empresa/FinalizarPedido/Cards/ResumoPedido";
 import SelecaoFormaPagamento from "@/components/Empresa/FinalizarPedido/Cards/SelecaoFormaPagamento";
 import { CarrinhoContext } from "@/contexts/CardapioDigital/CarrinhoContext";
 import LayoutCardapio from "@/Layouts/LayoutCardapio";
@@ -28,11 +29,12 @@ export type TFormaPagamento = {
 }
 
 export default function FinalizarPedido() {
-    const { interacao_id, tipo_funcionamento, auth, mesa, enderecoFormatadoEmpresa, configuracoes, formasPagamentos } = usePage<{
+    const { interacao_id, tipo_funcionamento, nome_fantasia, auth, mesa, enderecoFormatadoEmpresa, configuracoes, formasPagamentos } = usePage<{
         interacao_id: string;
         tipo_funcionamento: 'delivery' | 'retirada' | 'mesa';
         auth: IAuth,
         mesa: number | undefined,
+        nome_fantasia: string,
         enderecoFormatadoEmpresa: string,
         configuracoes: Record<string, string>,
         formasPagamentos: TFormaPagamento[]
@@ -44,6 +46,7 @@ export default function FinalizarPedido() {
     const [erroEntrega, setErroEntrega] = useState<string | null>(null)
     const [toggleAlteraEnderecoPrincipal, setToggleAlteraEnderecoPrincipal] = useState<boolean>(false)
     const [toggleCadastraEnderecoNovo, setToggleCadastraEnderecoNovo] = useState<boolean>(false)
+    const [totalPedido, setTotalPedido] = useState<number | undefined>(undefined)
     const { carrinho, total } = useContext(CarrinhoContext)
 
     useEffect(() => {
@@ -61,12 +64,17 @@ export default function FinalizarPedido() {
             .catch((error) => {
                 if (error.response?.status === 422) {
                     setErroEntrega(error.response.data.message)
+                    setDadosDistaciaRota(null)
                 }
             })
         }
 
         carregaDadosEntrega()
     }, [auth.user?.cliente.endereco?.id])
+
+    useEffect(() => {
+        setTotalPedido((dadosDistanciaRota?.dadosDistanciaRota.taxaFrete ?? 0) + total)
+    }, [dadosDistanciaRota?.dadosDistanciaRota.taxaFrete, total])
 
     return (
         <div className="bg-background/20 min-h-screen">
@@ -89,6 +97,7 @@ export default function FinalizarPedido() {
                         />
                         <SelecaoFormaPagamento formasPagamentos={formasPagamentos} formaPagamento={formaPagamento} setFormaPagamento={setFormaPagamento} />
                     </div>
+                    <ResumoPedido carrinho={carrinho} tipo_funcionamento={tipo_funcionamento} nome_fantasia={nome_fantasia} interacao_id={interacao_id} taxa_entrega={dadosDistanciaRota?.dadosDistanciaRota.taxaFrete ?? 0} subtotal={total} total={totalPedido ?? 0}  lista/>
                 </div>
             </div>
             <AlteraEnderecoPrincipal open={toggleAlteraEnderecoPrincipal} setOpen={setToggleAlteraEnderecoPrincipal} auth={auth}/>

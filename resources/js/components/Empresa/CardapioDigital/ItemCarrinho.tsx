@@ -6,16 +6,17 @@ import ItemCarrinhoLayout from "./ItemCarrinhoLayout"
 interface IProps {
   item: IItemPedido | IItemCombo | IItemPizza,
   idx: number,
+  lista: boolean
 }
 
-export default function ItemCarrinho({item, idx}: IProps) {
+export default function ItemCarrinho({item, idx, lista}: IProps) {
   function saboresSelecionados(sabores: ISabor[]): Array<ISabor> {
     return sabores.filter(s => s.quantidade > 0);
   }
   return (
     <>
       {"grupo_complemento" in item && (
-        <ItemCarrinhoLayout item={item} idx={idx}>
+        <ItemCarrinhoLayout item={item} idx={idx} lista={lista}>
           <>
             {item.grupo_complemento.map((grupoComplemento, grupoIdx) => {
                 const complementosSelecionados = grupoComplemento.complementos.filter(c => c.quantidade > 0)
@@ -42,7 +43,7 @@ export default function ItemCarrinho({item, idx}: IProps) {
       )}
 
       {"sabores" in item && (
-        <ItemCarrinhoLayout item={item} idx={idx}>
+        <ItemCarrinhoLayout item={item} idx={idx} lista={lista}>
           <>
             {item.bordaSelecionada !== undefined && (
                   <div className="flex items-center justify-between gap-2">
@@ -77,7 +78,7 @@ export default function ItemCarrinho({item, idx}: IProps) {
       )}
 
       {"grupos" in item && (
-        <ItemCarrinhoLayout item={item} idx={idx}>
+        <ItemCarrinhoLayout item={item} idx={idx} lista={lista}>
           {item.grupos.length > 0 && (
               <div className="mb-2 space-y-1 rounded bg-background/20 p-2 text-xs">
                 {item.grupos.map((grupo, grupoIdx) => (

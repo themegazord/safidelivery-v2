@@ -16,11 +16,57 @@ import ItemCarrinho from "./ItemCarrinho";
 import { converteReal } from "@/utils/utils";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { IItemCombo, IItemPedido, IItemPizza } from "@/types/cardapio-digital/item-pedido";
 
 interface IProps {
     open: boolean;
     setOpen: (valor: boolean) => void;
     setOpenAutenticacao: (valor: boolean) => void
+}
+
+export interface IItensCarrinhoProps {
+    carrinho: (IItemCombo | IItemPedido | IItemPizza)[],
+    nome_fantasia: string,
+    tipo_funcionamento: string,
+    interacao_id: string,
+    lista: boolean
+}
+
+export function ItensCarrinho({carrinho, nome_fantasia, tipo_funcionamento, interacao_id, lista}: IItensCarrinhoProps) {
+    return (
+        <div className="no-scrollbar overflow-y-auto px-4">
+            <div className="bg-background/20 rounded-lg p-4">
+                <div className="mb-3">
+                    <p className="text-xs font-semibold tracking-wide uppercase opacity-60">
+                        Seu pedido em {nome_fantasia}
+                    </p>
+                </div>
+                <Link
+                    href={route(
+                        "aplicacao.empresa.cardapio-digital",
+                        {
+                            tipo_funcionamento:
+                                tipo_funcionamento,
+                            interacao_id: interacao_id,
+                        },
+                    )}
+                    className="hover:text-primary-focus text-primary inline-flex items-center gap-1 text-sm font-medium"
+                >
+                    {<ChevronRight />} Ver cardápio completo
+                </Link>
+            </div>
+            <div className="my-4 flex flex-col gap-4">
+                {carrinho.map((item, idx) => (
+                    <ItemCarrinho
+                        item={item}
+                        idx={idx}
+                        key={idx}
+                        lista={lista}
+                    />
+                ))}
+            </div>
+        </div>
+    )
 }
 
 export default function Carrinho({ open, setOpen, setOpenAutenticacao }: IProps) {
@@ -47,37 +93,7 @@ export default function Carrinho({ open, setOpen, setOpenAutenticacao }: IProps)
                 </DrawerHeader>
                 {carrinho.length > 0 && (
                     <>
-                        <div className="no-scrollbar overflow-y-auto px-4">
-                            <div className="bg-background/20 rounded-lg p-4">
-                                <div className="mb-3">
-                                    <p className="text-xs font-semibold tracking-wide uppercase opacity-60">
-                                        Seu pedido em {nome_fantasia}
-                                    </p>
-                                </div>
-                                <Link
-                                    href={route(
-                                        "aplicacao.empresa.cardapio-digital",
-                                        {
-                                            tipo_funcionamento:
-                                                tipo_funcionamento,
-                                            interacao_id: interacao_id,
-                                        },
-                                    )}
-                                    className="hover:text-primary-focus text-primary inline-flex items-center gap-1 text-sm font-medium"
-                                >
-                                    {<ChevronRight />} Ver cardápio completo
-                                </Link>
-                            </div>
-                            <div className="my-4 flex flex-col gap-4">
-                                {carrinho.map((item, idx) => (
-                                    <ItemCarrinho
-                                        item={item}
-                                        idx={idx}
-                                        key={idx}
-                                    />
-                                ))}
-                            </div>
-                        </div>
+                        <ItensCarrinho carrinho={carrinho} tipo_funcionamento={tipo_funcionamento} interacao_id={interacao_id} nome_fantasia={nome_fantasia} lista={false} />
                         <DrawerFooter>
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between">

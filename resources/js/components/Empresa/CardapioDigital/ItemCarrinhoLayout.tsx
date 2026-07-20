@@ -8,10 +8,11 @@ import { ReactNode } from "react"
 interface IProps {
   item: IItemPedido | IItemCombo | IItemPizza,
   idx: number,
-  children: ReactNode
+  children: ReactNode,
+  lista: boolean
 }
 
-export default function ItemCarrinhoLayout({item, idx, children}: IProps) {
+export default function ItemCarrinhoLayout({item, idx, children, lista}: IProps) {
   return (
     <Card>
       <CardHeader>
@@ -30,14 +31,16 @@ export default function ItemCarrinhoLayout({item, idx, children}: IProps) {
           <CardContent>
             <div className="mb-2 space-y-1 rounded bg-background/20 p-2 text-xs">
               {children}
-              <div className="flex gap-2">
-                <Button className="flex-1 cursor-pointer bg-sky-100 text-sky-700 hover:bg-sky-200 hover:text-sky-800 dark:bg-sky-500/15 dark:text-sky-300 dark:hover:bg-sky-500/25 dark:hover:text-sky-200">
-                  {<Edit />}{" "}Editar
-                </Button>
-                <Button variant="destructive" className="flex-1 cursor-pointer">
-                  {<Trash />}{" "}Remover
-                </Button>
-              </div>  
+              {!lista && (
+                <div className="flex gap-2">
+                  <Button className="flex-1 cursor-pointer bg-sky-100 text-sky-700 hover:bg-sky-200 hover:text-sky-800 dark:bg-sky-500/15 dark:text-sky-300 dark:hover:bg-sky-500/25 dark:hover:text-sky-200">
+                    {<Edit />}{" "}Editar
+                  </Button>
+                  <Button variant="destructive" className="flex-1 cursor-pointer">
+                    {<Trash />}{" "}Remover
+                  </Button>
+                </div> 
+              )} 
             </div>
           </CardContent>
     </Card>
