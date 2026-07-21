@@ -3,6 +3,7 @@ import AlteraEnderecoPrincipal from "@/components/Empresa/CardapioDigital/Modais
 import CupomPedido from "@/components/Empresa/FinalizarPedido/Cards/CupomPedido";
 import DadosEntrega from "@/components/Empresa/FinalizarPedido/Cards/DadosEntrega";
 import FinalizarPedidoHeader from "@/components/Empresa/FinalizarPedido/Cards/FinalizarPedidoHeader";
+import ObsersavaoPedido from "@/components/Empresa/FinalizarPedido/Cards/ObservacaoPedido";
 import ResumoPedido from "@/components/Empresa/FinalizarPedido/Cards/ResumoPedido";
 import SelecaoFormaPagamento from "@/components/Empresa/FinalizarPedido/Cards/SelecaoFormaPagamento";
 import { CarrinhoContext } from "@/contexts/CardapioDigital/CarrinhoContext";
@@ -44,6 +45,7 @@ export default function FinalizarPedido() {
     const [numeroMesa, setNumeroMesa] = useState<number | undefined>(mesa)
     const [formaPagamento, setFormaPagamento] = useState<string | undefined>(undefined)
     const [cupomPedido, setCupomPedido] = useState<string | undefined>(undefined)
+    const [observacaoPedido, setObservacaoPedido] = useState<string | undefined>(undefined)
     const [dadosDistanciaRota, setDadosDistaciaRota] = useState< IDadosDistanciaRota | null>(null)
     const [erroEntrega, setErroEntrega] = useState<string | null>(null)
     const [toggleAlteraEnderecoPrincipal, setToggleAlteraEnderecoPrincipal] = useState<boolean>(false)
@@ -106,6 +108,7 @@ export default function FinalizarPedido() {
                                 <SelecaoFormaPagamento formasPagamentos={formasPagamentos} formaPagamento={formaPagamento} setFormaPagamento={setFormaPagamento} />
                                 {/*TODO: Finalizar a rotina de cupom depois de finalizar o CRUD */}
                                 <CupomPedido cupomPedido={cupomPedido} setCupomPedido={setCupomPedido}/>
+                                <ObsersavaoPedido observacaoPedido={observacaoPedido} setObservacaoPedido={setObservacaoPedido}/>
                             </>
                         )}
                     </div>
