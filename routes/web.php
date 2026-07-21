@@ -52,5 +52,6 @@ Route::group([], function () {
         Route::post('/consulta-dados-rota', [FinalizarPedidoController::class, 'consultaDadosRota'])->name('aplicacao.empresa.finalizar-pedido.consulta-dados-rota');
         Route::patch('/altera-endereco-principal', [FinalizarPedidoController::class, 'alteraEnderecoPrincipal'])->name('aplicacao.empresa.finalizar-pedido.altera-endereco-principal');
         Route::post('/cadastra-novo-endereco', [FinalizarPedidoController::class, 'cadastraNovoEndereco'])->name('aplicacao.empresa.finalizar-pedido.cadastra-novo-endereco');
+        Route::post('/valida-cupom-pedido', [FinalizarPedidoController::class, 'validaCupomPedido'])->name('aplicacao.empresa.finalizar-pedido.valida-cupom-pedido');
     });
 });

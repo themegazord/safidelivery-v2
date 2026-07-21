@@ -1,5 +1,6 @@
 import AdicionarEnderecoNovo from "@/components/Empresa/CardapioDigital/Modais/FinalizarPedido/AdicionarEnderecoNovo";
 import AlteraEnderecoPrincipal from "@/components/Empresa/CardapioDigital/Modais/FinalizarPedido/AlteraEnderecoPrincipal";
+import CupomPedido from "@/components/Empresa/FinalizarPedido/Cards/CupomPedido";
 import DadosEntrega from "@/components/Empresa/FinalizarPedido/Cards/DadosEntrega";
 import FinalizarPedidoHeader from "@/components/Empresa/FinalizarPedido/Cards/FinalizarPedidoHeader";
 import ResumoPedido from "@/components/Empresa/FinalizarPedido/Cards/ResumoPedido";
@@ -42,6 +43,7 @@ export default function FinalizarPedido() {
     const [tipoEntrega, setTipoEntrega] = useState<'delivery' | 'retirada' | 'mesa'>(tipo_funcionamento)
     const [numeroMesa, setNumeroMesa] = useState<number | undefined>(mesa)
     const [formaPagamento, setFormaPagamento] = useState<string | undefined>(undefined)
+    const [cupomPedido, setCupomPedido] = useState<string | undefined>(undefined)
     const [dadosDistanciaRota, setDadosDistaciaRota] = useState< IDadosDistanciaRota | null>(null)
     const [erroEntrega, setErroEntrega] = useState<string | null>(null)
     const [toggleAlteraEnderecoPrincipal, setToggleAlteraEnderecoPrincipal] = useState<boolean>(false)
@@ -76,6 +78,10 @@ export default function FinalizarPedido() {
         setTotalPedido((dadosDistanciaRota?.dadosDistanciaRota.taxaFrete ?? 0) + total)
     }, [dadosDistanciaRota?.dadosDistanciaRota.taxaFrete, total])
 
+    useEffect(() => {
+        
+    }, [cupomPedido])
+
     return (
         <div className="bg-background/20 min-h-screen">
             <div className="flex flex-col gap-4 mx-auto max-w-7xl px-4 py-8">
@@ -95,7 +101,13 @@ export default function FinalizarPedido() {
                             setToggleAlteraEnderecoPrincipal={setToggleAlteraEnderecoPrincipal}
                             setToggleCadastraEnderecoNovo={setToggleCadastraEnderecoNovo}
                         />
-                        <SelecaoFormaPagamento formasPagamentos={formasPagamentos} formaPagamento={formaPagamento} setFormaPagamento={setFormaPagamento} />
+                        {tipo_funcionamento !== 'mesa' && (
+                            <>
+                                <SelecaoFormaPagamento formasPagamentos={formasPagamentos} formaPagamento={formaPagamento} setFormaPagamento={setFormaPagamento} />
+                                {/*TODO: Finalizar a rotina de cupom depois de finalizar o CRUD */}
+                                <CupomPedido cupomPedido={cupomPedido} setCupomPedido={setCupomPedido}/>
+                            </>
+                        )}
                     </div>
                     <ResumoPedido carrinho={carrinho} tipo_funcionamento={tipo_funcionamento} nome_fantasia={nome_fantasia} interacao_id={interacao_id} taxa_entrega={dadosDistanciaRota?.dadosDistanciaRota.taxaFrete ?? 0} subtotal={total} total={totalPedido ?? 0}  lista/>
                 </div>

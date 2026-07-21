@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Empresa\CardapioDigital;
 use App\Actions\FinalizarPedido\CalculaRotaEntregaAction;
 use App\Actions\FinalizarPedido\AlteraEnderecoPrincipalAction;
 use App\Actions\FinalizarPedido\CadastraEnderecoNovoAction;
+use App\Actions\FinalizarPedido\ValidaCupomPedidoAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Endereco\CadastroEnderecoRequest;
+use App\Http\Requests\FinalizarPedido\ValidacaoCupomRequest;
 use App\Models\Empresa;
 use App\Models\FormaPagamento;
 use App\Services\Google\GoogleMapService;
@@ -131,5 +133,17 @@ class FinalizarPedidoController extends Controller
             'mensagem' => 'Endereço cadastrado com sucesso.',
             'endereco' => $enderecoCadastrado,
         ], Response::HTTP_CREATED);
+    }
+
+    public function validaCupomPedido(ValidacaoCupomRequest $request): JsonResponse {
+        $dadosValidados = $request->validated();
+
+        $action = new ValidaCupomPedidoAction();
+
+        $empresa = Empresa::query()->where('interacao_id', $dadosValidados['interacao_id'])->firstOrFail();
+
+        $cupom = $action->handle($dadosValidados['cupom'], $empresa->getAttribute('id'), $dadosValidados['subtotal']);
+
+        return response()->json(['cupom' => $cupom]);
     }
 }
