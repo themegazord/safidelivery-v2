@@ -32,9 +32,12 @@ export default function CarrinhoProvider({
     useEffect(() => {
         localStorage.setItem(`carrinho-${tipo_funcionamento}`, JSON.stringify(carrinho));
     }, [carrinho]);
-        const total = useMemo(() => {
+
+    const subtotal = useMemo(() => {
         return carrinho.reduce((acc, item) => acc + (item.quantidade * item.total), 0)
     }, [carrinho])
+
+    const [total, setTotal] = useState(0);
 
     function grupoComplementoSaoIguais(
         grupo1: IGrupoComplemento[],
@@ -200,13 +203,19 @@ export default function CarrinhoProvider({
         }
     }
 
+    function calculaTotal(frete: number | null, desconto: number | null) {
+        setTotal(subtotal + (frete ?? 0) - (desconto ?? 0))
+    }
+
     return (
         <CarrinhoContext.Provider
             value={{
                 carrinho: carrinho,
+                subtotal: subtotal,
                 total: total,
                 tipo_funcionamento: tipo_funcionamento,
                 adicionaItemCarrinho: adicionaItemCarrinho,
+                calculaTotal: calculaTotal,
                 removeItemCarrinho: () => {},
                 diminuiItemCarrinho: () => {},
             }}

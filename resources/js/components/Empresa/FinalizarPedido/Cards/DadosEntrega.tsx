@@ -19,7 +19,7 @@ interface IProps {
   erroEntrega: string | null,
   dadosDistanciaRota: IDadosDistanciaRota | null,
   configuracoes: Record<string, string>,
-  total: number,
+  subtotal: number,
   setTipoEntrega: (value: TTipoFuncionamento) => void,
   setNumeroMesa: (value: number | undefined) => void,
   setToggleAlteraEnderecoPrincipal: (value: boolean) => void,
@@ -35,7 +35,7 @@ export default function DadosEntrega({
   erroEntrega,
   dadosDistanciaRota,
   configuracoes,
-  total,
+  subtotal,
   setToggleAlteraEnderecoPrincipal,
   setToggleCadastraEnderecoNovo
 }: IProps) {
@@ -140,8 +140,8 @@ export default function DadosEntrega({
                                               ) : (
                                                   <>
                                                       <p className="text-sm font-medium">Taxa de entrega: R$ {converteReal(dadosDistanciaRota?.dadosDistanciaRota.taxaFrete ?? 0)}</p>
-                                                      {Number(configuracoes.frete_gratis_acima ?? 0) > 0 && total < Number(configuracoes.frete_gratis_acima ?? 0) && (
-                                                          <p className="text-xs">Faltam: R$ {converteReal(Number(configuracoes.frete_gratis_acima ?? 0) - total)} para frete grátis</p>
+                                                      {Number(configuracoes.frete_gratis_acima ?? 0) > 0 && subtotal < Number(configuracoes.frete_gratis_acima ?? 0) && (
+                                                          <p className="text-xs">Faltam: R$ {converteReal(Number(configuracoes.frete_gratis_acima ?? 0) - subtotal)} para frete grátis</p>
                                                       )}
                                                   </>
                                               )}

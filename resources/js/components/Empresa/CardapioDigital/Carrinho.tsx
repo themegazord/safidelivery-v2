@@ -70,7 +70,7 @@ export function ItensCarrinho({carrinho, nome_fantasia, tipo_funcionamento, inte
 }
 
 export default function Carrinho({ open, setOpen, setOpenAutenticacao }: IProps) {
-    const { carrinho, total } = useContext(CarrinhoContext);
+    const { carrinho, subtotal } = useContext(CarrinhoContext);
     const { interacao_id, tipo_funcionamento, nome_fantasia, lojaAberta, auth, configuracoes } =
         usePage<{
             interacao_id: string;
@@ -99,14 +99,14 @@ export default function Carrinho({ open, setOpen, setOpenAutenticacao }: IProps)
                                 <div className="flex items-center justify-between">
                                     <span className="opacity-70">Subtotal</span>
                                     <span className="font-semibold">
-                                        R$ {converteReal(total)}
+                                        R$ {converteReal(subtotal)}
                                     </span>
                                 </div>
                                 <Separator />
                                 <div className="flex items-center justify-between">
                                     <span className="opacity-70">Subtotal</span>
                                     <span className="font-semibold">
-                                        R$ {converteReal(total)}
+                                        R$ {converteReal(subtotal)}
                                     </span>
                                 </div>
                                 {!lojaAberta && (

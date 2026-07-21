@@ -50,8 +50,7 @@ export default function FinalizarPedido() {
     const [erroEntrega, setErroEntrega] = useState<string | null>(null)
     const [toggleAlteraEnderecoPrincipal, setToggleAlteraEnderecoPrincipal] = useState<boolean>(false)
     const [toggleCadastraEnderecoNovo, setToggleCadastraEnderecoNovo] = useState<boolean>(false)
-    const [totalPedido, setTotalPedido] = useState<number | undefined>(undefined)
-    const { carrinho, total } = useContext(CarrinhoContext)
+    const { carrinho, subtotal, calculaTotal, total } = useContext(CarrinhoContext)
 
     useEffect(() => {
         async function carregaDadosEntrega() {
@@ -59,7 +58,7 @@ export default function FinalizarPedido() {
                 enderecoFormatadoEmpresa,
                 interacao_id,
                 configuracoes,
-                subtotalPedido: total
+                subtotalPedido: subtotal
             })
             .then((response) => {
                 setDadosDistaciaRota(response.data)
@@ -77,18 +76,27 @@ export default function FinalizarPedido() {
     }, [auth.user?.cliente.endereco?.id])
 
     useEffect(() => {
-        setTotalPedido((dadosDistanciaRota?.dadosDistanciaRota.taxaFrete ?? 0) + total)
-    }, [dadosDistanciaRota?.dadosDistanciaRota.taxaFrete, total])
+        calculaTotal((dadosDistanciaRota?.dadosDistanciaRota.taxaFrete ?? 0), null)
+    }, [dadosDistanciaRota?.dadosDistanciaRota.taxaFrete, subtotal])
 
     useEffect(() => {
         
     }, [cupomPedido])
 
+    function finalizarPedido() {
+        console.log({
+            pedido: carrinho,
+            frete: dadosDistanciaRota?.dadosDistanciaRota.taxaFrete,
+            subtotal: subtotal,
+
+        })
+    }
+
     return (
         <div className="bg-background/20 min-h-screen">
             <div className="flex flex-col gap-4 mx-auto max-w-7xl px-4 py-8">
                 <FinalizarPedidoHeader />
-                <div className="grid gap-8 lg:grid-cols-3">
+                <div className="grid gap-8 lg:grid-cols-3 items-start">
                     <div className="space-y-6 lg:col-span-2">
                         <DadosEntrega 
                             auth={auth}
@@ -97,7 +105,7 @@ export default function FinalizarPedido() {
                             erroEntrega={erroEntrega}
                             dadosDistanciaRota={dadosDistanciaRota}
                             configuracoes={configuracoes}
-                            total={total}
+                            subtotal={subtotal}
                             setTipoEntrega={setTipoEntrega}
                             setNumeroMesa={setNumeroMesa}
                             setToggleAlteraEnderecoPrincipal={setToggleAlteraEnderecoPrincipal}
@@ -112,7 +120,7 @@ export default function FinalizarPedido() {
                             </>
                         )}
                     </div>
-                    <ResumoPedido carrinho={carrinho} tipo_funcionamento={tipo_funcionamento} nome_fantasia={nome_fantasia} interacao_id={interacao_id} taxa_entrega={dadosDistanciaRota?.dadosDistanciaRota.taxaFrete ?? 0} subtotal={total} total={totalPedido ?? 0}  lista/>
+                    <ResumoPedido carrinho={carrinho} tipo_funcionamento={tipo_funcionamento} nome_fantasia={nome_fantasia} interacao_id={interacao_id} taxa_entrega={dadosDistanciaRota?.dadosDistanciaRota.taxaFrete ?? 0} subtotal={subtotal} total={total}  lista/>
                 </div>
             </div>
             <AlteraEnderecoPrincipal open={toggleAlteraEnderecoPrincipal} setOpen={setToggleAlteraEnderecoPrincipal} auth={auth}/>

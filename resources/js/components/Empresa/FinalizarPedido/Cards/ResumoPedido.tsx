@@ -5,6 +5,7 @@ import {
 } from "../../CardapioDigital/Carrinho";
 import { Separator } from "@/components/ui/separator";
 import { converteReal } from "@/utils/utils";
+import { Button } from "@/components/ui/button";
 
 interface IProps {
     taxa_entrega: number | null,
@@ -40,6 +41,7 @@ export default function ResumoPedido({
                     <span className="text-sm">Total</span>
                     <span className="font-bold">R$ {converteReal(total ?? 0)}</span>
                 </div>
+                <Button>Finalizar pedido</Button>
             </div>
         </Card>
     );
