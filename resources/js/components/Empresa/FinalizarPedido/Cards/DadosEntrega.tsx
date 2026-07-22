@@ -20,6 +20,8 @@ interface IProps {
   dadosDistanciaRota: IDadosDistanciaRota | null,
   configuracoes: Record<string, string>,
   subtotal: number,
+  nome: string | null,
+  telefone: string | null,
   setTipoEntrega: (value: TTipoFuncionamento) => void,
   setNumeroMesa: (value: number | undefined) => void,
   setToggleAlteraEnderecoPrincipal: (value: boolean) => void,
@@ -36,9 +38,12 @@ export default function DadosEntrega({
   dadosDistanciaRota,
   configuracoes,
   subtotal,
+  nome,
+  telefone,
   setToggleAlteraEnderecoPrincipal,
   setToggleCadastraEnderecoNovo
 }: IProps) {
+  const ehModoAtendente = Boolean(Number(configuracoes.modo_atendente ?? '0'));
 
     const TIPOS_ENTREGA = [
       {
@@ -63,7 +68,18 @@ export default function DadosEntrega({
   
   return (
     <Card>
-      {auth.user && auth.user.cliente && (
+      {ehModoAtendente && nome && (
+          <CardHeader>
+              <CardTitle>
+                  <H6>Pedido para:</H6>
+              </CardTitle>
+              <CardDescription className="space-y-2 rounded-lg border p-4">
+                  <h3 className="font-semibold">{nome}</h3>
+                  {telefone && <p className="text-sm">{telefone}</p>}
+              </CardDescription>
+          </CardHeader>
+      )}
+      {!ehModoAtendente && auth.user && auth.user.cliente && (
           <CardHeader>
               <CardTitle className="flex items-center justify-between">
                   <H6>Este pedido será entregue a:</H6>

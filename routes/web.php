@@ -23,6 +23,10 @@ Route::prefix('autenticacao')->group(function () {
         })->name('aplicacao.autenticacao.empresa.logout');
     });
     Route::prefix('cliente')->group(function () {
+        Route::get('logout', function () {
+            Auth::logout();
+            return to_route('aplicacao.home');
+        });
         Route::post('consultaDadosCliente', [LoginClienteController::class, 'consultaDadosCliente'])->name('aplicacao.autenticacao.cliente.consultaDadosCliente');
         Route::post('autenticaCliente', [LoginClienteController::class, 'autenticaCliente'])->name('aplicacao.autenticacao.cliente.autenticaCliente');
     });
@@ -53,5 +57,6 @@ Route::group([], function () {
         Route::patch('/altera-endereco-principal', [FinalizarPedidoController::class, 'alteraEnderecoPrincipal'])->name('aplicacao.empresa.finalizar-pedido.altera-endereco-principal');
         Route::post('/cadastra-novo-endereco', [FinalizarPedidoController::class, 'cadastraNovoEndereco'])->name('aplicacao.empresa.finalizar-pedido.cadastra-novo-endereco');
         Route::post('/valida-cupom-pedido', [FinalizarPedidoController::class, 'validaCupomPedido'])->name('aplicacao.empresa.finalizar-pedido.valida-cupom-pedido');
+        Route::post('store', [FinalizarPedidoController::class, 'store'])->name('aplicacao.empresa.finalizar-pedido.store');
     });
 });

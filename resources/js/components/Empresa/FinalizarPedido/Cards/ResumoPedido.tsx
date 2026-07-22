@@ -6,11 +6,14 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { converteReal } from "@/utils/utils";
 import { Button } from "@/components/ui/button";
+import { Loader } from "lucide-react";
 
 interface IProps {
     taxa_entrega: number | null,
     subtotal: number,
-    total: number
+    total: number,
+    isFinalizando?: boolean,
+    realizarPedido: () => void
 }
 
 export default function ResumoPedido({
@@ -21,7 +24,9 @@ export default function ResumoPedido({
     lista,
     taxa_entrega,
     total,
-    subtotal
+    subtotal,
+    isFinalizando = false,
+    realizarPedido
 }: IItensCarrinhoProps & IProps) {
     return (
         <Card>
@@ -41,7 +46,9 @@ export default function ResumoPedido({
                     <span className="text-sm">Total</span>
                     <span className="font-bold">R$ {converteReal(total ?? 0)}</span>
                 </div>
-                <Button>Finalizar pedido</Button>
+                <Button onClick={realizarPedido} disabled={isFinalizando} className="cursor-pointer">
+                    {isFinalizando ? <><Loader className="animate-spin" /> Enviando...</> : 'Finalizar pedido'}
+                </Button>
             </div>
         </Card>
     );

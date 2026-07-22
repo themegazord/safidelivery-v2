@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Empresa\CardapioDigital;
 
-use App\Actions\FinalizarPedido\CalculaRotaEntregaAction;
 use App\Actions\FinalizarPedido\AlteraEnderecoPrincipalAction;
 use App\Actions\FinalizarPedido\CadastraEnderecoNovoAction;
+use App\Actions\FinalizarPedido\CalculaRotaEntregaAction;
+use App\Actions\FinalizarPedido\FinalizarPedidoAction;
 use App\Actions\FinalizarPedido\ValidaCupomPedidoAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Endereco\CadastroEnderecoRequest;
+use App\Http\Requests\FinalizarPedido\FinalizarPedidoRequest;
 use App\Http\Requests\FinalizarPedido\ValidacaoCupomRequest;
 use App\Models\Empresa;
 use App\Models\FormaPagamento;
@@ -26,7 +28,7 @@ class FinalizarPedidoController extends Controller
     public array $dadosDistanciaRota = [];
     public ?Empresa $empresa;
 
-    public function index()
+    public function index(Request $request)
     {
         $usuario = null;
         $mesa = null;
@@ -96,7 +98,9 @@ class FinalizarPedidoController extends Controller
             'mesa' => $mesa,
             'cupomDesconto' => $cupomDesconto,
             'enderecoFormatadoEmpresa' => $enderecoFormatadoEmpresa,
-            'formasPagamentos' => $formasPagamentos
+            'formasPagamentos' => $formasPagamentos,
+            'nome' => $ehModoAtendenteEmMesa ? session('nome_cliente_modoatendente') : null,
+            'telefone' => $ehModoAtendenteEmMesa ? session('telefone_cliente_modoatendente') : null,
         ]);
     }
 
@@ -145,5 +149,38 @@ class FinalizarPedidoController extends Controller
         $cupom = $action->handle($dadosValidados['cupom'], $empresa->getAttribute('id'), $dadosValidados['subtotal']);
 
         return response()->json(['cupom' => $cupom]);
+    }
+
+    public function store(FinalizarPedidoRequest $request): JsonResponse
+    {
+        $dados = $request->validated();
+
+        $empresa = Empresa::query()
+            ->where('interacao_id', $dados['interacao_id'])
+            ->firstOrFail();
+
+        try {
+            $pedidoCadastrado = (new FinalizarPedidoAction())->handle(
+                pedido: $request->input('pedido', []),
+                forma_pagamento: $dados['forma_pagamento'] ?? null,
+                frete: $dados['frete'] ?? null,
+                subtotal: floatval($dados['subtotal']),
+                total: floatval($dados['total']),
+                observacao: $dados['observacao'] ?? null,
+                cliente: $dados['cliente'] ?? null,
+                tipo_funcionamento: $dados['tipo_funcionamento'],
+                empresa_id: $empresa->id,
+                configuracoes: $dados['configuracoes'],
+                mesa: isset($dados['mesa']) ? intval($dados['mesa']) : null,
+                comanda: session('comanda_atual')
+            );
+
+            return response()->json([
+                'pedido_id' => $pedidoCadastrado->id,
+                'mensagem'  => 'Pedido realizado com sucesso!',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['mensagem' => $e->getMessage()], JsonResponse::HTTP_UNPROCESSABLE_ENTITY);
+        }
     }
 }

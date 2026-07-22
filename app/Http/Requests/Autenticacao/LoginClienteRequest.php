@@ -27,7 +27,7 @@ class LoginClienteRequest extends FormRequest
             'nome' => 'required',
             'telefone' => 'required',
             'interacao_id' => 'required',
-            'tipo_funcionamento' => [Rule::in(['delivery', 'mesa']), 'required'],
+            'tipo_funcionamento' => [Rule::in(['delivery', 'retirada', 'mesa']), 'required'],
             'modo_atendente' => ['required', 'boolean'],
             'informa_mesa_comanda' => ['required', 'boolean'],
         ];

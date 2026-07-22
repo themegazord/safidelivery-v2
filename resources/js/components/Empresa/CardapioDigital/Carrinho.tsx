@@ -120,9 +120,21 @@ export default function Carrinho({ open, setOpen, setOpenAutenticacao }: IProps)
                                         </AlertDescription>
                                     </Alert>
                                 )}
-                                {!Boolean(Number(configuracoes.modo_atendente)) && (
-                                    <Button className="w-full cursor-pointer" disabled={!lojaAberta} onClick={(e) => { (e.currentTarget as HTMLButtonElement).blur(); auth.user ? router.visit(route('aplicacao.empresa.finalizar-pedido')) : setOpenAutenticacao(true); }}>Ir para pagamento</Button>
-                                )}
+                                <Button
+                                    className="w-full cursor-pointer"
+                                    disabled={!lojaAberta}
+                                    onClick={(e) => {
+                                        (e.currentTarget as HTMLButtonElement).blur();
+                                        const ehModoAtendente = Boolean(Number(configuracoes.modo_atendente));
+                                        if (ehModoAtendente || !auth.user) {
+                                            setOpenAutenticacao(true);
+                                        } else {
+                                            router.visit(route('aplicacao.empresa.finalizar-pedido'));
+                                        }
+                                    }}
+                                >
+                                    Ir para pagamento
+                                </Button>
                             </div>
                         </DrawerFooter>
                     </>
