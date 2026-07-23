@@ -10,6 +10,9 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    SidebarMenuSub,
+    SidebarMenuSubButton,
+    SidebarMenuSubItem,
 } from "../ui/sidebar";
 import {
     BadgePercent,
@@ -18,20 +21,25 @@ import {
     Bug,
     Building2,
     CalendarDays,
+    ChevronRight,
     Clock,
     CreditCard,
     FileText,
     HelpCircle,
     LogOut,
     MapPin,
+    Plug,
     QrCode,
+    Settings,
     Star,
+    Store,
     Truck,
     Undo2,
     Users,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Link } from "@inertiajs/react";
+import { Collapsible } from "radix-ui";
 
 export default function SidebarEmpresa() {
     const itensMenuSideBar = [
@@ -68,7 +76,16 @@ export default function SidebarEmpresa() {
                     label: "Formas de pagamento",
                 },
                 { link: "#", icon: <QrCode />, label: "QR Code das mesas" },
-                { link: "#", icon: <Building2 />, label: "Sua loja" },
+                {
+                    icon: <Building2 />,
+                    label: "Sua loja",
+                    subitens: [
+                        { link: "#", icon: <Store />, label: "Loja" },
+                        { link: "#", icon: <MapPin />, label: "Endereço" },
+                        { link: "#", icon: <Plug />, label: "Integrações" },
+                        { link: "#", icon: <Settings />, label: "Configurações" },
+                    ],
+                },
             ],
         },
         {
@@ -92,16 +109,47 @@ export default function SidebarEmpresa() {
                         <SidebarGroupLabel>{itemMenu.grupo}</SidebarGroupLabel>
                         <SidebarGroupContent>
                             <SidebarMenu>
-                                {itemMenu.itens.map((item) => (
-                                    <SidebarMenuItem key={item.label}>
-                                        <SidebarMenuButton asChild>
-                                            <Link href={item.link}>
-                                                {item.icon}
-                                                <span>{item.label}</span>
-                                            </Link>
-                                        </SidebarMenuButton>
-                                    </SidebarMenuItem>
-                                ))}
+                                {itemMenu.itens.map((item) =>
+                                    item.subitens ? (
+                                        <Collapsible.Root
+                                            key={item.label}
+                                            className="group/collapsible"
+                                        >
+                                            <SidebarMenuItem>
+                                                <Collapsible.Trigger asChild>
+                                                    <SidebarMenuButton>
+                                                        {item.icon}
+                                                        <span>{item.label}</span>
+                                                        <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                                                    </SidebarMenuButton>
+                                                </Collapsible.Trigger>
+                                                <Collapsible.Content>
+                                                    <SidebarMenuSub>
+                                                        {item.subitens.map((subitem) => (
+                                                            <SidebarMenuSubItem key={subitem.label}>
+                                                                <SidebarMenuSubButton asChild>
+                                                                    <Link href={subitem.link}>
+                                                                        {subitem.icon}
+                                                                        <span>{subitem.label}</span>
+                                                                    </Link>
+                                                                </SidebarMenuSubButton>
+                                                            </SidebarMenuSubItem>
+                                                        ))}
+                                                    </SidebarMenuSub>
+                                                </Collapsible.Content>
+                                            </SidebarMenuItem>
+                                        </Collapsible.Root>
+                                    ) : (
+                                        <SidebarMenuItem key={item.label}>
+                                            <SidebarMenuButton asChild>
+                                                <Link href={item.link}>
+                                                    {item.icon}
+                                                    <span>{item.label}</span>
+                                                </Link>
+                                            </SidebarMenuButton>
+                                        </SidebarMenuItem>
+                                    ),
+                                )}
                             </SidebarMenu>
                         </SidebarGroupContent>
                     </SidebarGroup>

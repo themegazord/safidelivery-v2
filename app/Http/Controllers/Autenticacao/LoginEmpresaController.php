@@ -25,6 +25,6 @@ class LoginEmpresaController extends Controller
 
         $empresa = Empresa::where('email', $request->input('email'))->first();
 
-        return Inertia::location(route('aplicacao.empresa.desempenho', ['cnpj' => $empresa->getAttribute('cnpj')]));
+        return to_route('aplicacao.empresa.desempenho', ['cnpj' => $empresa->getAttribute('cnpj')]);
     }
 }
