@@ -38,10 +38,13 @@ import {
     Users,
 } from "lucide-react";
 import { Button } from "../ui/button";
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import { Collapsible } from "radix-ui";
 
 export default function SidebarEmpresa() {
+    const {cnpj} = usePage<{
+        cnpj: string
+    }>().props
     const itensMenuSideBar = [
         {
             grupo: "Desempenho e vendas",
@@ -80,8 +83,7 @@ export default function SidebarEmpresa() {
                     icon: <Building2 />,
                     label: "Sua loja",
                     subitens: [
-                        { link: "#", icon: <Store />, label: "Loja" },
-                        { link: "#", icon: <MapPin />, label: "Endereço" },
+                        { link: route('aplicacao.empresa.configempresa.loja', {cnpj: cnpj}), icon: <Store />, label: "Loja" },
                         { link: "#", icon: <Plug />, label: "Integrações" },
                         { link: "#", icon: <Settings />, label: "Configurações" },
                     ],

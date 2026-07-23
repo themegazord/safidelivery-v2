@@ -4,6 +4,7 @@ use App\Http\Controllers\Autenticacao\LoginClienteController;
 use App\Http\Controllers\Autenticacao\LoginEmpresaController;
 use App\Http\Controllers\Empresa\CardapioDigital\CardapioController;
 use App\Http\Controllers\Empresa\CardapioDigital\FinalizarPedidoController;
+use App\Http\Controllers\Empresa\ConfigEmpresa\LojaController;
 use App\Http\Controllers\Empresa\ConfiguracaoController;
 use App\Http\Controllers\Empresa\DesempenhoController;
 use App\Http\Controllers\HomeController;
@@ -37,6 +38,10 @@ Route::group([], function () {
         Route::prefix('desempenho')->group(function () {
             Route::get('/', [DesempenhoController::class, 'index'])->name('aplicacao.empresa.desempenho');
             Route::post('buscaPedidosPorData', [DesempenhoController::class, 'buscaPedidosPorData'])->name('aplicacao.empresa.desempenho.buscaPedidosPorData');
+        });
+        Route::prefix('configempresa')->group(function () {
+            Route::get('loja', [LojaController::class, 'index'])->name('aplicacao.empresa.configempresa.loja');
+            Route::post('loja', [LojaController::class, 'update'])->name('aplicacao.empresa.configempresa.loja.update');
         });
         Route::prefix('configuracoes')->group(function () {
             Route::patch('/', [ConfiguracaoController::class, 'configuraRecebimentoPedidoIfood'])->name('aplicacao.empresa.configuracoes');
