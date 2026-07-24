@@ -4,6 +4,7 @@ use App\Http\Controllers\Autenticacao\LoginClienteController;
 use App\Http\Controllers\Autenticacao\LoginEmpresaController;
 use App\Http\Controllers\Empresa\CardapioDigital\CardapioController;
 use App\Http\Controllers\Empresa\CardapioDigital\FinalizarPedidoController;
+use App\Http\Controllers\Empresa\ConfigEmpresa\IntegracoesController;
 use App\Http\Controllers\Empresa\ConfigEmpresa\LojaController;
 use App\Http\Controllers\Empresa\ConfiguracaoController;
 use App\Http\Controllers\Empresa\DesempenhoController;
@@ -42,6 +43,11 @@ Route::group([], function () {
         Route::prefix('configempresa')->group(function () {
             Route::get('loja', [LojaController::class, 'index'])->name('aplicacao.empresa.configempresa.loja');
             Route::post('loja', [LojaController::class, 'update'])->name('aplicacao.empresa.configempresa.loja.update');
+            Route::prefix('integracoes')->group(function () {
+                Route::get('/', [IntegracoesController::class, 'index'])->name('aplicacao.empresa.configempresa.integracoes');
+                Route::get('safi/gera-company-token', [IntegracoesController::class, 'geraCompanyToken'])->name('aplicacao.empresa.configempresa.integracoes.safi.gera-company-token');
+                Route::post('/', [IntegracoesController::class, 'update'])->name('aplicacao.empresa.configempresa.integracoes.update');
+            });
         });
         Route::prefix('configuracoes')->group(function () {
             Route::patch('/', [ConfiguracaoController::class, 'configuraRecebimentoPedidoIfood'])->name('aplicacao.empresa.configuracoes');

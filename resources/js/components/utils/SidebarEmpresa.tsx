@@ -84,7 +84,7 @@ export default function SidebarEmpresa() {
                     label: "Sua loja",
                     subitens: [
                         { link: route('aplicacao.empresa.configempresa.loja', {cnpj: cnpj}), icon: <Store />, label: "Loja" },
-                        { link: "#", icon: <Plug />, label: "Integrações" },
+                        { link: route('aplicacao.empresa.configempresa.integracoes', {cnpj: cnpj}), icon: <Plug />, label: "Integrações" },
                         { link: "#", icon: <Settings />, label: "Configurações" },
                     ],
                 },
