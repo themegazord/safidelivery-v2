@@ -3,13 +3,20 @@ import AlteraEnderecoPrincipal from "@/components/Empresa/CardapioDigital/Modais
 import CashbackPedido from "@/components/Empresa/FinalizarPedido/Cards/CashbackPedido";
 import CupomPedido from "@/components/Empresa/FinalizarPedido/Cards/CupomPedido";
 import DadosEntrega from "@/components/Empresa/FinalizarPedido/Cards/DadosEntrega";
+import FidelidadePedido from "@/components/Empresa/FinalizarPedido/Cards/FidelidadePedido";
 import FinalizarPedidoHeader from "@/components/Empresa/FinalizarPedido/Cards/FinalizarPedidoHeader";
+import ModalEscolherPremio from "@/components/Empresa/FinalizarPedido/Modais/ModalEscolherPremio";
 import ObsersavaoPedido from "@/components/Empresa/FinalizarPedido/Cards/ObservacaoPedido";
 import ResumoPedido from "@/components/Empresa/FinalizarPedido/Cards/ResumoPedido";
 import SelecaoFormaPagamento from "@/components/Empresa/FinalizarPedido/Cards/SelecaoFormaPagamento";
 import { CarrinhoContext } from "@/contexts/CardapioDigital/CarrinhoContext";
 import LayoutCardapio from "@/Layouts/LayoutCardapio";
 import { ICupomAplicado, ICupomVisivel } from "@/types/finalizar-pedido/cupom";
+import {
+    IProgressoFidelidade,
+    IRecompensaFidelidade,
+    IResgateFidelidade,
+} from "@/types/finalizar-pedido/fidelidade";
 import { IAuth } from "@/types/usuario-autenticado/usuario";
 import { router, usePage } from "@inertiajs/react";
 import axios from "axios";
@@ -34,7 +41,7 @@ export type TFormaPagamento = {
 }
 
 export default function FinalizarPedido() {
-    const { interacao_id, tipo_funcionamento, nome_fantasia, auth, mesa, enderecoFormatadoEmpresa, configuracoes, formasPagamentos, nome, telefone, cupomDesconto, cuponsVisiveis, cashbackDisponivel } = usePage<{
+    const { interacao_id, tipo_funcionamento, nome_fantasia, auth, mesa, enderecoFormatadoEmpresa, configuracoes, formasPagamentos, nome, telefone, cupomDesconto, cuponsVisiveis, cashbackDisponivel, progressoFidelidade, recompensaFidelidade } = usePage<{
         interacao_id: string;
         tipo_funcionamento: 'delivery' | 'retirada' | 'mesa';
         auth: IAuth,
@@ -48,6 +55,8 @@ export default function FinalizarPedido() {
         cupomDesconto: string | null,
         cuponsVisiveis: ICupomVisivel[],
         cashbackDisponivel: number,
+        progressoFidelidade: IProgressoFidelidade | null,
+        recompensaFidelidade: IRecompensaFidelidade | null,
     }>().props;
     const [tipoEntrega, setTipoEntrega] = useState<'delivery' | 'retirada' | 'mesa'>(tipo_funcionamento)
     const [numeroMesa, setNumeroMesa] = useState<number | undefined>(mesa)
@@ -56,6 +65,8 @@ export default function FinalizarPedido() {
     const [cupomAplicado, setCupomAplicado] = useState<ICupomAplicado | null>(null)
     const [validandoCupom, setValidandoCupom] = useState<boolean>(false)
     const [usarCashback, setUsarCashback] = useState<boolean>(false)
+    const [resgateFidelidade, setResgateFidelidade] = useState<IResgateFidelidade | null>(null)
+    const [modalPremioAberto, setModalPremioAberto] = useState<boolean>(false)
     const [observacaoPedido, setObservacaoPedido] = useState<string | undefined>(undefined)
     const [dadosDistanciaRota, setDadosDistaciaRota] = useState< IDadosDistanciaRota | null>(null)
     const [erroEntrega, setErroEntrega] = useState<string | null>(null)
@@ -63,7 +74,7 @@ export default function FinalizarPedido() {
     const [toggleCadastraEnderecoNovo, setToggleCadastraEnderecoNovo] = useState<boolean>(false)
     const [isFinalizando, setIsFinalizando] = useState<boolean>(false)
     const cupomDaSessaoAplicado = useRef(false)
-    const { carrinho, subtotal, calculaTotal, total } = useContext(CarrinhoContext)
+    const { carrinho, subtotal, calculaTotal, total, limparCarrinho } = useContext(CarrinhoContext)
 
     useEffect(() => {
         async function carregaDadosEntrega() {
@@ -124,6 +135,18 @@ export default function FinalizarPedido() {
         setCupomPedido(undefined)
     }
 
+    function resgatarFidelidade() {
+        if (!recompensaFidelidade) return
+
+        if (recompensaFidelidade.tipo === 'item_gratis') {
+            setModalPremioAberto(true)
+            return
+        }
+
+        setResgateFidelidade({ usar: true })
+        toast.success('Recompensa será aplicada ao finalizar o pedido!')
+    }
+
     useEffect(() => {
         if (cupomDesconto && tipo_funcionamento !== 'mesa' && !cupomDaSessaoAplicado.current) {
             cupomDaSessaoAplicado.current = true
@@ -153,13 +176,15 @@ export default function FinalizarPedido() {
                 telefone_cliente: telefone,
                 cupom: cupomAplicado?.nome_cupom,
                 usar_cashback: usarCashback,
+                resgate_fidelidade: resgateFidelidade,
             });
 
+            limparCarrinho();
             toast.success('Pedido realizado com sucesso!');
             router.visit(route('aplicacao.empresa.cardapio-digital', { interacao_id, tipo_funcionamento }));
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                const mensagem = error.response?.data?.mensagem ?? 'Erro ao realizar pedido. Tente novamente.';
+                const mensagem = error.response?.data?.message ?? 'Erro ao realizar pedido. Tente novamente.';
                 toast.error(mensagem);
             } else {
                 toast.error('Erro inesperado. Tente novamente.');
@@ -207,15 +232,30 @@ export default function FinalizarPedido() {
                                     usarCashback={usarCashback}
                                     setUsarCashback={setUsarCashback}
                                 />
+                                <FidelidadePedido
+                                    progressoFidelidade={progressoFidelidade}
+                                    recompensaFidelidade={recompensaFidelidade}
+                                    resgatado={!!resgateFidelidade}
+                                    onResgatar={resgatarFidelidade}
+                                />
                                 <ObsersavaoPedido observacaoPedido={observacaoPedido} setObservacaoPedido={setObservacaoPedido}/>
                             </>
                         )}
                     </div>
-                    <ResumoPedido carrinho={carrinho} tipo_funcionamento={tipo_funcionamento} nome_fantasia={nome_fantasia} interacao_id={interacao_id} taxa_entrega={dadosDistanciaRota?.dadosDistanciaRota.taxaFrete ?? 0} subtotal={subtotal} desconto={descontoCupom} cashbackUtilizado={cashbackAUsar} total={total} isFinalizando={isFinalizando} realizarPedido={finalizarPedido} lista/>
+                    <ResumoPedido carrinho={carrinho} tipo_funcionamento={tipo_funcionamento} nome_fantasia={nome_fantasia} interacao_id={interacao_id} taxa_entrega={dadosDistanciaRota?.dadosDistanciaRota.taxaFrete ?? 0} subtotal={subtotal} desconto={descontoCupom} cashbackUtilizado={cashbackAUsar} recompensaFidelidadeResgatada={!!resgateFidelidade} total={total} isFinalizando={isFinalizando} realizarPedido={finalizarPedido} lista/>
                 </div>
             </div>
             <AlteraEnderecoPrincipal open={toggleAlteraEnderecoPrincipal} setOpen={setToggleAlteraEnderecoPrincipal} auth={auth}/>
             <AdicionarEnderecoNovo open={toggleCadastraEnderecoNovo} setOpen={setToggleCadastraEnderecoNovo} />
+            <ModalEscolherPremio
+                aberto={modalPremioAberto}
+                onOpenChange={setModalPremioAberto}
+                interacaoId={interacao_id}
+                onConfirmar={(resgate) => {
+                    setResgateFidelidade(resgate)
+                    toast.success('Prêmio escolhido! Ele será adicionado ao seu pedido.')
+                }}
+            />
         </div>
     );
 }

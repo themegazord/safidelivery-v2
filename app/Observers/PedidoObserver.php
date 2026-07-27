@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Models\Pedido;
+use App\Services\Fidelidade\FidelidadeService;
 
 class PedidoObserver
 {
@@ -22,5 +23,7 @@ class PedidoObserver
         $pedido->cashback()
             ->whereNull('liberado_em')
             ->update(['liberado_em' => now()]);
+
+        app(FidelidadeService::class)->registrarPedidoConcluido($pedido);
     }
 }

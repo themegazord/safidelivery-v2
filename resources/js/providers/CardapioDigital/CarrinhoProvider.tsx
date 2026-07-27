@@ -207,6 +207,11 @@ export default function CarrinhoProvider({
         setTotal(subtotal + (frete ?? 0) - (desconto ?? 0))
     }
 
+    function limparCarrinho() {
+        setCarrinho([])
+        setTotal(0)
+    }
+
     return (
         <CarrinhoContext.Provider
             value={{
@@ -218,6 +223,7 @@ export default function CarrinhoProvider({
                 calculaTotal: calculaTotal,
                 removeItemCarrinho: () => {},
                 diminuiItemCarrinho: () => {},
+                limparCarrinho: limparCarrinho,
             }}
         >
             {children}

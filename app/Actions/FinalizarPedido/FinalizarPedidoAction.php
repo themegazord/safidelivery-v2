@@ -13,6 +13,7 @@ use App\Models\PedidoComboItem;
 use App\Models\PedidoComplemento;
 use App\Models\PedidoItem;
 use App\Models\PedidoSaborPizza;
+use App\Services\Fidelidade\FidelidadeService;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -34,6 +35,7 @@ class FinalizarPedidoAction
         ?string $comanda,
         ?string $cupom = null,
         bool $usarCashback = false,
+        ?array $resgateFidelidade = null,
     ): Pedido {
         return DB::transaction(function () use (
             $pedido,
@@ -50,6 +52,7 @@ class FinalizarPedidoAction
             $comanda,
             $cupom,
             $usarCashback,
+            $resgateFidelidade,
         ) {
             $cupomValidado = null;
             $valorDesconto = 0.0;
@@ -180,7 +183,17 @@ class FinalizarPedidoAction
                 );
             }
 
-            // TODO: Aplicar recompensa de fidelidade — implementar quando FidelidadeConfig CRUD estiver pronto
+            if ($clienteAutenticado && ($resgateFidelidade['usar'] ?? false)) {
+                app(FidelidadeService::class)->aplicarRecompensa(
+                    $pedidoCadastrado,
+                    $resgateFidelidade['item_id'] ?? null,
+                    $resgateFidelidade['tipo'] ?? 'I',
+                    $resgateFidelidade['complementos'] ?? [],
+                    $resgateFidelidade['pizza_config'] ?? null,
+                    $resgateFidelidade['combo_config'] ?? null,
+                );
+            }
+
             // TODO: Gerar pedido PIX na Pagar.me — implementar quando integração estiver pronta
 
             return $pedidoCadastrado;

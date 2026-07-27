@@ -14,7 +14,11 @@ use App\Http\Requests\Endereco\CadastroEnderecoRequest;
 use App\Http\Requests\FinalizarPedido\FinalizarPedidoRequest;
 use App\Http\Requests\FinalizarPedido\ValidacaoCupomRequest;
 use App\Models\Empresa;
+use App\Models\FidelidadeProgresso;
 use App\Models\FormaPagamento;
+use App\Models\ItemPreco;
+use App\Services\Empresa\CardapioDigital\CardapioService;
+use App\Services\Fidelidade\FidelidadeService;
 use App\Services\Google\GoogleMapService;
 use App\Traits\ResolveComandaAtual;
 use Illuminate\Http\JsonResponse;
@@ -39,6 +43,8 @@ class FinalizarPedidoController extends Controller
         $formasPagamentos = null;
         $cuponsVisiveis = [];
         $cashbackDisponivel = 0;
+        $progressoFidelidade = null;
+        $recompensaFidelidade = null;
 
         if (!session('interacao_id')) {
             return to_route('aplicacao.home');
@@ -96,6 +102,31 @@ class FinalizarPedidoController extends Controller
 
             if (Auth::check() && Auth::user()->cliente) {
                 $cashbackDisponivel = (new CalculaSaldoCashbackAction())->handle(Auth::user()->cliente->id);
+
+                app(FidelidadeService::class)->verificarRecompensaExpirada(Auth::user()->cliente->id, $this->empresa->getAttribute('id'));
+
+                $progresso = FidelidadeProgresso::where('cliente_id', Auth::user()->cliente->id)
+                    ->where('empresa_id', $this->empresa->getAttribute('id'))
+                    ->first();
+
+                if ($progresso && $this->empresa->fidelidadeConfig) {
+                    $progressoFidelidade = [
+                        'atual' => $this->empresa->fidelidadeConfig->tipo_gatilho === 'qtd_pedidos'
+                            ? $progresso->getAttribute('contador_atual')
+                            : $progresso->getAttribute('valor_acumulado'),
+                        'meta' => $this->empresa->fidelidadeConfig->getAttribute('valor_gatilho'),
+                        'tipo_gatilho' => $this->empresa->fidelidadeConfig->getAttribute('tipo_gatilho'),
+                    ];
+                }
+
+                if ($progresso?->getAttribute('recompensa_disponivel')) {
+                    $recompensaFidelidade = [
+                        'tipo' => $progresso->getAttribute('recompensa_tipo'),
+                        'valor' => $progresso->getAttribute('recompensa_valor'),
+                        'expira_em' => $progresso->getAttribute('recompensa_expira_em'),
+                        'base_calculo_desconto' => $this->empresa->fidelidadeConfig?->getAttribute('base_calculo_desconto'),
+                    ];
+                }
             }
         }
 
@@ -109,6 +140,8 @@ class FinalizarPedidoController extends Controller
             'cupomDesconto' => $cupomDesconto,
             'cuponsVisiveis' => $cuponsVisiveis,
             'cashbackDisponivel' => $cashbackDisponivel,
+            'progressoFidelidade' => $progressoFidelidade,
+            'recompensaFidelidade' => $recompensaFidelidade,
             'enderecoFormatadoEmpresa' => $enderecoFormatadoEmpresa,
             'formasPagamentos' => $formasPagamentos,
             'nome' => $ehModoAtendenteEmMesa ? session('nome_cliente_modoatendente') : null,
@@ -172,6 +205,41 @@ class FinalizarPedidoController extends Controller
         return response()->json(['cupom' => $cupom]);
     }
 
+    public function itensPremioFidelidade(Request $request): JsonResponse
+    {
+        if (! Auth::check() || ! Auth::user()->cliente) {
+            return response()->json(['mensagem' => 'É necessário estar identificado para ver os prêmios disponíveis.'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        $empresa = Empresa::query()->where('interacao_id', $request->input('interacao_id'))->firstOrFail();
+
+        $itens = app(FidelidadeService::class)->getItensPremioDisponiveis(Auth::user()->cliente->id, $empresa->getAttribute('id'));
+
+        return response()->json(['itens' => $itens]);
+    }
+
+    public function detalhePremioItem(Request $request, CardapioService $cardapioService): JsonResponse
+    {
+        return response()->json($cardapioService->getItemPedido((int) $request->input('item_id')));
+    }
+
+    public function detalhePremioPizza(Request $request, CardapioService $cardapioService): JsonResponse
+    {
+        $tamanhoId = (int) $request->input('tamanho_id');
+
+        $menorValorTamanho = ItemPreco::where('tamanho_id', $tamanhoId)
+            ->where('status', true)
+            ->min('preco') ?? 0;
+
+        // Prêmio de pizza é sempre servido inteiro, com 1 sabor.
+        return response()->json($cardapioService->getItemPizzaPedido($tamanhoId, 1, (int) $menorValorTamanho));
+    }
+
+    public function detalhePremioCombo(Request $request, CardapioService $cardapioService): JsonResponse
+    {
+        return response()->json($cardapioService->setItemComboPedido((int) $request->input('combo_id')));
+    }
+
     public function store(FinalizarPedidoRequest $request): JsonResponse
     {
         $dados = $request->validated();
@@ -191,6 +259,7 @@ class FinalizarPedidoController extends Controller
                 cliente: $dados['cliente'] ?? null,
                 cupom: $dados['cupom'] ?? null,
                 usarCashback: $request->boolean('usar_cashback'),
+                resgateFidelidade: $dados['resgate_fidelidade'] ?? null,
                 tipo_funcionamento: $dados['tipo_funcionamento'],
                 empresa_id: $empresa->id,
                 configuracoes: $dados['configuracoes'],

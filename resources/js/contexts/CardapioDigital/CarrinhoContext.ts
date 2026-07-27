@@ -12,15 +12,17 @@ interface ICarrinhoContext {
     adicionaItemCarrinho: TFuncoesManipulaItensCarrinho;
     removeItemCarrinho: TFuncoesManipulaItensCarrinho;
     diminuiItemCarrinho: TFuncoesManipulaItensCarrinho;
+    limparCarrinho: () => void;
 }
 
 export const CarrinhoContext = createContext<ICarrinhoContext>({
     carrinho: [],
     subtotal: 0,
     total: 0,
-    tipo_funcionamento: undefined, 
+    tipo_funcionamento: undefined,
     calculaTotal: () => {},
     adicionaItemCarrinho: () => {},
     removeItemCarrinho: () => {},
     diminuiItemCarrinho: () => {},
+    limparCarrinho: () => {},
 });

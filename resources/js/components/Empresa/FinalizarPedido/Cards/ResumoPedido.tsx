@@ -13,6 +13,7 @@ interface IProps {
     subtotal: number,
     desconto?: number,
     cashbackUtilizado?: number,
+    recompensaFidelidadeResgatada?: boolean,
     total: number,
     isFinalizando?: boolean,
     realizarPedido: () => void
@@ -29,6 +30,7 @@ export default function ResumoPedido({
     subtotal,
     desconto = 0,
     cashbackUtilizado = 0,
+    recompensaFidelidadeResgatada = false,
     isFinalizando = false,
     realizarPedido
 }: IItensCarrinhoProps & IProps) {
@@ -55,6 +57,12 @@ export default function ResumoPedido({
                     <div className="flex justify-between items-center">
                         <span className="text-sm">Cashback utilizado</span>
                         <span className="font-bold text-green-600 dark:text-green-400">− R$ {converteReal(cashbackUtilizado)}</span>
+                    </div>
+                )}
+                {recompensaFidelidadeResgatada && (
+                    <div className="flex justify-between items-center">
+                        <span className="text-sm">Recompensa de fidelidade</span>
+                        <span className="font-bold text-green-600 dark:text-green-400">Aplicada no pedido</span>
                     </div>
                 )}
                 <Separator />

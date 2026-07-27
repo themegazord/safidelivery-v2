@@ -10,6 +10,7 @@ use App\Http\Controllers\Empresa\ConfigEmpresa\IntegracoesController;
 use App\Http\Controllers\Empresa\ConfigEmpresa\LojaController;
 use App\Http\Controllers\Empresa\ConfiguracaoController;
 use App\Http\Controllers\Empresa\DesempenhoController;
+use App\Http\Controllers\Empresa\Fidelidade\FidelidadeConfigController;
 use App\Http\Controllers\Empresa\Promocoes\PromocaoController;
 use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Auth;
@@ -71,6 +72,10 @@ Route::group([], function () {
             Route::get('/', [CashbackConfigController::class, 'index'])->name('aplicacao.empresa.cashback.configuracao');
             Route::post('/', [CashbackConfigController::class, 'update'])->name('aplicacao.empresa.cashback.configuracao.update');
         });
+        Route::prefix('fidelidade')->group(function () {
+            Route::get('/', [FidelidadeConfigController::class, 'index'])->name('aplicacao.empresa.fidelidade.configuracao');
+            Route::post('/', [FidelidadeConfigController::class, 'update'])->name('aplicacao.empresa.fidelidade.configuracao.update');
+        });
     });
 });
 
@@ -87,6 +92,10 @@ Route::group([], function () {
         Route::patch('/altera-endereco-principal', [FinalizarPedidoController::class, 'alteraEnderecoPrincipal'])->name('aplicacao.empresa.finalizar-pedido.altera-endereco-principal');
         Route::post('/cadastra-novo-endereco', [FinalizarPedidoController::class, 'cadastraNovoEndereco'])->name('aplicacao.empresa.finalizar-pedido.cadastra-novo-endereco');
         Route::post('/valida-cupom-pedido', [FinalizarPedidoController::class, 'validaCupomPedido'])->name('aplicacao.empresa.finalizar-pedido.valida-cupom-pedido');
+        Route::post('/itens-premio-fidelidade', [FinalizarPedidoController::class, 'itensPremioFidelidade'])->name('aplicacao.empresa.finalizar-pedido.itens-premio-fidelidade');
+        Route::post('/detalhe-premio-item', [FinalizarPedidoController::class, 'detalhePremioItem'])->name('aplicacao.empresa.finalizar-pedido.detalhe-premio-item');
+        Route::post('/detalhe-premio-pizza', [FinalizarPedidoController::class, 'detalhePremioPizza'])->name('aplicacao.empresa.finalizar-pedido.detalhe-premio-pizza');
+        Route::post('/detalhe-premio-combo', [FinalizarPedidoController::class, 'detalhePremioCombo'])->name('aplicacao.empresa.finalizar-pedido.detalhe-premio-combo');
         Route::post('store', [FinalizarPedidoController::class, 'store'])->name('aplicacao.empresa.finalizar-pedido.store');
     });
 });
