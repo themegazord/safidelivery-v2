@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Empresa\CardapioDigital;
 use App\Actions\FinalizarPedido\AlteraEnderecoPrincipalAction;
 use App\Actions\FinalizarPedido\CadastraEnderecoNovoAction;
 use App\Actions\FinalizarPedido\CalculaRotaEntregaAction;
+use App\Actions\FinalizarPedido\CalculaSaldoCashbackAction;
 use App\Actions\FinalizarPedido\FinalizarPedidoAction;
 use App\Actions\FinalizarPedido\ListaCuponsVisiveisAction;
 use App\Actions\FinalizarPedido\ValidaCupomPedidoAction;
@@ -37,6 +38,7 @@ class FinalizarPedidoController extends Controller
         $enderecoFormatadoEmpresa = null;
         $formasPagamentos = null;
         $cuponsVisiveis = [];
+        $cashbackDisponivel = 0;
 
         if (!session('interacao_id')) {
             return to_route('aplicacao.home');
@@ -91,6 +93,10 @@ class FinalizarPedidoController extends Controller
                 ->all();
 
             $cuponsVisiveis = (new ListaCuponsVisiveisAction())->handle($this->empresa);
+
+            if (Auth::check() && Auth::user()->cliente) {
+                $cashbackDisponivel = (new CalculaSaldoCashbackAction())->handle(Auth::user()->cliente->id);
+            }
         }
 
         return Inertia::render('Empresa/CardapioDigital/FinalizarPedido', [
@@ -102,6 +108,7 @@ class FinalizarPedidoController extends Controller
             'mesa' => $mesa,
             'cupomDesconto' => $cupomDesconto,
             'cuponsVisiveis' => $cuponsVisiveis,
+            'cashbackDisponivel' => $cashbackDisponivel,
             'enderecoFormatadoEmpresa' => $enderecoFormatadoEmpresa,
             'formasPagamentos' => $formasPagamentos,
             'nome' => $ehModoAtendenteEmMesa ? session('nome_cliente_modoatendente') : null,
@@ -183,6 +190,7 @@ class FinalizarPedidoController extends Controller
                 observacao: $dados['observacao'] ?? null,
                 cliente: $dados['cliente'] ?? null,
                 cupom: $dados['cupom'] ?? null,
+                usarCashback: $request->boolean('usar_cashback'),
                 tipo_funcionamento: $dados['tipo_funcionamento'],
                 empresa_id: $empresa->id,
                 configuracoes: $dados['configuracoes'],

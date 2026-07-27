@@ -16,11 +16,13 @@ class CashbackCredito extends Model
 		'data_gerado',
 		'data_vencimento',
 		'usado_em',
+		'liberado_em',
 	];
 
 	protected $casts = [
 		'data_vencimento' => 'datetime',
 		'usado_em' => 'datetime',
+		'liberado_em' => 'datetime',
 	];
 
 	public function empresa(): BelongsTo {

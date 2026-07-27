@@ -4,6 +4,7 @@ use App\Http\Controllers\Autenticacao\LoginClienteController;
 use App\Http\Controllers\Autenticacao\LoginEmpresaController;
 use App\Http\Controllers\Empresa\CardapioDigital\CardapioController;
 use App\Http\Controllers\Empresa\CardapioDigital\FinalizarPedidoController;
+use App\Http\Controllers\Empresa\Cashback\CashbackConfigController;
 use App\Http\Controllers\Empresa\ConfigEmpresa\ConfiguracoesController;
 use App\Http\Controllers\Empresa\ConfigEmpresa\IntegracoesController;
 use App\Http\Controllers\Empresa\ConfigEmpresa\LojaController;
@@ -65,6 +66,10 @@ Route::group([], function () {
         });
         Route::prefix('configuracoes')->group(function () {
             Route::patch('/', [ConfiguracaoController::class, 'configuraRecebimentoPedidoIfood'])->name('aplicacao.empresa.configuracoes');
+        });
+        Route::prefix('cashback')->group(function () {
+            Route::get('/', [CashbackConfigController::class, 'index'])->name('aplicacao.empresa.cashback.configuracao');
+            Route::post('/', [CashbackConfigController::class, 'update'])->name('aplicacao.empresa.cashback.configuracao.update');
         });
     });
 });

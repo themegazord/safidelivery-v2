@@ -58,7 +58,7 @@ export default function SidebarEmpresa() {
             itens: [
                 { link: "#", icon: <Users />, label: "Seus clientes" },
                 { link: route('aplicacao.empresa.promocoes.index', {cnpj: cnpj}), icon: <BadgePercent />, label: "Promoções" },
-                { link: "#", icon: <Undo2 />, label: "Cashback" },
+                { link: route('aplicacao.empresa.cashback.configuracao', {cnpj: cnpj}), icon: <Undo2 />, label: "Cashback" },
                 { link: "#", icon: <Star />, label: "Fidelidade" },
             ],
         },

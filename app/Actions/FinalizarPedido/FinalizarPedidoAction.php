@@ -33,6 +33,7 @@ class FinalizarPedidoAction
         ?int $mesa,
         ?string $comanda,
         ?string $cupom = null,
+        bool $usarCashback = false,
     ): Pedido {
         return DB::transaction(function () use (
             $pedido,
@@ -48,6 +49,7 @@ class FinalizarPedidoAction
             $mesa,
             $comanda,
             $cupom,
+            $usarCashback,
         ) {
             $cupomValidado = null;
             $valorDesconto = 0.0;
@@ -57,7 +59,15 @@ class FinalizarPedidoAction
                 $valorDesconto = $cupomValidado->valor_desconto_calculado;
             }
 
-            // TODO: Validação de cashback — implementar quando CRUD de cashback estiver pronto
+            $clienteAutenticado = Auth::check() ? Auth::user()->cliente : null;
+
+            $cashbackUtilizado = 0.0;
+
+            if ($usarCashback && $clienteAutenticado && $tipo_funcionamento !== 'mesa') {
+                $saldoCashback = (new CalculaSaldoCashbackAction())->handle($clienteAutenticado->id);
+                $totalAntesCashback = max(0, $subtotal + floatval($frete ?? 0) - $valorDesconto);
+                $cashbackUtilizado = round(min($saldoCashback, $totalAntesCashback), 2);
+            }
 
             $valorMinimo = floatval($configuracoes['valor_minimo_pedido'] ?? 0);
             if ($valorMinimo > 0 && $subtotal < $valorMinimo) {
@@ -126,25 +136,28 @@ class FinalizarPedidoAction
                 'pedido_id'          => $pedidoCadastrado->id,
                 'forma_pagamento_id' => $tipo_funcionamento !== 'mesa' ? $forma_pagamento : null,
                 'subtotal_itens'     => $subtotal,
-                'total'              => $tipo_funcionamento !== 'mesa' ? ($subtotal + floatval($frete ?? 0) - $valorDesconto) : $subtotal,
+                'total'              => $tipo_funcionamento !== 'mesa' ? ($subtotal + floatval($frete ?? 0) - $valorDesconto - $cashbackUtilizado) : $subtotal,
                 'valor_desconto'     => $valorDesconto > 0 ? $valorDesconto : null,
-                'cashback_utilizado' => 0,
+                'cashback_utilizado' => $cashbackUtilizado,
             ];
 
             // TODO: Troco para pagamento em dinheiro — implementar quando formas de pagamento estiverem prontas
             // TODO: Múltiplas formas de pagamento (FinanceiroPedidoPagamento) — implementar quando a tela estiver pronta
-            // TODO: Cashback utilizado — consumir créditos FIFO quando CRUD de cashback estiver pronto
 
             FinanceiroPedido::create($financeiro);
 
-            if ($cupomValidado && Auth::check() && Auth::user()->cliente) {
+            if ($cupomValidado && $clienteAutenticado) {
                 DB::table('promocao_usada')->insert([
                     'promocao_id' => $cupomValidado->id,
-                    'cliente_id'  => Auth::user()->cliente->id,
+                    'cliente_id'  => $clienteAutenticado->id,
                     'pedido_id'   => $pedidoCadastrado->id,
                     'created_at'  => now(),
                     'updated_at'  => now(),
                 ]);
+            }
+
+            if ($cashbackUtilizado > 0 && $clienteAutenticado) {
+                (new ConsomeCashbackAction())->handle($clienteAutenticado->id, $cashbackUtilizado);
             }
 
             foreach ($pedido as $item) {
@@ -156,7 +169,17 @@ class FinalizarPedidoAction
                 };
             }
 
-            // TODO: Gerar crédito de cashback — implementar quando CashbackConfig CRUD estiver pronto
+            if ($clienteAutenticado) {
+                (new GeraCreditoCashbackAction())->handle(
+                    $empresa_id,
+                    $clienteAutenticado->id,
+                    $pedidoCadastrado,
+                    $tipo_funcionamento,
+                    $subtotal,
+                    $cashbackUtilizado,
+                );
+            }
+
             // TODO: Aplicar recompensa de fidelidade — implementar quando FidelidadeConfig CRUD estiver pronto
             // TODO: Gerar pedido PIX na Pagar.me — implementar quando integração estiver pronta
 

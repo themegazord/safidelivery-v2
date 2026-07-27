@@ -1,5 +1,6 @@
 import AdicionarEnderecoNovo from "@/components/Empresa/CardapioDigital/Modais/FinalizarPedido/AdicionarEnderecoNovo";
 import AlteraEnderecoPrincipal from "@/components/Empresa/CardapioDigital/Modais/FinalizarPedido/AlteraEnderecoPrincipal";
+import CashbackPedido from "@/components/Empresa/FinalizarPedido/Cards/CashbackPedido";
 import CupomPedido from "@/components/Empresa/FinalizarPedido/Cards/CupomPedido";
 import DadosEntrega from "@/components/Empresa/FinalizarPedido/Cards/DadosEntrega";
 import FinalizarPedidoHeader from "@/components/Empresa/FinalizarPedido/Cards/FinalizarPedidoHeader";
@@ -33,7 +34,7 @@ export type TFormaPagamento = {
 }
 
 export default function FinalizarPedido() {
-    const { interacao_id, tipo_funcionamento, nome_fantasia, auth, mesa, enderecoFormatadoEmpresa, configuracoes, formasPagamentos, nome, telefone, cupomDesconto, cuponsVisiveis } = usePage<{
+    const { interacao_id, tipo_funcionamento, nome_fantasia, auth, mesa, enderecoFormatadoEmpresa, configuracoes, formasPagamentos, nome, telefone, cupomDesconto, cuponsVisiveis, cashbackDisponivel } = usePage<{
         interacao_id: string;
         tipo_funcionamento: 'delivery' | 'retirada' | 'mesa';
         auth: IAuth,
@@ -46,6 +47,7 @@ export default function FinalizarPedido() {
         telefone: string | null,
         cupomDesconto: string | null,
         cuponsVisiveis: ICupomVisivel[],
+        cashbackDisponivel: number,
     }>().props;
     const [tipoEntrega, setTipoEntrega] = useState<'delivery' | 'retirada' | 'mesa'>(tipo_funcionamento)
     const [numeroMesa, setNumeroMesa] = useState<number | undefined>(mesa)
@@ -53,6 +55,7 @@ export default function FinalizarPedido() {
     const [cupomPedido, setCupomPedido] = useState<string | undefined>(cupomDesconto ?? undefined)
     const [cupomAplicado, setCupomAplicado] = useState<ICupomAplicado | null>(null)
     const [validandoCupom, setValidandoCupom] = useState<boolean>(false)
+    const [usarCashback, setUsarCashback] = useState<boolean>(false)
     const [observacaoPedido, setObservacaoPedido] = useState<string | undefined>(undefined)
     const [dadosDistanciaRota, setDadosDistaciaRota] = useState< IDadosDistanciaRota | null>(null)
     const [erroEntrega, setErroEntrega] = useState<string | null>(null)
@@ -85,9 +88,16 @@ export default function FinalizarPedido() {
         carregaDadosEntrega()
     }, [auth.user?.cliente.endereco?.id])
 
+    const taxaFrete = dadosDistanciaRota?.dadosDistanciaRota.taxaFrete ?? 0
+    const descontoCupom = cupomAplicado?.valor_desconto_calculado ?? 0
+    const cashbackAUsar = usarCashback
+        ? Math.min(cashbackDisponivel, Math.max(0, subtotal + taxaFrete - descontoCupom))
+        : 0
+
     useEffect(() => {
-        calculaTotal((dadosDistanciaRota?.dadosDistanciaRota.taxaFrete ?? 0), cupomAplicado?.valor_desconto_calculado ?? null)
-    }, [dadosDistanciaRota?.dadosDistanciaRota.taxaFrete, subtotal, cupomAplicado])
+        calculaTotal(taxaFrete, descontoCupom + cashbackAUsar)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [taxaFrete, subtotal, descontoCupom, cashbackAUsar])
 
     async function aplicarCupom(nomeCupom: string) {
         setValidandoCupom(true)
@@ -142,6 +152,7 @@ export default function FinalizarPedido() {
                 nome_cliente: nome,
                 telefone_cliente: telefone,
                 cupom: cupomAplicado?.nome_cupom,
+                usar_cashback: usarCashback,
             });
 
             toast.success('Pedido realizado com sucesso!');
@@ -191,12 +202,16 @@ export default function FinalizarPedido() {
                                     onAplicar={aplicarCupom}
                                     onRemover={removerCupom}
                                 />
-                                {/*TODO: Finalizar a rotina de cashback depois de finalizar o CRUD */}
+                                <CashbackPedido
+                                    cashbackDisponivel={cashbackDisponivel}
+                                    usarCashback={usarCashback}
+                                    setUsarCashback={setUsarCashback}
+                                />
                                 <ObsersavaoPedido observacaoPedido={observacaoPedido} setObservacaoPedido={setObservacaoPedido}/>
                             </>
                         )}
                     </div>
-                    <ResumoPedido carrinho={carrinho} tipo_funcionamento={tipo_funcionamento} nome_fantasia={nome_fantasia} interacao_id={interacao_id} taxa_entrega={dadosDistanciaRota?.dadosDistanciaRota.taxaFrete ?? 0} subtotal={subtotal} desconto={cupomAplicado?.valor_desconto_calculado ?? 0} total={total} isFinalizando={isFinalizando} realizarPedido={finalizarPedido} lista/>
+                    <ResumoPedido carrinho={carrinho} tipo_funcionamento={tipo_funcionamento} nome_fantasia={nome_fantasia} interacao_id={interacao_id} taxa_entrega={dadosDistanciaRota?.dadosDistanciaRota.taxaFrete ?? 0} subtotal={subtotal} desconto={descontoCupom} cashbackUtilizado={cashbackAUsar} total={total} isFinalizando={isFinalizando} realizarPedido={finalizarPedido} lista/>
                 </div>
             </div>
             <AlteraEnderecoPrincipal open={toggleAlteraEnderecoPrincipal} setOpen={setToggleAlteraEnderecoPrincipal} auth={auth}/>
