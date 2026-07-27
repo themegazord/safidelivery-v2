@@ -9,13 +9,13 @@ use Illuminate\Support\Facades\DB;
 
 class ValidaCupomPedidoAction
 {
-  public function handle(?string $nome_cupom, int $empresa_id, float $subtotal) {
-    return $this->validaCupomDesconto($nome_cupom, $empresa_id, $subtotal);
+  public function handle(?string $nome_cupom, int $empresa_id, float $subtotal, ?float $frete = null) {
+    return $this->validaCupomDesconto($nome_cupom, $empresa_id, $subtotal, $frete);
   }
 
-  private function validaCupomDesconto(?string $nome_cupom, int $empresa_id, float $subtotal): array
+  private function validaCupomDesconto(?string $nome_cupom, int $empresa_id, float $subtotal, ?float $frete): object
   {
-    $resposta = DB::transaction(function () use ($nome_cupom, $empresa_id, $subtotal) {
+    $resposta = DB::transaction(function () use ($nome_cupom, $empresa_id, $subtotal, $frete) {
       $cupom = DB::table('promocao')
         ->where('nome_cupom', $nome_cupom)
         ->where('empresa_id', $empresa_id)
@@ -80,6 +80,8 @@ class ValidaCupomPedidoAction
       if ($cupom->valor_minimo_pedido > $subtotal) {
         throw new Exception('O pedido deve conter no minimo R$' . number_format($cupom->valor_minimo_pedido, 2, ',', '.'), Response::HTTP_UNPROCESSABLE_ENTITY);
       }
+
+      $cupom->valor_desconto_calculado = (new CalculaDescontoCupomAction())->handle($cupom, $subtotal, $frete);
 
       return $cupom;
     });

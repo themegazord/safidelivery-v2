@@ -49,7 +49,7 @@ export default function SidebarEmpresa() {
         {
             grupo: "Desempenho e vendas",
             itens: [
-                { link: "#", icon: <BarChart3 />, label: "Desempenho" },
+                { link: route('aplicacao.empresa.desempenho', {cnpj: cnpj}), icon: <BarChart3 />, label: "Desempenho" },
                 { link: "#", icon: <FileText />, label: "Pedidos" },
             ],
         },
@@ -57,7 +57,7 @@ export default function SidebarEmpresa() {
             grupo: "Marketing",
             itens: [
                 { link: "#", icon: <Users />, label: "Seus clientes" },
-                { link: "#", icon: <BadgePercent />, label: "Promoções" },
+                { link: route('aplicacao.empresa.promocoes.index', {cnpj: cnpj}), icon: <BadgePercent />, label: "Promoções" },
                 { link: "#", icon: <Undo2 />, label: "Cashback" },
                 { link: "#", icon: <Star />, label: "Fidelidade" },
             ],

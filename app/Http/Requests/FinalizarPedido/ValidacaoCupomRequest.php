@@ -26,7 +26,8 @@ class ValidacaoCupomRequest extends FormRequest
         return [
             'cupom' => 'required',
             'subtotal' => 'required',
-            'interacao_id' => 'required'
+            'interacao_id' => 'required',
+            'frete' => 'nullable|numeric',
         ];
     }
 

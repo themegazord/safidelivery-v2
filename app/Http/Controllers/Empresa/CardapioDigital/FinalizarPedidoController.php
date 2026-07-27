@@ -6,6 +6,7 @@ use App\Actions\FinalizarPedido\AlteraEnderecoPrincipalAction;
 use App\Actions\FinalizarPedido\CadastraEnderecoNovoAction;
 use App\Actions\FinalizarPedido\CalculaRotaEntregaAction;
 use App\Actions\FinalizarPedido\FinalizarPedidoAction;
+use App\Actions\FinalizarPedido\ListaCuponsVisiveisAction;
 use App\Actions\FinalizarPedido\ValidaCupomPedidoAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Endereco\CadastroEnderecoRequest;
@@ -35,6 +36,7 @@ class FinalizarPedidoController extends Controller
         $cupomDesconto = null;
         $enderecoFormatadoEmpresa = null;
         $formasPagamentos = null;
+        $cuponsVisiveis = [];
 
         if (!session('interacao_id')) {
             return to_route('aplicacao.home');
@@ -87,6 +89,8 @@ class FinalizarPedidoController extends Controller
                 ->map(fn ($f) => ['value' => $f->id, 'label' => $f->descricao, 'tipo' => $f->tipo])
                 ->values()
                 ->all();
+
+            $cuponsVisiveis = (new ListaCuponsVisiveisAction())->handle($this->empresa);
         }
 
         return Inertia::render('Empresa/CardapioDigital/FinalizarPedido', [
@@ -97,6 +101,7 @@ class FinalizarPedidoController extends Controller
             'lojaAberta' => session('loja_aberta'),
             'mesa' => $mesa,
             'cupomDesconto' => $cupomDesconto,
+            'cuponsVisiveis' => $cuponsVisiveis,
             'enderecoFormatadoEmpresa' => $enderecoFormatadoEmpresa,
             'formasPagamentos' => $formasPagamentos,
             'nome' => $ehModoAtendenteEmMesa ? session('nome_cliente_modoatendente') : null,
@@ -146,7 +151,16 @@ class FinalizarPedidoController extends Controller
 
         $empresa = Empresa::query()->where('interacao_id', $dadosValidados['interacao_id'])->firstOrFail();
 
-        $cupom = $action->handle($dadosValidados['cupom'], $empresa->getAttribute('id'), $dadosValidados['subtotal']);
+        try {
+            $cupom = $action->handle(
+                $dadosValidados['cupom'],
+                $empresa->getAttribute('id'),
+                $dadosValidados['subtotal'],
+                $dadosValidados['frete'] ?? null,
+            );
+        } catch (\Exception $e) {
+            return response()->json(['mensagem' => $e->getMessage()], $e->getCode() ?: JsonResponse::HTTP_UNPROCESSABLE_ENTITY);
+        }
 
         return response()->json(['cupom' => $cupom]);
     }
@@ -168,6 +182,7 @@ class FinalizarPedidoController extends Controller
                 total: floatval($dados['total']),
                 observacao: $dados['observacao'] ?? null,
                 cliente: $dados['cliente'] ?? null,
+                cupom: $dados['cupom'] ?? null,
                 tipo_funcionamento: $dados['tipo_funcionamento'],
                 empresa_id: $empresa->id,
                 configuracoes: $dados['configuracoes'],

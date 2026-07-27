@@ -34,6 +34,7 @@ class FinalizarPedidoRequest extends FormRequest
             'total' => ['required', 'numeric'],
             'observacao' => ['nullable', 'string'],
             'cliente' => ['nullable', 'array'],
+            'cupom' => ['nullable', 'string'],
             'tipo_funcionamento' => ['required', 'in:delivery,retirada,mesa'],
             'interacao_id' => ['required', 'string'],
             'configuracoes'    => ['required', 'array'],

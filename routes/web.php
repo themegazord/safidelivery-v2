@@ -9,6 +9,7 @@ use App\Http\Controllers\Empresa\ConfigEmpresa\IntegracoesController;
 use App\Http\Controllers\Empresa\ConfigEmpresa\LojaController;
 use App\Http\Controllers\Empresa\ConfiguracaoController;
 use App\Http\Controllers\Empresa\DesempenhoController;
+use App\Http\Controllers\Empresa\Promocoes\PromocaoController;
 use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -53,6 +54,14 @@ Route::group([], function () {
                 Route::get('/', [ConfiguracoesController::class, 'index'])->name('aplicacao.empresa.configempresa.configuracoes');
                 Route::post('/', [ConfiguracoesController::class, 'update'])->name('aplicacao.empresa.configempresa.configuracoes.update');
             });
+        });
+        Route::prefix('promocoes')->group(function () {
+            Route::get('/', [PromocaoController::class, 'index'])->name('aplicacao.empresa.promocoes.index');
+            Route::get('cadastro', [PromocaoController::class, 'create'])->name('aplicacao.empresa.promocoes.cadastro');
+            Route::post('cadastro', [PromocaoController::class, 'store'])->name('aplicacao.empresa.promocoes.cadastro.store');
+            Route::get('edicao/{cupom_id}', [PromocaoController::class, 'edit'])->name('aplicacao.empresa.promocoes.edicao');
+            Route::post('edicao/{cupom_id}', [PromocaoController::class, 'update'])->name('aplicacao.empresa.promocoes.edicao.update');
+            Route::delete('{cupom_id}', [PromocaoController::class, 'destroy'])->name('aplicacao.empresa.promocoes.destroy');
         });
         Route::prefix('configuracoes')->group(function () {
             Route::patch('/', [ConfiguracaoController::class, 'configuraRecebimentoPedidoIfood'])->name('aplicacao.empresa.configuracoes');

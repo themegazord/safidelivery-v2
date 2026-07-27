@@ -11,6 +11,7 @@ import { Loader } from "lucide-react";
 interface IProps {
     taxa_entrega: number | null,
     subtotal: number,
+    desconto?: number,
     total: number,
     isFinalizando?: boolean,
     realizarPedido: () => void
@@ -25,6 +26,7 @@ export default function ResumoPedido({
     taxa_entrega,
     total,
     subtotal,
+    desconto = 0,
     isFinalizando = false,
     realizarPedido
 }: IItensCarrinhoProps & IProps) {
@@ -41,6 +43,12 @@ export default function ResumoPedido({
                     <span className="text-sm">Subtotal</span>
                     <span className="font-bold">R$ {converteReal(subtotal ?? 0)}</span>
                 </div>
+                {desconto > 0 && (
+                    <div className="flex justify-between items-center">
+                        <span className="text-sm">Desconto do cupom</span>
+                        <span className="font-bold text-green-600 dark:text-green-400">− R$ {converteReal(desconto)}</span>
+                    </div>
+                )}
                 <Separator />
                 <div className="flex justify-between items-center">
                     <span className="text-sm">Total</span>

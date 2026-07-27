@@ -32,6 +32,7 @@ class FinalizarPedidoAction
         array $configuracoes,
         ?int $mesa,
         ?string $comanda,
+        ?string $cupom = null,
     ): Pedido {
         return DB::transaction(function () use (
             $pedido,
@@ -46,8 +47,16 @@ class FinalizarPedidoAction
             $configuracoes,
             $mesa,
             $comanda,
+            $cupom,
         ) {
-            // TODO: Validação de cupom — implementar quando CRUD de promoções estiver pronto
+            $cupomValidado = null;
+            $valorDesconto = 0.0;
+
+            if ($cupom && $tipo_funcionamento !== 'mesa') {
+                $cupomValidado = (new ValidaCupomPedidoAction())->handle($cupom, $empresa_id, $subtotal, $frete);
+                $valorDesconto = $cupomValidado->valor_desconto_calculado;
+            }
+
             // TODO: Validação de cashback — implementar quando CRUD de cashback estiver pronto
 
             $valorMinimo = floatval($configuracoes['valor_minimo_pedido'] ?? 0);
@@ -117,16 +126,26 @@ class FinalizarPedidoAction
                 'pedido_id'          => $pedidoCadastrado->id,
                 'forma_pagamento_id' => $tipo_funcionamento !== 'mesa' ? $forma_pagamento : null,
                 'subtotal_itens'     => $subtotal,
-                'total'              => $tipo_funcionamento !== 'mesa' ? ($subtotal + floatval($frete ?? 0)) : $subtotal,
+                'total'              => $tipo_funcionamento !== 'mesa' ? ($subtotal + floatval($frete ?? 0) - $valorDesconto) : $subtotal,
+                'valor_desconto'     => $valorDesconto > 0 ? $valorDesconto : null,
                 'cashback_utilizado' => 0,
             ];
 
-            // TODO: Desconto de cupom no total — implementar quando CRUD de promoções estiver pronto
             // TODO: Troco para pagamento em dinheiro — implementar quando formas de pagamento estiverem prontas
             // TODO: Múltiplas formas de pagamento (FinanceiroPedidoPagamento) — implementar quando a tela estiver pronta
             // TODO: Cashback utilizado — consumir créditos FIFO quando CRUD de cashback estiver pronto
 
             FinanceiroPedido::create($financeiro);
+
+            if ($cupomValidado && Auth::check() && Auth::user()->cliente) {
+                DB::table('promocao_usada')->insert([
+                    'promocao_id' => $cupomValidado->id,
+                    'cliente_id'  => Auth::user()->cliente->id,
+                    'pedido_id'   => $pedidoCadastrado->id,
+                    'created_at'  => now(),
+                    'updated_at'  => now(),
+                ]);
+            }
 
             foreach ($pedido as $item) {
                 match ($item['tipo']) {
