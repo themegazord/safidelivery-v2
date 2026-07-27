@@ -58,24 +58,33 @@ class AtualizarIntegracaoAction
 
   private function handleIFOOD(Empresa $empresa, array $dados_integracao): ?Integracao
   {
-    if (empty($dados_integracao['clientId']) && empty($dados_integracao['clientSecret'])) {
+    $clientId = $dados_integracao['clientId'] ?? null;
+    $clientSecret = $dados_integracao['clientSecret'] ?? null;
+    $merchantId = $dados_integracao['merchantId'] ?? null;
+
+    if (empty($clientId) && empty($clientSecret) && empty($merchantId)) {
       $this->removeIntegracao($empresa->getAttribute('id'), $dados_integracao['tipo']);
+      $empresa->update([
+        'tokenIfood' => null,
+        'lifetimeTokenIfood' => null
+      ]);
       return null;
     }
 
+    if (empty($clientId) || empty($clientSecret) || empty($merchantId)) {
+      throw new Exception('Preencha o Client ID, o Client Secret e o Merchant ID para salvar a integração com o iFood.', 422);
+    }
+
     try {
-      $dadosToken = app(ApiExternalIfood::class)->autenticacaoComCredenciais(
-        $dados_integracao['clientId'],
-        $dados_integracao['clientSecret']
-      );
+      $dadosToken = app(ApiExternalIfood::class)->autenticacaoComCredenciais($clientId, $clientSecret);
     } catch (Exception $e) {
-      throw new Exception($e->getMessage(), $e->getCode(), $e);
+      throw new Exception($e->getMessage(), $e->getCode() ?: 422, $e);
     }
 
     $integracaoIFOOD = $this->atualizaIntegracao($empresa->getAttribute('id'), $dados_integracao['tipo'], [
-      'clientId' => $dados_integracao['clientId'],
-      'clientSecret' => $dados_integracao['clientSecret'],
-      'merchantId' => $dados_integracao['merchantId'],
+      'clientId' => $clientId,
+      'clientSecret' => $clientSecret,
+      'merchantId' => $merchantId,
     ]);
 
     $empresa->update([

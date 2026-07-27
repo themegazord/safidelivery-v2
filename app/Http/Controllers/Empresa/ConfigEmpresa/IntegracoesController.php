@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Empresa\ConfigEmpresa;
 use App\Actions\ConfigEmpresa\AtualizarIntegracaoAction;
 use App\Http\Requests\ConfigEmpresa\AtualizaIntegracaoRequest;
 use App\Models\Empresa;
+use Exception;
 use Illuminate\Http\Response;
 use Inertia\Inertia;
 
@@ -27,7 +28,12 @@ class IntegracoesController {
     $empresa = Empresa::query()->where('cnpj', $dados['cnpj'])->first();
     $action = new AtualizarIntegracaoAction();
 
-    $integracao = $action->handle($empresa, $dados['integracao']);
+    try {
+      $integracao = $action->handle($empresa, $dados['integracao']);
+    } catch (Exception $e) {
+      return response()->json(['message' => $e->getMessage()], $e->getCode() ?: 422);
+    }
+
     return response()->json(['mensagem' => "Integração atualizada com sucesso", 'integracao' => $integracao]);
   }
 }

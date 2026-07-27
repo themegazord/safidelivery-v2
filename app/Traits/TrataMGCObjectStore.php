@@ -6,14 +6,9 @@ use Aws\S3\S3Client;
 use Aws\Exception\AwsException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
-use Livewire\WithFileUploads;
-use Mary\Traits\Toast;
 
 trait TrataMGCObjectStore
 {
-  use Toast, WithFileUploads;
-
   protected function criarClienteS3(): S3Client
   {
     return new S3Client([
@@ -26,36 +21,6 @@ trait TrataMGCObjectStore
       'endpoint' => env('MGC_ENDPOINT'),
       'use_path_style_endpoint' => env('MGC_USE_PATH_STYLE_ENDPOINT'),
     ]);
-  }
-
-  public function uploadImagem(string $nomeBucket, TemporaryUploadedFile $imagem): string|bool
-  {
-    try {
-      $s3client = $this->criarClienteS3();
-
-      $caminhoArquivo = $imagem->getRealPath();
-      $nomeArquivo = $imagem->getClientOriginalName();
-
-      if (!file_exists($caminhoArquivo)) {
-        $this->warning("O arquivo {$caminhoArquivo} não foi encontrado.");
-        return 0;
-      }
-
-      $resultado = $s3client->putObject([
-        'Bucket' => $nomeBucket,
-        'Key' => uuid_create(),
-        'SourceFile' => $caminhoArquivo,
-        'ContentType' => mime_content_type($caminhoArquivo),
-      ]);
-
-      $this->success('Imagem enviada com sucesso!');
-
-      return $resultado->get('ObjectURL');
-
-    } catch (AwsException $e) {
-      $this->warning('Erro ao enviar a imagem para a nuvem: ' . $e->getMessage());
-      return 0;
-    }
   }
 
   /**

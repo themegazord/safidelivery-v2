@@ -48,35 +48,49 @@ export default function Integracoes() {
   }
 
   async function salvarSAFI() {
-    setSaving(true)
-    await axios.post(route('aplicacao.empresa.configempresa.integracoes.update', {cnpj: cnpj}), {
-      cnpj: cnpj,
-      integracao: {
+    defaultCall({
         tipo: 'safi',
-        companyToken: integracaoSAFI?.companyToken,
-      }
-    })
-      .then((response) => {
-        setIntegracaoSAFI(response.data.integracao)
-        toast.success(response.data.mensagem)
-      })
-      .catch((error) => {
-        toast.error(error.response?.data.message)
-      })
-      .finally(() => setSaving(false))
+        companyToken: integracaoSAFI?.companyToken ?? undefined,
+      }, setIntegracaoSAFI)
   }
 
   async function salvarPagarme() {
+    defaultCall({
+        tipo: 'pagarme',
+        chavesecreta_pagarme: integracaoPagarme?.chavesecreta_pagarme ?? undefined,
+      }, setIntegracaoPagarme)
+  }
+
+  async function salvarIFOOD() {
+    defaultCall({
+        tipo: 'ifood',
+        clientId: integracaoIFOOD?.clientId ?? undefined,
+        clientSecret: integracaoIFOOD?.clientSecret ?? undefined,
+        merchantId: integracaoIFOOD?.merchantId ?? undefined,
+      }, setIntegracaoIFOOD)
+  }
+
+  async function salvarAnotaai() {
+    defaultCall({
+      tipo: 'anotaai',
+      companyToken: integracaoAnotaai?.companyToken ?? undefined
+    }, setIntegracaoAnotaai)
+  }
+
+  type DadosIntegracao =
+    | { tipo: 'safi', companyToken?: string }
+    | { tipo: 'pagarme', chavesecreta_pagarme?: string }
+    | { tipo: 'ifood', clientId?: string, clientSecret?: string, merchantId?: string }
+    | { tipo: 'anotaai', companyToken?: string }
+
+  async function defaultCall(integracao: DadosIntegracao, setIntegracao: (integracao?: IIntegracao) => void) {
     setSaving(true)
     await axios.post(route('aplicacao.empresa.configempresa.integracoes.update', {cnpj: cnpj}), {
       cnpj: cnpj,
-      integracao: {
-        tipo: 'pagarme',
-        chavesecreta_pagarme: integracaoPagarme?.chavesecreta_pagarme,
-      }
+      integracao: integracao
     })
       .then((response) => {
-        setIntegracaoPagarme(response.data.integracao)
+        setIntegracao(response.data.integracao)
         toast.success(response.data.mensagem)
       })
       .catch((error) => {
@@ -129,6 +143,51 @@ export default function Integracoes() {
                 </CardContent>
                 <CardFooter className="flex flex-row-reverse">
                   <Button onClick={salvarPagarme}>{saving ? <><Spinner /> Salvando...</> : 'Salvar'}</Button>
+                </CardFooter>
+              </Card>
+            </TabsContent>
+            <TabsContent value="ifood" className="pb-4">
+              <Card>
+                <CardContent>
+                  <FieldGroup className="flex flex-col md:grid md:grid-cols-3 gap-4">
+                    <Field>
+                      <FieldLabel>clientId</FieldLabel>
+                      <Input value={integracaoIFOOD?.clientId ?? undefined} onChange={(e) => setIntegracaoIFOOD(prev => ({
+                        ...prev!,
+                        clientId: e.target.value
+                      }))} />
+                    </Field>
+                    <Field>
+                      <FieldLabel>clientSecret</FieldLabel>
+                      <Input value={integracaoIFOOD?.clientSecret ?? undefined} onChange={(e) => setIntegracaoIFOOD(prev => ({
+                        ...prev!,
+                        clientSecret: e.target.value
+                      }))} />
+                    </Field>
+                    <Field>
+                      <FieldLabel>merchantId</FieldLabel>
+                      <Input value={integracaoIFOOD?.merchantId ?? undefined} onChange={(e) => setIntegracaoIFOOD(prev => ({
+                        ...prev!,
+                        merchantId: e.target.value
+                      }))} />
+                    </Field>
+                  </FieldGroup>
+                </CardContent>
+                <CardFooter className="flex flex-row-reverse">
+                  <Button onClick={salvarIFOOD}>{saving ? <><Spinner /> Salvando...</> : 'Salvar'}</Button>
+                </CardFooter>
+              </Card>
+            </TabsContent>
+            <TabsContent value="anotaai" className="pb-4">
+              <Card>
+                <CardContent>
+                  <Field>
+                    <FieldLabel>Token</FieldLabel>
+                    <Input value={integracaoAnotaai?.companyToken ?? undefined} onChange={(e) => setIntegracaoAnotaai(prev => ({...prev!, companyToken: e.target.value}))} />
+                  </Field>
+                </CardContent>
+                <CardFooter className="flex flex-row-reverse">
+                  <Button onClick={salvarAnotaai}>{saving ? <> <Spinner /> Salvando... </> : 'Salvar'}</Button>
                 </CardFooter>
               </Card>
             </TabsContent>
