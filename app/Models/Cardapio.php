@@ -34,7 +34,6 @@ class Cardapio extends Model
     return $this->hasMany(Categoria::class,'cardapio_id');
   }
 
-
   public function importacaoIfood(): HasOne {
     return $this->hasOne(ImportacaoCardapioIfood::class, 'cardapio_id');
   }

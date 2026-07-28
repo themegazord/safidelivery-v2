@@ -4,7 +4,7 @@ use App\Http\Controllers\Autenticacao\LoginClienteController;
 use App\Http\Controllers\Autenticacao\LoginEmpresaController;
 use App\Http\Controllers\Empresa\CardapioDigital\CardapioController;
 use App\Http\Controllers\Empresa\CardapioDigital\FinalizarPedidoController;
-use App\Http\Controllers\Empresa\Cardapios\ListagemCardapioController;
+use App\Http\Controllers\Empresa\Cardapios\CardapioController as EmpresaCardapioController;
 use App\Http\Controllers\Empresa\Cashback\CashbackConfigController;
 use App\Http\Controllers\Empresa\ConfigEmpresa\ConfiguracoesController;
 use App\Http\Controllers\Empresa\ConfigEmpresa\IntegracoesController;
@@ -78,7 +78,12 @@ Route::group([], function () {
             Route::post('/', [FidelidadeConfigController::class, 'update'])->name('aplicacao.empresa.fidelidade.configuracao.update');
         });
         Route::prefix('cardapios')->group(function () {
-            Route::get('/', [ListagemCardapioController::class, 'index'])->name('aplicacao.empresa.cardapios.index');
+            Route::get('/', [EmpresaCardapioController::class, 'index'])->name('aplicacao.empresa.cardapios.index');
+            Route::post('/', [EmpresaCardapioController::class, 'store'])->name('aplicacao.empresa.cardapios.store');
+            Route::post('/{cardapio_id}/clone', [EmpresaCardapioController::class, 'clone'])->name('aplicacao.empresa.cardapios.clone');
+            Route::put('/{cardapio_id}', [EmpresaCardapioController::class, 'update'])->name('aplicacao.empresa.cardapios.update');
+            Route::get('/{cardapio_id}', [EmpresaCardapioController::class, 'show'])->name('aplicacao.empresa.cardapios.show');
+            Route::delete('/{cardapio_id}', [EmpresaCardapioController::class, 'destroy'])->name('aplicacao.empresa.cardapios.destroy');
         });
     });
 });
