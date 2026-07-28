@@ -1,4 +1,5 @@
 import DialogClonarCardapio from "@/components/Empresa/Cardapios/DialogClonarCardapio";
+import DialogExportarCardapio from "@/components/Empresa/Cardapios/DialogExportarCardapio";
 import DialogRemoverCardapio from "@/components/Empresa/Cardapios/DialogRemoverCardapio";
 import DrawerCUCardapio from "@/components/Empresa/Cardapios/DrawerCUCardapio";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,7 @@ import LayoutAutenticado from "@/Layouts/LayoutsAutenticado";
 import { ICardapio } from "@/types/cardapio-digital/cardapio";
 import { router, usePage } from "@inertiajs/react";
 import axios from "axios";
-import { ChevronDown, ChevronUp, Cog, Copy, EllipsisVertical, SquarePen, Trash } from "lucide-react";
+import { ChevronDown, ChevronUp, Cog, Copy, Download, EllipsisVertical, SquarePen, Trash } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -57,11 +58,12 @@ function DropdownsListagemCardapio({data, existeTokenAnotaai}: {data: IDropdownD
     )
 }
 
-function CardCardapio({data, cnpj, callEdicao, callClone, callRemocao}: {
+function CardCardapio({data, cnpj, callEdicao, callClone, callExport, callRemocao}: {
     data: ICardapio,
     cnpj: string, 
     callEdicao: (value: number) => void,
     callClone: (value: number) => void,
+    callExport: (value: number) => void,
     callRemocao: (value: number) => void,
 }) {
     return (
@@ -82,6 +84,10 @@ function CardCardapio({data, cnpj, callEdicao, callClone, callRemocao}: {
                             <DropdownMenuItem className="cursor-pointer" onClick={() => callClone(data.id)}>
                                 <Copy />
                                 Clonar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="cursor-pointer" onClick={() => callExport(data.id)}>
+                                <Download />
+                                Exportar
                             </DropdownMenuItem>
                             <DropdownMenuItem className="cursor-pointer" variant="destructive" onClick={() => callRemocao(data.id)}>
                                 <Trash />
@@ -108,6 +114,8 @@ export default function ListagemCardapio() {
     const [cardapioParaRemover, setCardapioParaRemover] = useState<ICardapio | undefined>()
     const [dialogClonarOpen, setDialogClonarOpen] = useState(false)
     const [cardapioParaClonar, setCardapioParaClonar] = useState<ICardapio | undefined>()
+    const [dialogExportacaoOpen, setDialogExportacaoOpen] = useState(false)
+    const [cardapioParaExportar, setCardapioParaExportar] = useState<ICardapio | undefined>()
 
     const {existeTokenAnotaai, cardapios, cnpj} = usePage<{
         existeTokenAnotaai: boolean,
@@ -116,18 +124,6 @@ export default function ListagemCardapio() {
     }>().props
 
     const DROPDOWNS_DATA: IDropdownData[] = [
-        {
-            open: exportacaoDropdownStatus,
-            onOpenChange: setExportacaoDropdownStatus,
-            label: "Exportação",
-            items: [
-                {
-                    label: "PDF",
-                    tag: 'pdf',
-                    action: () => {}
-                }
-            ]
-        },
         {
             open: importacaoDropdownStatus,
             onOpenChange: setImportacaoDropdownStatus,
@@ -144,7 +140,7 @@ export default function ListagemCardapio() {
                     action: () => {}
                 },
             ]
-        }
+        },
     ]
 
     async function consultaDadosCardapio(cardapio_id: number) {
@@ -170,6 +166,14 @@ export default function ListagemCardapio() {
         setModoDrawer('update')
         setCardapioSelecionado(cardapio)
         setToggleDrawerCUCardapio(true)
+    }
+
+    async function abrirExportacao(cardapio_id: number) {
+        const cardapio = await consultaDadosCardapio(cardapio_id)
+        if (!cardapio) return;
+
+        setCardapioParaExportar(cardapio)
+        setDialogExportacaoOpen(true)
     }
 
     async function abrirRemocao(cardapio_id: number) {
@@ -219,6 +223,7 @@ export default function ListagemCardapio() {
                             cnpj={cnpj} 
                             callRemocao={abrirRemocao}
                             callEdicao={abrirEdicao}
+                            callExport={abrirExportacao}
                             callClone={abrirClonagem}
                         />
                     ))}
@@ -227,6 +232,7 @@ export default function ListagemCardapio() {
             <DrawerCUCardapio open={toggleDrawerCUCardapio} onOpenChange={setToggleDrawerCUCardapio} mode={modoDrawer} dados={cardapioSelecionado}/>
             <DialogRemoverCardapio open={dialogRemoverOpen} onOpenChange={setDialogRemoverOpen} cardapio={cardapioParaRemover} />
             <DialogClonarCardapio open={dialogClonarOpen} onOpenChange={setDialogClonarOpen} cardapio={cardapioParaClonar} />
+            <DialogExportarCardapio open={dialogExportacaoOpen} onOpenChange={setDialogExportacaoOpen} cardapio={cardapioParaExportar} />
         </LayoutAutenticado>
     );
 }

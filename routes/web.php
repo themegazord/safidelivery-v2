@@ -84,6 +84,7 @@ Route::group([], function () {
             Route::put('/{cardapio_id}', [EmpresaCardapioController::class, 'update'])->name('aplicacao.empresa.cardapios.update');
             Route::get('/{cardapio_id}', [EmpresaCardapioController::class, 'show'])->name('aplicacao.empresa.cardapios.show');
             Route::delete('/{cardapio_id}', [EmpresaCardapioController::class, 'destroy'])->name('aplicacao.empresa.cardapios.destroy');
+            Route::get('/{cardapio_id}/exportar/{tipo}', [EmpresaCardapioController::class, 'export'])->name('aplicacao.empresa.cardapios.export');
         });
     });
 });

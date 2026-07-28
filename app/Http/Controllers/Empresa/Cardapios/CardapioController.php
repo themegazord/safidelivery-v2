@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Empresa\Cardapios;
 
 use App\Actions\Cardapios\CloneCardapioAction;
 use App\Actions\Cardapios\DestroyCardapioAction;
+use App\Actions\Cardapios\ExportCardapioAction;
 use App\Actions\Cardapios\ShowCardapioAction;
 use App\Actions\Cardapios\StoreCardapioAction;
 use App\Actions\Cardapios\UpdateCardapioAction;
@@ -20,6 +21,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class CardapioController extends Controller
 {
@@ -99,6 +101,14 @@ class CardapioController extends Controller
     public function clone(CloneCardapioRequest $request, string $cnpj, int $cardapio_id, CloneCardapioAction $action) {
         $action->handle($this->empresa->getAttribute('id'), $cardapio_id, $request->validated()['novoNomeCardapio']);
         return redirect()->back();
+    }
+
+    public function export(string $cnpj, int $cardapio_id, string $tipo, ExportCardapioAction $action): StreamedResponse
+    {
+        $arquivo = $action->handle($cardapio_id, $this->empresa->getAttribute('id'), $tipo);
+        return response()->streamDownload(function () use ($arquivo) {
+            echo $arquivo->stream();
+        }, "cardapio-" . now()->format('d-m-Y-H-i-s') . ".{$tipo}");
     }
 
     private function carregaCardapio(Empresa $empresa): Collection
