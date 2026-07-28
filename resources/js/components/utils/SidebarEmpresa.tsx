@@ -65,7 +65,7 @@ export default function SidebarEmpresa() {
         {
             grupo: "Configurações da Loja",
             itens: [
-                { link: "#", icon: <BookOpen />, label: "Cardápios" },
+                { link: route('aplicacao.empresa.cardapios.index', {cnpj: cnpj}), icon: <BookOpen />, label: "Cardápios" },
                 {
                     link: "#",
                     icon: <MapPin />,

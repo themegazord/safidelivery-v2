@@ -4,6 +4,7 @@ use App\Http\Controllers\Autenticacao\LoginClienteController;
 use App\Http\Controllers\Autenticacao\LoginEmpresaController;
 use App\Http\Controllers\Empresa\CardapioDigital\CardapioController;
 use App\Http\Controllers\Empresa\CardapioDigital\FinalizarPedidoController;
+use App\Http\Controllers\Empresa\Cardapios\ListagemCardapioController;
 use App\Http\Controllers\Empresa\Cashback\CashbackConfigController;
 use App\Http\Controllers\Empresa\ConfigEmpresa\ConfiguracoesController;
 use App\Http\Controllers\Empresa\ConfigEmpresa\IntegracoesController;
@@ -75,6 +76,9 @@ Route::group([], function () {
         Route::prefix('fidelidade')->group(function () {
             Route::get('/', [FidelidadeConfigController::class, 'index'])->name('aplicacao.empresa.fidelidade.configuracao');
             Route::post('/', [FidelidadeConfigController::class, 'update'])->name('aplicacao.empresa.fidelidade.configuracao.update');
+        });
+        Route::prefix('cardapios')->group(function () {
+            Route::get('/', [ListagemCardapioController::class, 'index'])->name('aplicacao.empresa.cardapios.index');
         });
     });
 });
