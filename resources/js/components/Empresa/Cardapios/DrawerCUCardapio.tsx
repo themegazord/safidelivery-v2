@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Combobox, ComboboxChip, ComboboxChips, ComboboxChipsInput, ComboboxContent, ComboboxEmpty, ComboboxItem, ComboboxList, ComboboxValue } from "@/components/ui/combobox";
+import { Combobox, ComboboxChip, ComboboxChips, ComboboxChipsInput, ComboboxContent, ComboboxEmpty, ComboboxItem, ComboboxList, ComboboxValue, useComboboxAnchor } from "@/components/ui/combobox";
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -37,6 +37,7 @@ export default function DrawerCUCardapio({dados, open, onOpenChange, mode}: {
   onOpenChange: (value: boolean) => void
 }) {
   const { cnpj } = usePage<{cnpj: string}>().props
+  const diasFuncionamentoAnchor = useComboboxAnchor()
 
   const INFO_CREATE = (mode: string) => {
     if (mode === 'create') {
@@ -116,7 +117,7 @@ export default function DrawerCUCardapio({dados, open, onOpenChange, mode}: {
   }
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange} direction="right">
+    <Drawer open={open} onOpenChange={onOpenChange} swipeDirection="right">
       <DrawerContent>
         <DrawerHeader>
           <DrawerTitle>{INFO_CREATE(mode)?.title}</DrawerTitle>
@@ -162,15 +163,15 @@ export default function DrawerCUCardapio({dados, open, onOpenChange, mode}: {
                   }
                   data-invalid={!!errors.dias_funcionamento}
                 >
-                  <ComboboxChips>
+                  <ComboboxChips ref={diasFuncionamentoAnchor}>
                     <ComboboxValue>
                       {data.dias_funcionamento.map(df => (
                         <ComboboxChip key={df}>{DIA_SEMANA(Number(df))}</ComboboxChip>
                       ))}
-                      <ComboboxChipsInput aria-invalid={!!errors.dias_funcionamento}/>
+                      <ComboboxChipsInput aria-invalid={!!errors.dias_funcionamento} />
                     </ComboboxValue>
                   </ComboboxChips>
-                  <ComboboxContent>
+                  <ComboboxContent anchor={diasFuncionamentoAnchor}>
                     <ComboboxEmpty>Não contêm dias a ser informado</ComboboxEmpty>
                     <ComboboxList>
                       {(item: TDiaSemana) => (
@@ -183,7 +184,7 @@ export default function DrawerCUCardapio({dados, open, onOpenChange, mode}: {
               </Field>
               <Field data-invalid={!!errors.tipo_funcionamento}>
                 <FieldLabel>Tipo de funcionamento</FieldLabel>
-                <Select value={data.tipo_funcionamento} onValueChange={(e: 'delivery' | 'mesa') => setData('tipo_funcionamento', e)}>
+                <Select value={data.tipo_funcionamento} onValueChange={(e) => { if (e) setData('tipo_funcionamento', e) }}>
                   <SelectTrigger aria-invalid={!!errors.tipo_funcionamento}>
                     <SelectValue />
                   </SelectTrigger>
@@ -206,8 +207,8 @@ export default function DrawerCUCardapio({dados, open, onOpenChange, mode}: {
               {processing && <Spinner />}
               {TEXTO_BOTAO}
             </Button>
-            <DrawerClose asChild>
-              <Button variant={"destructive"}>Fechar</Button>
+            <DrawerClose render={<Button variant={"destructive"} />}>
+              Fechar
             </DrawerClose>
           </DrawerFooter>
       </DrawerContent>

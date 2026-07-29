@@ -143,7 +143,7 @@ export default function Stats({
     return (
         <TooltipProvider>
             <Tooltip>
-                <TooltipTrigger asChild>{content}</TooltipTrigger>
+                <TooltipTrigger render={content} />
                 <TooltipContent side={tooltipPosition}>
                     {tooltip}
                 </TooltipContent>

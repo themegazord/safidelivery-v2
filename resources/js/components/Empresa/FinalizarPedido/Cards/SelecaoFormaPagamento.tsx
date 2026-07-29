@@ -21,7 +21,7 @@ export default function SelecaoFormaPagamento({
             </CardHeader>
             <CardContent>
               <Field>
-                <Select value={formaPagamento} onValueChange={(value) => setFormaPagamento(value)}>
+                <Select value={formaPagamento} onValueChange={(value) => setFormaPagamento(value ?? undefined)}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Selecione uma forma de pagamento" />
                   </SelectTrigger>

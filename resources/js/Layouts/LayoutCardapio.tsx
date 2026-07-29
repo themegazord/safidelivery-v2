@@ -34,21 +34,25 @@ function LayoutCardapioContent({ children }: { children: ReactNode }) {
         <div className="flex flex-col gap-4">
             <header className="bg-background border-border sticky top-0 z-20 border-b">
                 <nav className="flex w-full justify-between px-6 py-4">
-                    <Button className="cursor-pointer" variant="ghost" asChild>
-                        <Link
-                            className="flex gap-2"
-                            href={route("aplicacao.empresa.cardapio-digital", {
-                                interacao_id,
-                                tipo_funcionamento,
-                            })}
-                        >
-                            {tipo_funcionamento === "delivery" ? (
-                                <Motorbike className="size-6" />
-                            ) : (
-                                <ConciergeBell className="size-6" />
-                            )}{" "}
-                            SAFI Delivery
-                        </Link>
+                    <Button
+                        className="cursor-pointer"
+                        variant="ghost"
+                        render={
+                            <Link
+                                className="flex gap-2"
+                                href={route("aplicacao.empresa.cardapio-digital", {
+                                    interacao_id,
+                                    tipo_funcionamento,
+                                })}
+                            />
+                        }
+                    >
+                        {tipo_funcionamento === "delivery" ? (
+                            <Motorbike className="size-6" />
+                        ) : (
+                            <ConciergeBell className="size-6" />
+                        )}{" "}
+                        SAFI Delivery
                     </Button>
 
                     <Button variant="ghost" className="relative cursor-pointer" onClick={(e) => { (e.currentTarget as HTMLButtonElement).blur(); setCarrinhoStatus(true); }}>

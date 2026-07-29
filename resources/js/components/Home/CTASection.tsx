@@ -34,15 +34,19 @@ export function CtaSection({ whatsappNumber }: CtaSectionProps) {
                             </div>
 
                             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-                                <Button asChild size="lg" className="gap-2">
-                                    <a
-                                        href={`https://wa.me/${whatsappNumber}?text=Olá!%20Gostaria%20de%20conhecer%20o%20SAFI%20Delivery`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                    >
-                                        <MessageCircle className="h-5 w-5" />
-                                        Falar no WhatsApp
-                                    </a>
+                                <Button
+                                    size="lg"
+                                    className="gap-2"
+                                    render={
+                                        <a
+                                            href={`https://wa.me/${whatsappNumber}?text=Olá!%20Gostaria%20de%20conhecer%20o%20SAFI%20Delivery`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        />
+                                    }
+                                >
+                                    <MessageCircle className="h-5 w-5" />
+                                    Falar no WhatsApp
                                 </Button>
                             </div>
 

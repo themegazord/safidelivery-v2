@@ -47,10 +47,8 @@ function DropdownsListagemCardapio({data, existeTokenAnotaai, existeTokensIFOOD}
         <>
             {data.map((d, didx) => (
                 <DropdownMenu open={d.open} onOpenChange={d.onOpenChange} key={didx}>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant={"outline"}>
-                            <span className="flex gap-2 items-center">{d.label} {!d.open ? <ChevronDown /> : <ChevronUp />}</span>
-                        </Button>
+                    <DropdownMenuTrigger render={<Button variant={"outline"} />}>
+                        <span className="flex gap-2 items-center">{d.label} {!d.open ? <ChevronDown /> : <ChevronUp />}</span>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
                         {d.items.map((di, diIdx)=> (
@@ -79,9 +77,7 @@ function CardCardapio({data, cnpj, callEdicao, callClone, callExport, callRemoca
                     {data.tipo_importacao === 'ifood' &&
                         <TooltipProvider>
                             <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <SiIfood className="h-4 w-4 text-red-600" />
-                                </TooltipTrigger>
+                                <TooltipTrigger render={<SiIfood className="h-4 w-4 text-red-600" />} />
                                 <TooltipContent>Cardápio importado do IFOOD</TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
@@ -89,10 +85,8 @@ function CardCardapio({data, cnpj, callEdicao, callClone, callExport, callRemoca
                     {data.tipo_importacao === 'anotaai' &&
                         <TooltipProvider>
                             <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <span>
-                                        <IconeAnotaai className="h-8 w-8 text-red-600" />
-                                    </span>
+                                <TooltipTrigger render={<span />}>
+                                    <IconeAnotaai className="h-8 w-8 text-red-600" />
                                 </TooltipTrigger>
                                 <TooltipContent>Cardápio importado do Anota.ai</TooltipContent>
                             </Tooltip>
@@ -102,8 +96,8 @@ function CardCardapio({data, cnpj, callEdicao, callClone, callExport, callRemoca
                 <CardDescription>{data.descricao}</CardDescription>
                 <CardAction>
                     <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant={"ghost"}><EllipsisVertical /></Button>
+                        <DropdownMenuTrigger render={<Button variant={"ghost"} />}>
+                            <EllipsisVertical />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
                             <DropdownMenuItem className="cursor-pointer" onClick={() => callEdicao(data.id)}>
@@ -127,8 +121,11 @@ function CardCardapio({data, cnpj, callEdicao, callClone, callExport, callRemoca
                 </CardAction>
             </CardHeader>
             <CardFooter className="flex flex-row-reverse">
-                <Button className="flex gap-2" asChild>
-                    <Link href={route('aplicacao.empresa.cardapios.categorias.index', {cnpj, cardapio_id: data.id})}><Cog /> Configurar cardápio</Link>
+                <Button
+                    className="flex gap-2"
+                    render={<Link href={route('aplicacao.empresa.cardapios.categorias.index', {cnpj, cardapio_id: data.id})} />}
+                >
+                    <Cog /> Configurar cardápio
                 </Button>
             </CardFooter>
         </Card>

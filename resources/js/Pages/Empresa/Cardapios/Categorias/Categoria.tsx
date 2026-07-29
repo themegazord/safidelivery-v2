@@ -184,11 +184,9 @@ export default function Categoria() {
                                     if (hf.type === "dropdown-menu") {
                                         return (
                                             <DropdownMenu key={hfIdx}>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="outline">
-                                                        {hf.icon}
-                                                        {hf.label}
-                                                    </Button>
+                                                <DropdownMenuTrigger render={<Button variant="outline" />}>
+                                                    {hf.icon}
+                                                    {hf.label}
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent>
                                                     <DropdownMenuGroup>

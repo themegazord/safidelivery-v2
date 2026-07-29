@@ -237,9 +237,9 @@ export default function DialogImportarIfood({
                             <FieldLabel>Tipo de funcionamento</FieldLabel>
                             <Select
                                 value={data.tipo_funcionamento}
-                                onValueChange={(v: "delivery" | "mesa") =>
-                                    setData("tipo_funcionamento", v)
-                                }
+                                onValueChange={(v) => {
+                                    if (v) setData("tipo_funcionamento", v)
+                                }}
                             >
                                 <SelectTrigger
                                     aria-invalid={!!errors.tipo_funcionamento}

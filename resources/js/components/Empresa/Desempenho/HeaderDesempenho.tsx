@@ -52,28 +52,32 @@ export default function HeaderDesempenho({
             <div className="flex gap-2">
                 <TooltipProvider>
                     <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant="outline"
-                                size="lg"
-                                className="cursor-pointer"
-                                onClick={() => fnCopiar(linkDelivery)}
-                            >
-                                <Motorbike className="size-6" />
-                            </Button>
+                        <TooltipTrigger
+                            render={
+                                <Button
+                                    variant="outline"
+                                    size="lg"
+                                    className="cursor-pointer"
+                                    onClick={() => fnCopiar(linkDelivery)}
+                                />
+                            }
+                        >
+                            <Motorbike className="size-6" />
                         </TooltipTrigger>
                         <TooltipContent>Link para Delivery</TooltipContent>
                     </Tooltip>
                     <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant="outline"
-                                size="lg"
-                                className="cursor-pointer"
-                                onClick={() => fnCopiar(linkMesa)}
-                            >
-                                <ConciergeBell className="size-6" />
-                            </Button>
+                        <TooltipTrigger
+                            render={
+                                <Button
+                                    variant="outline"
+                                    size="lg"
+                                    className="cursor-pointer"
+                                    onClick={() => fnCopiar(linkMesa)}
+                                />
+                            }
+                        >
+                            <ConciergeBell className="size-6" />
                         </TooltipTrigger>
                         <TooltipContent>
                             Link para atendimento em mesa

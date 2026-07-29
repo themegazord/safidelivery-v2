@@ -33,15 +33,18 @@ export default function NecessidadeConfiguracaoSection({
                                 {necessidade.mensagem}
                             </AlertDescription>
                             <AlertAction>
-                                <Button variant={"outline"} asChild>
-                                    <Link
-                                        href={route(
-                                            necessidade.link.nomeRota,
-                                            necessidade.link.paramRota,
-                                        )}
-                                    >
-                                        Configurar
-                                    </Link>
+                                <Button
+                                    variant={"outline"}
+                                    render={
+                                        <Link
+                                            href={route(
+                                                necessidade.link.nomeRota,
+                                                necessidade.link.paramRota,
+                                            )}
+                                        />
+                                    }
+                                >
+                                    Configurar
                                 </Button>
                             </AlertAction>
                         </Alert>

@@ -125,7 +125,8 @@ export default function ModalItensPizza({
                             {(item?.quantidade_sabor ?? 1) > 1 && (
                                 <Progress
                                     value={
-                                        item?.quantidade_sabores_selecionadas
+                                        item?.quantidade_sabores_selecionadas ??
+                                        null
                                     }
                                     max={item?.quantidade_sabor ?? 1}
                                 />
@@ -145,11 +146,13 @@ export default function ModalItensPizza({
                                             }
                                         >
                                             <Select
-                                                onValueChange={(value) =>
-                                                    defineMassaSelecionada(
-                                                        value,
-                                                    )
-                                                }
+                                                onValueChange={(value) => {
+                                                    if (typeof value === "string") {
+                                                        defineMassaSelecionada(
+                                                            value,
+                                                        )
+                                                    }
+                                                }}
                                             >
                                                 <SelectTrigger
                                                     aria-invalid={
@@ -218,11 +221,13 @@ export default function ModalItensPizza({
                                             }
                                         >
                                             <Select
-                                                onValueChange={(value) =>
-                                                    defineBordaSelecionada(
-                                                        value,
-                                                    )
-                                                }
+                                                onValueChange={(value) => {
+                                                    if (typeof value === "string") {
+                                                        defineBordaSelecionada(
+                                                            value,
+                                                        )
+                                                    }
+                                                }}
                                             >
                                                 <SelectTrigger
                                                     aria-invalid={
