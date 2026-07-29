@@ -15,6 +15,7 @@ use App\Http\Requests\Cardapios\ImportIFOODRequest;
 use App\Http\Requests\Cardapios\StoreCardapioRequest;
 use App\Http\Requests\Cardapios\UpdateCardapioRequest;
 use App\Models\Empresa;
+use App\Services\AnotaAI\ApiExternalAnotaAI;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\RedirectResponse;
@@ -125,6 +126,14 @@ class CardapioController extends Controller
         $dados = $request->validated();
         $merchantId = $this->empresa->integracoes->where('tipo', 'ifood')->value('merchantId');
         $action->handle($merchantId, $dados, $this->empresa->getAttribute('id'));
+
+        return redirect()->back();
+    }
+
+    public function importAnotaai(string $cnpj): RedirectResponse {
+
+        $api = app(ApiExternalAnotaAI::class);
+        $api->importarCategorias($this->empresa->getAttribute('id'));
 
         return redirect()->back();
     }

@@ -24,6 +24,8 @@ import { useState } from "react";
 import { toast } from "sonner"
 import { SiIfood } from "react-icons/si"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import DialogConfirmarImportacaoAnotaai from "@/components/Empresa/Cardapios/DialogConfirmarImportacaoAnotaai";
+import { IconeAnotaai } from "@/components/Empresa/Cardapios/icons/IconeAnotaai";
 
 interface IDropdownData {
     open: boolean,
@@ -74,7 +76,7 @@ function CardCardapio({data, cnpj, callEdicao, callClone, callExport, callRemoca
             <CardHeader>
                 <CardTitle className="flex justify-between items-center">
                     {data.nome}
-                    {data.tipo_importacao === 'ifood' ?
+                    {data.tipo_importacao === 'ifood' &&
                         <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger asChild>
@@ -82,8 +84,20 @@ function CardCardapio({data, cnpj, callEdicao, callClone, callExport, callRemoca
                                 </TooltipTrigger>
                                 <TooltipContent>Cardápio importado do IFOOD</TooltipContent>
                             </Tooltip>
-                        </TooltipProvider> :
-                        ''}
+                        </TooltipProvider>
+                    }
+                    {data.tipo_importacao === 'anotaai' &&
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <span>
+                                        <IconeAnotaai className="h-8 w-8 text-red-600" />
+                                    </span>
+                                </TooltipTrigger>
+                                <TooltipContent>Cardápio importado do Anota.ai</TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    }
                 </CardTitle>
                 <CardDescription>{data.descricao}</CardDescription>
                 <CardAction>
@@ -131,6 +145,7 @@ export default function ListagemCardapio() {
     const [dialogExportacaoOpen, setDialogExportacaoOpen] = useState(false)
     const [cardapioParaExportar, setCardapioParaExportar] = useState<ICardapio | undefined>()
     const [dialogImportarIfood, setDialogImportarIfood] = useState(false)
+    const [dialogAnotaaiOpen, setDialogAnotaaiOpen] = useState(false)
 
     const {existeTokensIFOOD, existeTokenAnotaai, cardapios, cnpj} = usePage<{
         existeTokensIFOOD: boolean,
@@ -148,7 +163,7 @@ export default function ListagemCardapio() {
                 {
                     label: "Importar cardápio AnotaAI",
                     tag: 'anotaai',
-                    action: () => {}
+                    action: () => setDialogAnotaaiOpen(true)
                 },
                 {
                     label: "Importar cardápio IFOOD",
@@ -250,6 +265,11 @@ export default function ListagemCardapio() {
             <DialogClonarCardapio open={dialogClonarOpen} onOpenChange={setDialogClonarOpen} cardapio={cardapioParaClonar} />
             <DialogExportarCardapio open={dialogExportacaoOpen} onOpenChange={setDialogExportacaoOpen} cardapio={cardapioParaExportar} />
             <DialogImportarIfood open={dialogImportarIfood} onOpenChange={setDialogImportarIfood} />
+            <DialogConfirmarImportacaoAnotaai
+                open={dialogAnotaaiOpen}
+                onOpenChange={setDialogAnotaaiOpen}
+                existeTokenAnotaai={existeTokenAnotaai}
+            />
         </LayoutAutenticado>
     );
 }
