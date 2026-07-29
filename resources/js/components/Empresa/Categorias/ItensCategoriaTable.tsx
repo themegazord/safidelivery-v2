@@ -15,7 +15,11 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Eye, EyeOff, Copy, Pencil, Trash2 } from "lucide-react";
+import { Eye, EyeOff, Copy, Pencil, Trash2, Plus, EllipsisVertical, SquarePen, Trash } from "lucide-react";
+import { ICategoriaStatus } from "@/types/empresa/cardapios/types";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Checkbox } from "@/components/ui/checkbox";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 // ---------------------------------------------------------------------------
 // Tipos
@@ -50,14 +54,22 @@ export type AtualizacaoEmMassa = "codpdv" | "precos" | null;
 interface ItensCategoriaTableProps {
     categoriaTipo: "P" | "I";
     categoriaId: number;
+    categoriasStatus: ICategoriaStatus[]
+    status?: boolean,
     itens: ItemPizza[] | ItemNormal[];
     atualizacaoEmMassa?: AtualizacaoEmMassa;
-    onAlterarStatus: (itemId: number) => void;
-    onDuplicar: (itemId: number) => void;
-    onEditar: (itemId: number, categoriaId: number) => void;
-    onRemover: (itemId: number) => void;
-    onAtualizaCodPdv: (itemId: number, valor: string) => void;
-    onAtualizaPreco: (itemId: number, valor: string) => void;
+    setStatusCategoria: (categoriaId: number, status: boolean) => void;
+    onCriarCombo: (categoriaId: number, status: boolean) => void;
+    onCriarItem: (categoriaId: number, status: boolean) => void;
+    onCategoriaDuplicar: (categoriaId: number) => void;
+    onCategoriaEditar: (categoriaId: number) => void;
+    onCategoriaRemover: (categoriaId: number) => void;
+    onItensAlterarStatus: (itemId: number) => void;
+    onItensDuplicar: (itemId: number) => void;
+    onItensEditar: (itemId: number, categoriaId: number) => void;
+    onItensRemover: (itemId: number) => void;
+    onItensAtualizaCodPdv: (itemId: number, valor: string) => void;
+    onItensAtualizaPreco: (itemId: number, valor: string) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -103,17 +115,17 @@ function IconButtonComTooltip({
 function AcoesItem({
     item,
     categoriaId,
-    onAlterarStatus,
-    onDuplicar,
-    onEditar,
-    onRemover,
+    onItensAlterarStatus,
+    onItensDuplicar,
+    onItensEditar,
+    onItensRemover,
 }: {
     item: { id: number; trashed: boolean };
     categoriaId: number;
-    onAlterarStatus: (itemId: number) => void;
-    onDuplicar: (itemId: number) => void;
-    onEditar: (itemId: number, categoriaId: number) => void;
-    onRemover: (itemId: number) => void;
+    onItensAlterarStatus: (itemId: number) => void;
+    onItensDuplicar: (itemId: number) => void;
+    onItensEditar: (itemId: number, categoriaId: number) => void;
+    onItensRemover: (itemId: number) => void;
 }) {
     return (
         <div className="flex flex-col gap-2 md:flex-row md:justify-end md:gap-4">
@@ -126,22 +138,22 @@ function AcoesItem({
                     )
                 }
                 tooltip={item.trashed ? "Inativo" : "Ativo"}
-                onClick={() => onAlterarStatus(item.id)}
+                onClick={() => onItensAlterarStatus(item.id)}
             />
             <IconButtonComTooltip
                 icon={<Copy className="h-4 w-4" />}
                 tooltip="Duplicar item"
-                onClick={() => onDuplicar(item.id)}
+                onClick={() => onItensDuplicar(item.id)}
             />
             <IconButtonComTooltip
                 icon={<Pencil className="h-4 w-4" />}
                 tooltip="Editar item"
-                onClick={() => onEditar(item.id, categoriaId)}
+                onClick={() => onItensEditar(item.id, categoriaId)}
             />
             <IconButtonComTooltip
                 icon={<Trash2 className="h-4 w-4" />}
                 tooltip="Remover item"
-                onClick={() => onRemover(item.id)}
+                onClick={() => onItensRemover(item.id)}
             />
         </div>
     );
@@ -151,12 +163,12 @@ function CelulaCodPdv({
     itemId,
     codpdv,
     editando,
-    onAtualizaCodPdv,
+    onItensAtualizaCodPdv,
 }: {
     itemId: number;
     codpdv: string | null;
     editando: boolean;
-    onAtualizaCodPdv: (itemId: number, valor: string) => void;
+    onItensAtualizaCodPdv: (itemId: number, valor: string) => void;
 }) {
     if (!editando) {
         return <p>{codpdv}</p>;
@@ -165,7 +177,7 @@ function CelulaCodPdv({
     return (
         <Input
             defaultValue={codpdv ?? ""}
-            onBlur={(e) => onAtualizaCodPdv(itemId, e.target.value)}
+            onBlur={(e) => onItensAtualizaCodPdv(itemId, e.target.value)}
         />
     );
 }
@@ -178,12 +190,19 @@ function TabelaPizzas({
     itens,
     categoriaId,
     atualizacaoEmMassa,
-    onAlterarStatus,
-    onDuplicar,
-    onEditar,
-    onRemover,
-    onAtualizaCodPdv,
-}: Omit<ItensCategoriaTableProps, "categoriaTipo" | "itens" | "onAtualizaPreco"> & {
+    status,
+    setStatusCategoria,
+    onCriarCombo,
+    onCriarItem,
+    onCategoriaDuplicar,
+    onCategoriaEditar,
+    onCategoriaRemover,
+    onItensAlterarStatus,
+    onItensDuplicar,
+    onItensEditar,
+    onItensRemover,
+    onItensAtualizaCodPdv,
+}: Omit<ItensCategoriaTableProps, "categoriaTipo" | "itens" | "onItensAtualizaPreco" | "categoriasStatus"> & {
     itens: ItemPizza[];
 }) {
     const linhas = itens.map((item) => {
@@ -202,63 +221,86 @@ function TabelaPizzas({
     });
 
     return (
-        <Table>
-            <TableHeader>
-                <TableRow>
-                    <TableHead>Sabores</TableHead>
-                    <TableHead>Tamanho</TableHead>
-                    <TableHead>Preço</TableHead>
-                    <TableHead className="w-64">Cód. PDV</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {linhas.map((linha) => (
-                    <TableRow key={linha.id}>
-                        <TableCell>{linha.sabores}</TableCell>
-                        <TableCell>
-                            <div className="flex flex-col">
-                                <p className="text-xs text-muted-foreground">
-                                    Disponível em
-                                </p>
-                                <strong>
-                                    {linha.qtdeTamanhosAtivos}{" "}
-                                    {linha.qtdeTamanhosAtivos > 1
-                                        ? "tamanhos"
-                                        : "tamanho"}
-                                </strong>
-                            </div>
-                        </TableCell>
-                        <TableCell>
-                            <div className="flex flex-col">
-                                <p className="text-xs text-muted-foreground">
-                                    A partir de
-                                </p>
-                                <strong>R$ {formatarMoeda(linha.menorValor)}</strong>
-                            </div>
-                        </TableCell>
-                        <TableCell>
-                            <CelulaCodPdv
-                                itemId={linha.id}
-                                codpdv={linha.codpdv}
-                                editando={atualizacaoEmMassa === "codpdv"}
-                                onAtualizaCodPdv={onAtualizaCodPdv}
-                            />
-                        </TableCell>
-                        <TableCell className="text-right">
-                            <AcoesItem
-                                item={{ id: linha.id, trashed: linha.inativo }}
-                                categoriaId={categoriaId}
-                                onAlterarStatus={onAlterarStatus}
-                                onDuplicar={onDuplicar}
-                                onEditar={onEditar}
-                                onRemover={onRemover}
-                            />
-                        </TableCell>
+        <div className="flex flex-col gap-2">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 w-full">
+                <Field orientation={"horizontal"}>
+                    <Checkbox checked={status} onCheckedChange={(checked) => setStatusCategoria(categoriaId, checked as boolean)} />
+                    <FieldLabel>Inativo?</FieldLabel>
+                </Field>
+                <div className="flex flex-row gap-4">
+                    <Button onClick={() => onCriarCombo(categoriaId, true)}>{<Plus />}Adicionar combo</Button>
+                    <Button onClick={() => onCriarItem(categoriaId, true)}>{<Plus />}Adicionar item</Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant={"ghost"}><EllipsisVertical /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuLabel>Opções</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => onCategoriaDuplicar(categoriaId)}><Copy /> Duplicar</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onCategoriaEditar(categoriaId)}><SquarePen /> Editar</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onCategoriaRemover(categoriaId)} variant="destructive"><Trash /> Remover</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            </div>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Sabores</TableHead>
+                        <TableHead>Tamanho</TableHead>
+                        <TableHead>Preço</TableHead>
+                        <TableHead className="w-64">Cód. PDV</TableHead>
+                        <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
-                ))}
-            </TableBody>
-        </Table>
+                </TableHeader>
+                <TableBody>
+                    {linhas.map((linha) => (
+                        <TableRow key={linha.id}>
+                            <TableCell>{linha.sabores}</TableCell>
+                            <TableCell>
+                                <div className="flex flex-col">
+                                    <p className="text-xs text-muted-foreground">
+                                        Disponível em
+                                    </p>
+                                    <strong>
+                                        {linha.qtdeTamanhosAtivos}{" "}
+                                        {linha.qtdeTamanhosAtivos > 1
+                                            ? "tamanhos"
+                                            : "tamanho"}
+                                    </strong>
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <div className="flex flex-col">
+                                    <p className="text-xs text-muted-foreground">
+                                        A partir de
+                                    </p>
+                                    <strong>R$ {formatarMoeda(linha.menorValor)}</strong>
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <CelulaCodPdv
+                                    itemId={linha.id}
+                                    codpdv={linha.codpdv}
+                                    editando={atualizacaoEmMassa === "codpdv"}
+                                    onItensAtualizaCodPdv={onItensAtualizaCodPdv}
+                                />
+                            </TableCell>
+                            <TableCell className="text-right">
+                                <AcoesItem
+                                    item={{ id: linha.id, trashed: linha.inativo }}
+                                    categoriaId={categoriaId}
+                                    onItensAlterarStatus={onItensAlterarStatus}
+                                    onItensDuplicar={onItensDuplicar}
+                                    onItensEditar={onItensEditar}
+                                    onItensRemover={onItensRemover}
+                                />
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </div>
     );
 }
 
@@ -269,11 +311,11 @@ function TabelaPizzas({
 function CelulaPreco({
     item,
     editando,
-    onAtualizaPreco,
+    onItensAtualizaPreco,
 }: {
     item: ItemNormal;
     editando: boolean;
-    onAtualizaPreco: (itemId: number, valor: string) => void;
+    onItensAtualizaPreco: (itemId: number, valor: string) => void;
 }) {
     const temDesconto = Boolean(item.desconto);
 
@@ -295,7 +337,7 @@ function CelulaPreco({
         return (
             <Input
                 defaultValue={item.preco}
-                onBlur={(e) => onAtualizaPreco(item.id, e.target.value)}
+                onBlur={(e) => onItensAtualizaPreco(item.id, e.target.value)}
             />
         );
     }
@@ -307,7 +349,7 @@ function CelulaPreco({
             </span>
             <Input
                 defaultValue={item.valor_desconto}
-                onBlur={(e) => onAtualizaPreco(item.id, e.target.value)}
+                onBlur={(e) => onItensAtualizaPreco(item.id, e.target.value)}
             />
         </div>
     );
@@ -317,70 +359,100 @@ function TabelaItensNormais({
     itens,
     categoriaId,
     atualizacaoEmMassa,
-    onAlterarStatus,
-    onDuplicar,
-    onEditar,
-    onRemover,
-    onAtualizaCodPdv,
-    onAtualizaPreco,
-}: Omit<ItensCategoriaTableProps, "categoriaTipo" | "itens"> & {
+    onItensAlterarStatus,
+    status,
+    setStatusCategoria,
+    onCriarCombo,
+    onCriarItem,
+    onCategoriaDuplicar,
+    onCategoriaEditar,
+    onCategoriaRemover,
+    onItensDuplicar,
+    onItensEditar,
+    onItensRemover,
+    onItensAtualizaCodPdv,
+    onItensAtualizaPreco,
+}: Omit<ItensCategoriaTableProps, "categoriaTipo" | "itens" | "categoriasStatus"> & {
     itens: ItemNormal[];
 }) {
     return (
-        <Table>
-            <TableHeader>
-                <TableRow>
-                    <TableHead className="max-w-xs">Item</TableHead>
-                    <TableHead className="w-64">Preço</TableHead>
-                    <TableHead className="w-64">Cód. PDV</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {itens.map((item) => (
-                    <TableRow key={item.id}>
-                        <TableCell className="max-w-xs">
-                            <div className="flex flex-col">
-                                <p className="font-bold">{item.nome}</p>
-                                <p
-                                    className="line-clamp-2 text-xs wrap-break-word text-muted-foreground"
-                                    title={item.descricao ?? undefined}
-                                >
-                                    {item.descricao
-                                        ? item.descricao
-                                        : "Não contém descrição"}
-                                </p>
-                            </div>
-                        </TableCell>
-                        <TableCell>
-                            <CelulaPreco
-                                item={item}
-                                editando={atualizacaoEmMassa === "precos"}
-                                onAtualizaPreco={onAtualizaPreco}
-                            />
-                        </TableCell>
-                        <TableCell>
-                            <CelulaCodPdv
-                                itemId={item.id}
-                                codpdv={item.external_id}
-                                editando={atualizacaoEmMassa === "codpdv"}
-                                onAtualizaCodPdv={onAtualizaCodPdv}
-                            />
-                        </TableCell>
-                        <TableCell className="text-right">
-                            <AcoesItem
-                                item={{ id: item.id, trashed: item.trashed }}
-                                categoriaId={categoriaId}
-                                onAlterarStatus={onAlterarStatus}
-                                onDuplicar={onDuplicar}
-                                onEditar={onEditar}
-                                onRemover={onRemover}
-                            />
-                        </TableCell>
+        <div className="flex flex-col gap-2">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 w-full">
+                <Field orientation={"horizontal"}>
+                    <Checkbox checked={status} onCheckedChange={(checked) => setStatusCategoria(categoriaId, checked as boolean)} />
+                    <FieldLabel>Inativo?</FieldLabel>
+                </Field>
+                <div className="flex flex-row gap-4">
+                    <Button onClick={() => onCriarCombo(categoriaId, true)}>{<Plus />}Adicionar combo</Button>
+                    <Button onClick={() => onCriarItem(categoriaId, true)}>{<Plus />}Adicionar item</Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant={"ghost"}><EllipsisVertical /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuLabel>Opções</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => onCategoriaDuplicar(categoriaId)}><Copy /> Duplicar</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onCategoriaEditar(categoriaId)}><SquarePen /> Editar</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onCategoriaRemover(categoriaId)} variant="destructive"><Trash /> Remover</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            </div>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead className="max-w-xs">Item</TableHead>
+                        <TableHead className="w-64">Preço</TableHead>
+                        <TableHead className="w-64">Cód. PDV</TableHead>
+                        <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
-                ))}
-            </TableBody>
-        </Table>
+                </TableHeader>
+                <TableBody>
+                    {itens.map((item) => (
+                        <TableRow key={item.id}>
+                            <TableCell className="max-w-xs">
+                                <div className="flex flex-col">
+                                    <p className="font-bold">{item.nome}</p>
+                                    <p
+                                        className="line-clamp-2 text-xs wrap-break-word text-muted-foreground"
+                                        title={item.descricao ?? undefined}
+                                    >
+                                        {item.descricao
+                                            ? item.descricao
+                                            : "Não contém descrição"}
+                                    </p>
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <CelulaPreco
+                                    item={item}
+                                    editando={atualizacaoEmMassa === "precos"}
+                                    onItensAtualizaPreco={onItensAtualizaPreco}
+                                />
+                            </TableCell>
+                            <TableCell>
+                                <CelulaCodPdv
+                                    itemId={item.id}
+                                    codpdv={item.external_id}
+                                    editando={atualizacaoEmMassa === "codpdv"}
+                                    onItensAtualizaCodPdv={onItensAtualizaCodPdv}
+                                />
+                            </TableCell>
+                            <TableCell className="text-right">
+                                <AcoesItem
+                                    item={{ id: item.id, trashed: item.trashed }}
+                                    categoriaId={categoriaId}
+                                    onItensAlterarStatus={onItensAlterarStatus}
+                                    onItensDuplicar={onItensDuplicar}
+                                    onItensEditar={onItensEditar}
+                                    onItensRemover={onItensRemover}
+                                />
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </div>
     );
 }
 
@@ -391,15 +463,22 @@ function TabelaItensNormais({
 export function ItensCategoriaTable({
     categoriaTipo,
     categoriaId,
+    categoriasStatus,
+    setStatusCategoria,
     itens,
     atualizacaoEmMassa = null,
-    onAlterarStatus,
-    onDuplicar,
-    onEditar,
-    onRemover,
-    onAtualizaCodPdv,
-    onAtualizaPreco,
-}: ItensCategoriaTableProps) {
+    onCriarCombo,
+    onCriarItem,
+    onCategoriaDuplicar,
+    onCategoriaEditar,
+    onCategoriaRemover,
+    onItensAlterarStatus,
+    onItensDuplicar,
+    onItensEditar,
+    onItensRemover,
+    onItensAtualizaCodPdv,
+    onItensAtualizaPreco,
+}: Omit<ItensCategoriaTableProps, 'status'>) {
     if (itens.length === 0) {
         return (
             <div className="p-4 text-center text-muted-foreground">
@@ -413,12 +492,19 @@ export function ItensCategoriaTable({
             <TabelaPizzas
                 itens={itens as ItemPizza[]}
                 categoriaId={categoriaId}
+                status={categoriasStatus.find(cs => cs.id === categoriaId)?.inativo}
+                setStatusCategoria={setStatusCategoria}
                 atualizacaoEmMassa={atualizacaoEmMassa}
-                onAlterarStatus={onAlterarStatus}
-                onDuplicar={onDuplicar}
-                onEditar={onEditar}
-                onRemover={onRemover}
-                onAtualizaCodPdv={onAtualizaCodPdv}
+                onCriarCombo={onCriarCombo}
+                onCriarItem={onCriarItem}
+                onCategoriaDuplicar={onCategoriaDuplicar}
+                onCategoriaEditar={onCategoriaEditar}
+                onCategoriaRemover={onCategoriaRemover}
+                onItensAlterarStatus={onItensAlterarStatus}
+                onItensDuplicar={onItensDuplicar}
+                onItensEditar={onItensEditar}
+                onItensRemover={onItensRemover}
+                onItensAtualizaCodPdv={onItensAtualizaCodPdv}
             />
         );
     }
@@ -428,12 +514,19 @@ export function ItensCategoriaTable({
             itens={itens as ItemNormal[]}
             categoriaId={categoriaId}
             atualizacaoEmMassa={atualizacaoEmMassa}
-            onAlterarStatus={onAlterarStatus}
-            onDuplicar={onDuplicar}
-            onEditar={onEditar}
-            onRemover={onRemover}
-            onAtualizaCodPdv={onAtualizaCodPdv}
-            onAtualizaPreco={onAtualizaPreco}
+            status={categoriasStatus.find(cs => cs.id === categoriaId)?.inativo}
+            setStatusCategoria={setStatusCategoria}
+            onCriarCombo={onCriarCombo}
+            onCriarItem={onCriarItem}
+            onCategoriaDuplicar={onCategoriaDuplicar}
+            onCategoriaEditar={onCategoriaEditar}
+            onCategoriaRemover={onCategoriaRemover}
+            onItensAlterarStatus={onItensAlterarStatus}
+            onItensDuplicar={onItensDuplicar}
+            onItensEditar={onItensEditar}
+            onItensRemover={onItensRemover}
+            onItensAtualizaCodPdv={onItensAtualizaCodPdv}
+            onItensAtualizaPreco={onItensAtualizaPreco}
         />
     );
 }

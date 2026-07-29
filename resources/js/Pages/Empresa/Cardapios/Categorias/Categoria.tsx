@@ -1,5 +1,8 @@
 import GerenciarOrdenacaoDialog from "@/components/Empresa/Categorias/GerenciarOrdenacaoDialog";
-import ItensCategoriaTable, { ItemNormal, ItemPizza } from "@/components/Empresa/Categorias/ItensCategoriaTable";
+import ItensCategoriaTable, {
+    ItemNormal,
+    ItemPizza,
+} from "@/components/Empresa/Categorias/ItensCategoriaTable";
 import ItensCategoriaTableSkeleton from "@/components/Empresa/Categorias/ItensCategoriaTableSkeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,7 +13,11 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -32,13 +39,20 @@ export default function Categoria() {
     const { categorias, cnpj, cardapio_id, categoriaStatus } = usePage<{
         categorias: ICategoria[];
         categoriaStatus: ICategoriaStatus[];
-        cardapio_id: string,
-        cnpj: string
+        cardapio_id: string;
+        cnpj: string;
     }>().props;
-    const [itensPorCategoria, setItensPorCategoria] = useState<Record<number, ItemNormal[] | ItemPizza[]>>({});
-    const [loadingCategoria, setLoadingCategoria] = useState<number | null>(null);
-    const [handleDialogGerenciarOrdernacao, setHandleDialogGerenciarOrdernacao] = useState(false)
-    const [categoriasState, setCategoriasState] = useState<ICategoria[]>()
+    const [itensPorCategoria, setItensPorCategoria] = useState<
+        Record<number, ItemNormal[] | ItemPizza[]>
+    >({});
+    const [loadingCategoria, setLoadingCategoria] = useState<number | null>(
+        null,
+    );
+    const [
+        handleDialogGerenciarOrdernacao,
+        setHandleDialogGerenciarOrdernacao,
+    ] = useState(false);
+    const [categoriasState, setCategoriasState] = useState<ICategoria[]>();
     const TABS_INFO = [
         { value: "categorias", label: "Categorias" },
         { value: "produtos", label: "Produtos" },
@@ -71,27 +85,51 @@ export default function Categoria() {
     ] as const;
 
     useEffect(() => {
-        setCategoriasState(categorias)
-    }, [])
+        setCategoriasState(categorias);
+    }, []);
 
     const handleOpenChange = async (categoriaId: number, open: boolean) => {
         if (open && !itensPorCategoria[categoriaId]) {
-            console.log({cnpj, cardapio_id, categoria_id: categoriaId})
+            console.log({ cnpj, cardapio_id, categoria_id: categoriaId });
             setLoadingCategoria(categoriaId);
-            await axios.get(route('aplicacao.empresa.cardapios.categorias.itens.itens_por_categoria', {cnpj, cardapio_id, categoria_id: categoriaId}))
+            await axios
+                .get(
+                    route(
+                        "aplicacao.empresa.cardapios.categorias.itens.itens_por_categoria",
+                        { cnpj, cardapio_id, categoria_id: categoriaId },
+                    ),
+                )
                 .then((response) => {
-                    setItensPorCategoria((prev) => ({ ...prev, [categoriaId]: response.data }));
+                    setItensPorCategoria((prev) => ({
+                        ...prev,
+                        [categoriaId]: response.data,
+                    }));
                     setLoadingCategoria(null);
-                })
+                });
         }
     };
 
     async function ordernarCategorias(categoriasOrdenadas: ICategoria[]) {
         setCategoriasState(categoriasOrdenadas);
-        await axios.post(route('aplicacao.empresa.cardapios.categorias.reordenar', {cnpj, cardapio_id}), {
-                ordem: categoriasOrdenadas.map((c, idx) => ({ id: c.id, ordem: idx + 1 })),
-            })
-            .catch((error) => toast.error(error.response.data.message ?? 'Erro ao ordenar as categorias'));
+        await axios
+            .post(
+                route("aplicacao.empresa.cardapios.categorias.reordenar", {
+                    cnpj,
+                    cardapio_id,
+                }),
+                {
+                    ordem: categoriasOrdenadas.map((c, idx) => ({
+                        id: c.id,
+                        ordem: idx + 1,
+                    })),
+                },
+            )
+            .catch((error) =>
+                toast.error(
+                    error.response.data.message ??
+                        "Erro ao ordenar as categorias",
+                ),
+            );
     }
     return (
         <LayoutAutenticado>
@@ -114,7 +152,10 @@ export default function Categoria() {
                                 </TabsTrigger>
                             ))}
                         </TabsList>
-                        <TabsContent value="categorias" className="flex flex-col gap-4">
+                        <TabsContent
+                            value="categorias"
+                            className="flex flex-col gap-4"
+                        >
                             <div className="flex flex-col-reverse gap-4 md:flex md:flex-row-reverse">
                                 {HEADER_FUNCTIONS.map((hf, hfIdx) => {
                                     if (hf.type === "button") {
@@ -164,29 +205,63 @@ export default function Categoria() {
                             </div>
                             <div className="flex flex-col gap-4">
                                 {(categoriasState ?? []).map((categoria, _) => (
-                                    <Collapsible key={categoria.id} onOpenChange={(open) => handleOpenChange(categoria.id, open)} className="rounded-md border">
-                                        <CollapsibleTrigger className="group flex w-full items-center justify-between gap-2 rounded-md bg-muted px-4 py-2 text-left text-sm font-medium text-foreground hover:bg-accent hover:text-accent-foreground">
+                                    <Collapsible
+                                        key={categoria.id}
+                                        onOpenChange={(open) =>
+                                            handleOpenChange(categoria.id, open)
+                                        }
+                                        className="rounded-md border"
+                                    >
+                                        <CollapsibleTrigger className="group bg-muted text-foreground hover:bg-accent hover:text-accent-foreground flex w-full items-center justify-between gap-2 rounded-md px-4 py-2 text-left text-sm font-medium">
                                             <span className="flex gap-4">
                                                 {categoria.nome}
-                                                <Badge>{categoria.itens_count ?? 0} itens</Badge>
+                                                <Badge>
+                                                    {categoria.itens_count ?? 0}{" "}
+                                                    itens
+                                                </Badge>
                                             </span>
                                             <ChevronDown className="h-4 w-4 shrink-0 transition-transform group-data-[state=open]:rotate-180" />
                                         </CollapsibleTrigger>
-                                        <CollapsibleContent className="px-4 py-2 text-sm text-muted-foreground">
-                                            {loadingCategoria === categoria.id ? (
-                                                <ItensCategoriaTableSkeleton categoriaTipo={categoria.tipo as 'I' | 'P'} linhas={3} />
+                                        <CollapsibleContent className="text-muted-foreground px-4 py-2 text-sm">
+                                            {loadingCategoria ===
+                                            categoria.id ? (
+                                                <ItensCategoriaTableSkeleton
+                                                    categoriaTipo={
+                                                        categoria.tipo as
+                                                            "I" | "P"
+                                                    }
+                                                    linhas={3}
+                                                />
                                             ) : (
                                                 <ItensCategoriaTable
-                                                    categoriaTipo={categoria.tipo as 'I' | 'P'}
+                                                    categoriaTipo={
+                                                        categoria.tipo as
+                                                            "I" | "P"
+                                                    }
                                                     categoriaId={categoria.id}
-                                                    itens={itensPorCategoria[categoria.id] ?? []}
-                                                    atualizacaoEmMassa={undefined}
-                                                    onAlterarStatus={() => {}}
-                                                    onDuplicar={() => {}}
-                                                    onEditar={() => {}}
-                                                    onRemover={() => {}}
-                                                    onAtualizaCodPdv={() => {}}
-                                                    onAtualizaPreco={() => {}}
+                                                    itens={
+                                                        itensPorCategoria[
+                                                            categoria.id
+                                                        ] ?? []
+                                                    }
+                                                    atualizacaoEmMassa={
+                                                        undefined
+                                                    }
+                                                    categoriasStatus={
+                                                        categoriaStatus
+                                                    }
+                                                    setStatusCategoria={() => {}}
+                                                    onCriarCombo={() => {}}
+                                                    onCriarItem={() => {}}
+                                                    onCategoriaDuplicar={() => {}}
+                                                    onCategoriaEditar={() => {}}
+                                                    onCategoriaRemover={() => {}}
+                                                    onItensAlterarStatus={() => {}}
+                                                    onItensDuplicar={() => {}}
+                                                    onItensEditar={() => {}}
+                                                    onItensRemover={() => {}}
+                                                    onItensAtualizaCodPdv={() => {}}
+                                                    onItensAtualizaPreco={() => {}}
                                                 />
                                             )}
                                         </CollapsibleContent>
@@ -199,9 +274,9 @@ export default function Categoria() {
                     </Tabs>
                 </CardContent>
             </Card>
-            <GerenciarOrdenacaoDialog 
-                open={handleDialogGerenciarOrdernacao} 
-                onOpenChange={setHandleDialogGerenciarOrdernacao} 
+            <GerenciarOrdenacaoDialog
+                open={handleDialogGerenciarOrdernacao}
+                onOpenChange={setHandleDialogGerenciarOrdernacao}
                 categorias={categorias}
                 onOrdenar={ordernarCategorias}
             />
