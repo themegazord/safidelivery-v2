@@ -5,6 +5,7 @@ use App\Http\Controllers\Autenticacao\LoginEmpresaController;
 use App\Http\Controllers\Empresa\CardapioDigital\CardapioController;
 use App\Http\Controllers\Empresa\CardapioDigital\FinalizarPedidoController;
 use App\Http\Controllers\Empresa\Cardapios\CardapioController as EmpresaCardapioController;
+use App\Http\Controllers\Empresa\Cardapios\Categorias\CategoriaController;
 use App\Http\Controllers\Empresa\Cashback\CashbackConfigController;
 use App\Http\Controllers\Empresa\ConfigEmpresa\ConfiguracoesController;
 use App\Http\Controllers\Empresa\ConfigEmpresa\IntegracoesController;
@@ -87,6 +88,10 @@ Route::group([], function () {
             Route::get('/{cardapio_id}/exportar/{tipo}', [EmpresaCardapioController::class, 'export'])->name('aplicacao.empresa.cardapios.export');
             Route::post('/importarIfood', [EmpresaCardapioController::class, 'importIfood'])->name('aplicacao.empresa.cardapios.import_ifood');
             Route::post('/importarAnotaai', [EmpresaCardapioController::class, 'importAnotaai'])->name('aplicacao.empresa.cardapios.import_anotaai');
+            Route::prefix('{cardapio_id}/categorias')->group(function () {
+                Route::get('/', [CategoriaController::class, 'index'])->name('aplicacao.empresa.cardapios.categorias.index');
+                Route::get('/{categoria_id}/itens', [CategoriaController::class, 'itensPorCategoria'])->name('aplicacao.empresa.cardapios.categorias.itens.itens_por_categoria');
+            });
         });
     });
 });

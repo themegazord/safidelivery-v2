@@ -17,7 +17,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Separator } from "@/components/ui/separator";
 import LayoutAutenticado from "@/Layouts/LayoutsAutenticado";
 import { ICardapio } from "@/types/cardapio-digital/cardapio";
-import { router, usePage } from "@inertiajs/react";
+import { Link, router, usePage } from "@inertiajs/react";
 import axios from "axios";
 import { ChevronDown, ChevronUp, Cog, Copy, Download, EllipsisVertical, SquarePen, Trash } from "lucide-react";
 import { useState } from "react";
@@ -127,7 +127,9 @@ function CardCardapio({data, cnpj, callEdicao, callClone, callExport, callRemoca
                 </CardAction>
             </CardHeader>
             <CardFooter className="flex flex-row-reverse">
-                <Button className="flex gap-2"><Cog /> Configurar cardápio</Button>
+                <Button className="flex gap-2" asChild>
+                    <Link href={route('aplicacao.empresa.cardapios.categorias.index', {cnpj, cardapio_id: data.id})}><Cog /> Configurar cardápio</Link>
+                </Button>
             </CardFooter>
         </Card>
     )
