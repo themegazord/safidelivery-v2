@@ -4,7 +4,7 @@ import ItensCategoriaTable, {
     ItemPizza,
 } from "@/components/Empresa/Categorias/ItensCategoriaTable";
 import ItensCategoriaTableSkeleton from "@/components/Empresa/Categorias/ItensCategoriaTableSkeleton";
-import UpsertCategoriaDrawer from "@/components/Empresa/Categorias/UpsertCategoriaDrawer";
+import UpsertCategoriaDrawer, { CategoriaFormData } from "@/components/Empresa/Categorias/UpsertCategoriaDrawer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,7 +30,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LayoutAutenticado from "@/Layouts/LayoutsAutenticado";
 import { ICategoria, ICategoriaStatus } from "@/types/empresa/cardapios/types";
-import { usePage } from "@inertiajs/react";
+import { router, usePage } from "@inertiajs/react";
 import axios from "axios";
 import { ArrowUpDown, ChevronDown, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -54,8 +54,8 @@ export default function Categoria() {
         setHandleDialogGerenciarOrdernacao,
     ] = useState(false);
     const [handleDrawerUpsertCategoria, setHandleDrawerUpsertCategoria] = useState(false)
-    const [modeUpsertCategoria, setModeUpsertCategoria] = useState<'create' | 'update' | undefined>(undefined)
     const [categoriasState, setCategoriasState] = useState<ICategoria[]>();
+    const [categoria, setCategoria] = useState<Partial<CategoriaFormData>>()
     const TABS_INFO = [
         { value: "categorias", label: "Categorias" },
         { value: "produtos", label: "Produtos" },
@@ -65,7 +65,7 @@ export default function Categoria() {
         {
             label: "Cadastra categoria",
             icon: <Plus />,
-            action: () => abreCadastroCategoria('create'),
+            action: () => abreCadastroCategoria(),
             type: "button",
         },
         {
@@ -86,10 +86,25 @@ export default function Categoria() {
         { label: "Preços", action: () => {} },
         { label: "Cód. PDV", action: () => {} },
     ] as const;
+    const QTD_SABORES = [
+        { id: 1, nome: 1 },
+        { id: 2, nome: 2 },
+        { id: 3, nome: 3 },
+        { id: 4, nome: 4 },
+    ];
+    const DIAS_SEMANA = [
+        { id: 0, nome: "Domingo" },
+        { id: 1, nome: "Segunda-feira" },
+        { id: 2, nome: "Terça-feira" },
+        { id: 3, nome: "Quarta-feira" },
+        { id: 4, nome: "Quinta-feira" },
+        { id: 5, nome: "Sexta-feira" },
+        { id: 6, nome: "Sábado" },
+    ];
 
     useEffect(() => {
         setCategoriasState(categorias);
-    }, []);
+    }, [categorias]);
 
     const handleOpenChange = async (categoriaId: number, open: boolean) => {
         if (open && !itensPorCategoria[categoriaId]) {
@@ -135,11 +150,21 @@ export default function Categoria() {
             );
     }
 
-    function abreCadastroCategoria(mode: 'create' | 'update') {
-        if (mode === 'create') {
-            setHandleDrawerUpsertCategoria(true)
-            setModeUpsertCategoria(mode)
-        }
+    function abreCadastroCategoria() {
+        setHandleDrawerUpsertCategoria(true)
+        setCategoria(undefined)
+    }
+
+    async function cadastrarCategoria(categoriaDigitada: CategoriaFormData) {
+        await axios.post(route('aplicacao.empresa.cardapios.categorias.store', {cnpj, cardapio_id}), categoriaDigitada)
+            .then(() => {
+                toast.success('Categoria cadastrada com sucesso.');
+                setHandleDrawerUpsertCategoria(false)
+                router.reload({ only: ['categorias', 'categoriaStatus'] })
+            })
+            .catch((error) => {
+                toast.error(error.response.data.message)
+            })
     }
 
     return (
@@ -289,7 +314,14 @@ export default function Categoria() {
                 categorias={categorias}
                 onOrdenar={ordernarCategorias}
             />
-            <UpsertCategoriaDrawer open={handleDrawerUpsertCategoria} onOpenChange={setHandleDrawerUpsertCategoria} mode={modeUpsertCategoria} />
+            <UpsertCategoriaDrawer 
+                open={handleDrawerUpsertCategoria} 
+                onOpenChange={setHandleDrawerUpsertCategoria} 
+                categoria={categoria}
+                diasSemana={DIAS_SEMANA}
+                opcoesQtdSabores={QTD_SABORES}
+                onSubmit={!categoria ? cadastrarCategoria : () => {}}
+            />
         </LayoutAutenticado>
     );
 }

@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Empresa\Cardapios\Categorias;
 
 use App\Actions\Categorias\IndexCategoriaAction;
 use App\Actions\Categorias\ReordenarCategoriaAction;
+use App\Actions\Categorias\StoreCategoriaAction;
 use App\Actions\Itens\IndexItemPorCategoriaAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Cardapios\Categorias\ReordenarCategoriaRequest;
+use App\Http\Requests\Cardapios\Categorias\StoreCategoriaRequest;
 use App\Models\Cardapio;
 use App\Models\Empresa;
 use Illuminate\Http\Request;
@@ -55,9 +57,11 @@ class CategoriaController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreCategoriaRequest $request, string $cnpj, string $cardapio_id, StoreCategoriaAction $action)
     {
-        //
+        $dados = $request->validated();
+        $action->handle($dados, $this->cardapio, $this->exportaDadosIfood, $this->empresa);
+        return redirect()->back();
     }
 
     /**
