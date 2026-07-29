@@ -4,6 +4,7 @@ import ItensCategoriaTable, {
     ItemPizza,
 } from "@/components/Empresa/Categorias/ItensCategoriaTable";
 import ItensCategoriaTableSkeleton from "@/components/Empresa/Categorias/ItensCategoriaTableSkeleton";
+import UpsertCategoriaDrawer from "@/components/Empresa/Categorias/UpsertCategoriaDrawer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -52,6 +53,8 @@ export default function Categoria() {
         handleDialogGerenciarOrdernacao,
         setHandleDialogGerenciarOrdernacao,
     ] = useState(false);
+    const [handleDrawerUpsertCategoria, setHandleDrawerUpsertCategoria] = useState(false)
+    const [modeUpsertCategoria, setModeUpsertCategoria] = useState<'create' | 'update' | undefined>(undefined)
     const [categoriasState, setCategoriasState] = useState<ICategoria[]>();
     const TABS_INFO = [
         { value: "categorias", label: "Categorias" },
@@ -62,7 +65,7 @@ export default function Categoria() {
         {
             label: "Cadastra categoria",
             icon: <Plus />,
-            action: () => {},
+            action: () => abreCadastroCategoria('create'),
             type: "button",
         },
         {
@@ -131,6 +134,14 @@ export default function Categoria() {
                 ),
             );
     }
+
+    function abreCadastroCategoria(mode: 'create' | 'update') {
+        if (mode === 'create') {
+            setHandleDrawerUpsertCategoria(true)
+            setModeUpsertCategoria(mode)
+        }
+    }
+
     return (
         <LayoutAutenticado>
             <Card>
@@ -280,6 +291,7 @@ export default function Categoria() {
                 categorias={categorias}
                 onOrdenar={ordernarCategorias}
             />
+            <UpsertCategoriaDrawer open={handleDrawerUpsertCategoria} onOpenChange={setHandleDrawerUpsertCategoria} mode={modeUpsertCategoria} />
         </LayoutAutenticado>
     );
 }
