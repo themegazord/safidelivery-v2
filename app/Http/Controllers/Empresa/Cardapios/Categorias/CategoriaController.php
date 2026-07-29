@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Empresa\Cardapios\Categorias;
 
 use App\Actions\Categorias\IndexCategoriaAction;
+use App\Actions\Categorias\ReordenarCategoriaAction;
 use App\Actions\Itens\IndexItemPorCategoriaAction;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Cardapios\Categorias\ReordenarCategoriaRequest;
 use App\Models\Cardapio;
 use App\Models\Empresa;
 use Illuminate\Http\Request;
@@ -43,6 +45,11 @@ class CategoriaController extends Controller
 
     public function itensPorCategoria(string $cnpj, string $cardapio_id, string $categoria_id, IndexItemPorCategoriaAction $action): Collection {
         return $action->handle($this->cardapio, $categoria_id);
+    }
+
+    public function reordenar(ReordenarCategoriaRequest $request, string $cnpj, string $cardapio_id, ReordenarCategoriaAction $action) {
+        $ordem = $request->validated()['ordem'];
+        $action->handle($ordem);
     }
 
     /**

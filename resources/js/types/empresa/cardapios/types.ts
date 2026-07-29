@@ -36,6 +36,7 @@ export interface ICategoriaBorda {
 export interface ICategoria {
   id: number,
   importacao_id: string | null,
+  descricao: string | null,
   ordem: number | null,
   dias_funcionamento: Array<string | number> | null,
   cardapio_id: number,

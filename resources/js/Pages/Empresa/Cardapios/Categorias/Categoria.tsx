@@ -1,3 +1,4 @@
+import GerenciarOrdenacaoDialog from "@/components/Empresa/Categorias/GerenciarOrdenacaoDialog";
 import ItensCategoriaTable, { ItemNormal, ItemPizza } from "@/components/Empresa/Categorias/ItensCategoriaTable";
 import ItensCategoriaTableSkeleton from "@/components/Empresa/Categorias/ItensCategoriaTableSkeleton";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +25,8 @@ import { ICategoria, ICategoriaStatus } from "@/types/empresa/cardapios/types";
 import { usePage } from "@inertiajs/react";
 import axios from "axios";
 import { ArrowUpDown, ChevronDown, Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function Categoria() {
     const { categorias, cnpj, cardapio_id, categoriaStatus } = usePage<{
@@ -35,6 +37,8 @@ export default function Categoria() {
     }>().props;
     const [itensPorCategoria, setItensPorCategoria] = useState<Record<number, ItemNormal[] | ItemPizza[]>>({});
     const [loadingCategoria, setLoadingCategoria] = useState<number | null>(null);
+    const [handleDialogGerenciarOrdernacao, setHandleDialogGerenciarOrdernacao] = useState(false)
+    const [categoriasState, setCategoriasState] = useState<ICategoria[]>()
     const TABS_INFO = [
         { value: "categorias", label: "Categorias" },
         { value: "produtos", label: "Produtos" },
@@ -50,7 +54,7 @@ export default function Categoria() {
         {
             label: "Ordenação",
             icon: <ArrowUpDown />,
-            action: () => {},
+            action: () => setHandleDialogGerenciarOrdernacao(true),
             type: "button",
         },
         {
@@ -66,6 +70,10 @@ export default function Categoria() {
         { label: "Cód. PDV", action: () => {} },
     ] as const;
 
+    useEffect(() => {
+        setCategoriasState(categorias)
+    }, [])
+
     const handleOpenChange = async (categoriaId: number, open: boolean) => {
         if (open && !itensPorCategoria[categoriaId]) {
             console.log({cnpj, cardapio_id, categoria_id: categoriaId})
@@ -77,6 +85,14 @@ export default function Categoria() {
                 })
         }
     };
+
+    async function ordernarCategorias(categoriasOrdenadas: ICategoria[]) {
+        setCategoriasState(categoriasOrdenadas);
+        await axios.post(route('aplicacao.empresa.cardapios.categorias.reordenar', {cnpj, cardapio_id}), {
+                ordem: categoriasOrdenadas.map((c, idx) => ({ id: c.id, ordem: idx + 1 })),
+            })
+            .catch((error) => toast.error(error.response.data.message ?? 'Erro ao ordenar as categorias'));
+    }
     return (
         <LayoutAutenticado>
             <Card>
@@ -147,7 +163,7 @@ export default function Categoria() {
                                 })}
                             </div>
                             <div className="flex flex-col gap-4">
-                                {categorias.map((categoria, _) => (
+                                {(categoriasState ?? []).map((categoria, _) => (
                                     <Collapsible key={categoria.id} onOpenChange={(open) => handleOpenChange(categoria.id, open)} className="rounded-md border">
                                         <CollapsibleTrigger className="group flex w-full items-center justify-between gap-2 rounded-md bg-muted px-4 py-2 text-left text-sm font-medium text-foreground hover:bg-accent hover:text-accent-foreground">
                                             <span className="flex gap-4">
@@ -183,6 +199,12 @@ export default function Categoria() {
                     </Tabs>
                 </CardContent>
             </Card>
+            <GerenciarOrdenacaoDialog 
+                open={handleDialogGerenciarOrdernacao} 
+                onOpenChange={setHandleDialogGerenciarOrdernacao} 
+                categorias={categorias}
+                onOrdenar={ordernarCategorias}
+            />
         </LayoutAutenticado>
     );
 }

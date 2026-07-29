@@ -3,6 +3,7 @@
 namespace App\Actions\Categorias;
 
 use App\Models\Cardapio;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 
 class IndexCategoriaAction
@@ -26,5 +27,9 @@ class IndexCategoriaAction
         'inativo' => $cat->trashed(),
       ];
     })->toArray();
+  }
+
+  public function filtraCategoriasAtivasHoje(Collection $categorias, string $timezone): Collection {
+    return $categorias->filter(fn ($categoria) => in_array(Carbon::now($timezone)->dayOfWeek(), $categoria->getAttribute('dias_funcionamento')))->values();
   }
 }
