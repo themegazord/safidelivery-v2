@@ -95,16 +95,18 @@ function IconButtonComTooltip({
     return (
         <TooltipProvider>
             <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={onClick}
-                    >
-                        {icon}
-                    </Button>
+                <TooltipTrigger
+                    render={
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={onClick}
+                        />
+                    }
+                >
+                    {icon}
                 </TooltipTrigger>
                 <TooltipContent>{tooltip}</TooltipContent>
             </Tooltip>
@@ -231,8 +233,8 @@ function TabelaPizzas({
                     <Button onClick={() => onCriarCombo(categoriaId, true)}>{<Plus />}Adicionar combo</Button>
                     <Button onClick={() => onCriarItem(categoriaId, true)}>{<Plus />}Adicionar item</Button>
                     <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant={"ghost"}><EllipsisVertical /></Button>
+                        <DropdownMenuTrigger render={<Button variant={"ghost"} />}>
+                            <EllipsisVertical />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
                             <DropdownMenuLabel>Opções</DropdownMenuLabel>
@@ -386,8 +388,8 @@ function TabelaItensNormais({
                     <Button onClick={() => onCriarCombo(categoriaId, true)}>{<Plus />}Adicionar combo</Button>
                     <Button onClick={() => onCriarItem(categoriaId, true)}>{<Plus />}Adicionar item</Button>
                     <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant={"ghost"}><EllipsisVertical /></Button>
+                        <DropdownMenuTrigger render={<Button variant={"ghost"} />}>
+                            <EllipsisVertical />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
                             <DropdownMenuLabel>Opções</DropdownMenuLabel>

@@ -37,15 +37,19 @@ export function HeroSection({ whatsappNumber }: HeroSectionProps) {
 
                     {/* CTA Buttons */}
                     <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-                        <Button asChild size="lg" className="group gap-2">
-                            <a
-                                href={`https://wa.me/${whatsappNumber}?text=Olá!%20Gostaria%20de%20contratar%20o%20SAFI%20Delivery`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                Começe agora, entre em contato com nossa equipe
-                                de vendas
-                            </a>
+                        <Button
+                            size="lg"
+                            className="group gap-2"
+                            render={
+                                <a
+                                    href={`https://wa.me/${whatsappNumber}?text=Olá!%20Gostaria%20de%20contratar%20o%20SAFI%20Delivery`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                />
+                            }
+                        >
+                            Começe agora, entre em contato com nossa equipe
+                            de vendas
                         </Button>
                     </div>
                 </div>

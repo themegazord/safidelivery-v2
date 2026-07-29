@@ -357,7 +357,7 @@ export default function Configuracao({
                                                     Categorias bloqueadas
                                                 </FieldLabel>
                                                 <ToggleGroup
-                                                    type="multiple"
+                                                    multiple
                                                     variant="outline"
                                                     value={config.categorias_bloqueadas.map(
                                                         String,

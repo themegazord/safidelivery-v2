@@ -699,7 +699,7 @@ export default function FormularioPromocao({
                                 Dias da Semana
                             </FieldLabel>
                             <ToggleGroup
-                                type="multiple"
+                                multiple
                                 variant="outline"
                                 value={dados.dias_disponiveis.map(String)}
                                 onValueChange={(value) =>

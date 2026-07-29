@@ -13,15 +13,18 @@ export default function FinalizarPedidoHeader() {
         <Card>
             <CardHeader>
                 <CardTitle className="flex">
-                    <Button variant="link" asChild>
-                        <Link
-                            href={route("aplicacao.empresa.cardapio-digital", {
-                                interacao_id,
-                                tipo_funcionamento,
-                            })}
-                        >
-                            <ChevronLeft className="size-6" />
-                        </Link>
+                    <Button
+                        variant="link"
+                        render={
+                            <Link
+                                href={route("aplicacao.empresa.cardapio-digital", {
+                                    interacao_id,
+                                    tipo_funcionamento,
+                                })}
+                            />
+                        }
+                    >
+                        <ChevronLeft className="size-6" />
                     </Button>
                     <H4>Finalize seu pedido</H4>
                 </CardTitle>

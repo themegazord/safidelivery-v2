@@ -39,7 +39,7 @@ import {
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Link, usePage } from "@inertiajs/react";
-import { Collapsible } from "radix-ui";
+import { Collapsible } from "@base-ui/react/collapsible";
 
 export default function SidebarEmpresa() {
     const {cnpj} = usePage<{
@@ -113,41 +113,35 @@ export default function SidebarEmpresa() {
                             <SidebarMenu>
                                 {itemMenu.itens.map((item) =>
                                     item.subitens ? (
-                                        <Collapsible.Root
-                                            key={item.label}
-                                            className="group/collapsible"
-                                        >
+                                        <Collapsible.Root key={item.label}>
                                             <SidebarMenuItem>
-                                                <Collapsible.Trigger asChild>
-                                                    <SidebarMenuButton>
-                                                        {item.icon}
-                                                        <span>{item.label}</span>
-                                                        <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
-                                                    </SidebarMenuButton>
+                                                <Collapsible.Trigger
+                                                    className="group/collapsible"
+                                                    render={<SidebarMenuButton />}
+                                                >
+                                                    {item.icon}
+                                                    <span>{item.label}</span>
+                                                    <ChevronRight className="ml-auto transition-transform group-data-panel-open/collapsible:rotate-90" />
                                                 </Collapsible.Trigger>
-                                                <Collapsible.Content>
+                                                <Collapsible.Panel>
                                                     <SidebarMenuSub>
                                                         {item.subitens.map((subitem) => (
                                                             <SidebarMenuSubItem key={subitem.label}>
-                                                                <SidebarMenuSubButton asChild>
-                                                                    <Link href={subitem.link}>
-                                                                        {subitem.icon}
-                                                                        <span>{subitem.label}</span>
-                                                                    </Link>
+                                                                <SidebarMenuSubButton render={<Link href={subitem.link} />}>
+                                                                    {subitem.icon}
+                                                                    <span>{subitem.label}</span>
                                                                 </SidebarMenuSubButton>
                                                             </SidebarMenuSubItem>
                                                         ))}
                                                     </SidebarMenuSub>
-                                                </Collapsible.Content>
+                                                </Collapsible.Panel>
                                             </SidebarMenuItem>
                                         </Collapsible.Root>
                                     ) : (
                                         <SidebarMenuItem key={item.label}>
-                                            <SidebarMenuButton asChild>
-                                                <Link href={item.link}>
-                                                    {item.icon}
-                                                    <span>{item.label}</span>
-                                                </Link>
+                                            <SidebarMenuButton render={<Link href={item.link} />}>
+                                                {item.icon}
+                                                <span>{item.label}</span>
                                             </SidebarMenuButton>
                                         </SidebarMenuItem>
                                     ),

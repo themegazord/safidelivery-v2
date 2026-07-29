@@ -27,7 +27,7 @@ export default function PerformanceSection({
                     <Calendar />
                     <span className="font-medium">{intervaloData()}</span>
                 </div>
-                <ToggleGroup type="single">
+                <ToggleGroup>
                     {[7, 15, 30].map((dia) => (
                         <ToggleGroupItem
                             onClick={() => setDataInicioFiltro(dia)}

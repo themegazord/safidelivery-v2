@@ -8,7 +8,7 @@ interface IProps {
 
 export default function UpsertCategoriaDrawer({ open, onOpenChange, mode }: IProps) {
     return (
-        <Drawer open={open} onOpenChange={onOpenChange} direction="right">
+        <Drawer open={open} onOpenChange={onOpenChange} swipeDirection="right">
             <DrawerContent className="w-full md:w-[55vw]">
                 <DrawerHeader>
                     <DrawerTitle>{mode === 'create' ? 'Nova categoria' : 'Editar categoria'}</DrawerTitle>

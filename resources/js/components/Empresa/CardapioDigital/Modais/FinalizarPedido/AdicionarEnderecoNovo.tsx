@@ -5,7 +5,6 @@ import { useMaskito } from "@maskito/react";
 import { Input } from "@/components/ui/input";
 import { Form, router, useForm } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
-import { VisuallyHidden } from "radix-ui";
 import { consultaCEP } from "@/utils/utils";
 import { toast } from "sonner";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
@@ -100,11 +99,9 @@ export default function AdicionarEnderecoNovo({ open, setOpen }: IProps) {
         <Dialog open={open} onOpenChange={setOpen}>
           <Form action='#' method="post">
             <DialogContent className="sm:max-w-2xl" aria-describedby={undefined}>
-              <VisuallyHidden.Root>
-                <DialogHeader>
-                  <DialogTitle></DialogTitle>
-                </DialogHeader>
-              </VisuallyHidden.Root>
+              <DialogHeader className="sr-only">
+                <DialogTitle></DialogTitle>
+              </DialogHeader>
                 <FieldSet className="w-full max-w-2xl">
                   <FieldLegend>Informações do endereço</FieldLegend>
                   <FieldDescription>
@@ -212,8 +209,8 @@ export default function AdicionarEnderecoNovo({ open, setOpen }: IProps) {
                   </FieldGroup>
                 </FieldSet>
                 <DialogFooter>
-                  <DialogClose asChild>
-                    <Button type="button" variant={'destructive'} className="cursor-pointer">Fechar</Button>
+                  <DialogClose render={<Button type="button" variant={'destructive'} className="cursor-pointer" />}>
+                    Fechar
                   </DialogClose>
                   <Button className="cursor-pointer" onClick={() => cadastrarEndereco()}>Salvar</Button>
                 </DialogFooter>

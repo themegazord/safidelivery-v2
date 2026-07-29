@@ -83,7 +83,7 @@ export default function Carrinho({ open, setOpen, setOpenAutenticacao }: IProps)
         }>().props;
 
     return (
-        <Drawer open={open} onOpenChange={setOpen} direction="right">
+        <Drawer open={open} onOpenChange={setOpen} swipeDirection="right">
             <DrawerContent>
                 <DrawerHeader>
                     <DrawerTitle>Carrinho de Compras</DrawerTitle>

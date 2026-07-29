@@ -441,7 +441,7 @@ function CamposEndereco({ endereco, errors }: CamposEnderecoProps) {
                         name="uf"
                         value={dados.uf || undefined}
                         onValueChange={(value) =>
-                            setDados((atual) => ({ ...atual, uf: value }))
+                            setDados((atual) => ({ ...atual, uf: value ?? atual.uf }))
                         }
                     >
                         <SelectTrigger

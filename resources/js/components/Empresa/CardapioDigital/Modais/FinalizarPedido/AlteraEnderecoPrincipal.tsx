@@ -101,14 +101,16 @@ export default function AlteraEnderecoPrincipal({
                     ))}
                 </RadioGroup>
                 <DialogFooter>
-                    <DialogClose asChild>
-                        <Button
-                            type="button"
-                            variant={"destructive"}
-                            className="cursor-pointer"
-                        >
-                            Fechar
-                        </Button>
+                    <DialogClose
+                        render={
+                            <Button
+                                type="button"
+                                variant={"destructive"}
+                                className="cursor-pointer"
+                            />
+                        }
+                    >
+                        Fechar
                     </DialogClose>
                     <Button
                         className="cursor-pointer"
