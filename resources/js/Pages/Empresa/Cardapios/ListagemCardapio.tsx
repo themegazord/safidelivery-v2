@@ -1,5 +1,6 @@
 import DialogClonarCardapio from "@/components/Empresa/Cardapios/DialogClonarCardapio";
 import DialogExportarCardapio from "@/components/Empresa/Cardapios/DialogExportarCardapio";
+import DialogImportarIfood from "@/components/Empresa/Cardapios/DialogImportarIfood";
 import DialogRemoverCardapio from "@/components/Empresa/Cardapios/DialogRemoverCardapio";
 import DrawerCUCardapio from "@/components/Empresa/Cardapios/DrawerCUCardapio";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,9 @@ import { router, usePage } from "@inertiajs/react";
 import axios from "axios";
 import { ChevronDown, ChevronUp, Cog, Copy, Download, EllipsisVertical, SquarePen, Trash } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "sonner"
+import { SiIfood } from "react-icons/si"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface IDropdownData {
     open: boolean,
@@ -37,7 +40,7 @@ type TDropdownItemData = {
 
 
 
-function DropdownsListagemCardapio({data, existeTokenAnotaai}: {data: IDropdownData[], existeTokenAnotaai: boolean}) {
+function DropdownsListagemCardapio({data, existeTokenAnotaai, existeTokensIFOOD}: {data: IDropdownData[], existeTokenAnotaai: boolean, existeTokensIFOOD: boolean}) {
     return (
         <>
             {data.map((d, didx) => (
@@ -49,7 +52,7 @@ function DropdownsListagemCardapio({data, existeTokenAnotaai}: {data: IDropdownD
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
                         {d.items.map((di, diIdx)=> (
-                            <DropdownMenuItem key={diIdx} onClick={di.action} disabled={(di.tag === 'anotaai' && !existeTokenAnotaai)}>{di.label}</DropdownMenuItem>
+                            <DropdownMenuItem key={diIdx} onClick={di.action} disabled={(di.tag === 'anotaai' && !existeTokenAnotaai) || (di.tag === 'ifood' && !existeTokensIFOOD)}>{di.label}</DropdownMenuItem>
                         ))}
                     </DropdownMenuContent>
                 </DropdownMenu>
@@ -60,7 +63,7 @@ function DropdownsListagemCardapio({data, existeTokenAnotaai}: {data: IDropdownD
 
 function CardCardapio({data, cnpj, callEdicao, callClone, callExport, callRemocao}: {
     data: ICardapio,
-    cnpj: string, 
+    cnpj: string,
     callEdicao: (value: number) => void,
     callClone: (value: number) => void,
     callExport: (value: number) => void,
@@ -69,7 +72,19 @@ function CardCardapio({data, cnpj, callEdicao, callClone, callExport, callRemoca
     return (
         <Card>
             <CardHeader>
-                <CardTitle>{data.nome}</CardTitle>
+                <CardTitle className="flex justify-between items-center">
+                    {data.nome}
+                    {data.tipo_importacao === 'ifood' ?
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <SiIfood className="h-4 w-4 text-red-600" />
+                                </TooltipTrigger>
+                                <TooltipContent>Cardápio importado do IFOOD</TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider> :
+                        ''}
+                </CardTitle>
                 <CardDescription>{data.descricao}</CardDescription>
                 <CardAction>
                     <DropdownMenu>
@@ -105,7 +120,6 @@ function CardCardapio({data, cnpj, callEdicao, callClone, callExport, callRemoca
 }
 
 export default function ListagemCardapio() {
-    const [exportacaoDropdownStatus, setExportacaoDropdownStatus] = useState(false)
     const [importacaoDropdownStatus, setImportacaoDropdownStatus] = useState(false)
     const [toggleDrawerCUCardapio, setToggleDrawerCUCardapio] = useState(false)
     const [cardapioSelecionado, setCardapioSelecionado] = useState<ICardapio | undefined>()
@@ -116,8 +130,10 @@ export default function ListagemCardapio() {
     const [cardapioParaClonar, setCardapioParaClonar] = useState<ICardapio | undefined>()
     const [dialogExportacaoOpen, setDialogExportacaoOpen] = useState(false)
     const [cardapioParaExportar, setCardapioParaExportar] = useState<ICardapio | undefined>()
+    const [dialogImportarIfood, setDialogImportarIfood] = useState(false)
 
-    const {existeTokenAnotaai, cardapios, cnpj} = usePage<{
+    const {existeTokensIFOOD, existeTokenAnotaai, cardapios, cnpj} = usePage<{
+        existeTokensIFOOD: boolean,
         existeTokenAnotaai: boolean,
         cardapios: ICardapio[],
         cnpj: string
@@ -137,7 +153,7 @@ export default function ListagemCardapio() {
                 {
                     label: "Importar cardápio IFOOD",
                     tag: 'ifood',
-                    action: () => {}
+                    action: () => setDialogImportarIfood(true)
                 },
             ]
         },
@@ -178,7 +194,7 @@ export default function ListagemCardapio() {
 
     async function abrirRemocao(cardapio_id: number) {
         const cardapio = await  consultaDadosCardapio(cardapio_id)
-        if (!cardapio) return 
+        if (!cardapio) return
 
         setCardapioParaRemover(cardapio)
         setDialogRemoverOpen(true)
@@ -190,7 +206,7 @@ export default function ListagemCardapio() {
         setCardapioParaClonar(cardapio)
         setDialogClonarOpen(true)
     }
-            
+
     return (
         <LayoutAutenticado>
             <Card>
@@ -211,16 +227,16 @@ export default function ListagemCardapio() {
                         }}>
                             Cadastrar cardápio
                         </Button>
-                        <DropdownsListagemCardapio data={DROPDOWNS_DATA} existeTokenAnotaai={existeTokenAnotaai}/>
+                        <DropdownsListagemCardapio data={DROPDOWNS_DATA} existeTokenAnotaai={existeTokenAnotaai} existeTokensIFOOD={existeTokensIFOOD}/>
                     </div>
                 </CardHeader>
                 <Separator />
                 <CardContent className="grid grid-cols-1 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 gap-4 mb-4">
                     {cardapios.map(cardapio => (
-                        <CardCardapio 
-                            data={cardapio} 
-                            key={cardapio.id} 
-                            cnpj={cnpj} 
+                        <CardCardapio
+                            data={cardapio}
+                            key={cardapio.id}
+                            cnpj={cnpj}
                             callRemocao={abrirRemocao}
                             callEdicao={abrirEdicao}
                             callExport={abrirExportacao}
@@ -233,6 +249,7 @@ export default function ListagemCardapio() {
             <DialogRemoverCardapio open={dialogRemoverOpen} onOpenChange={setDialogRemoverOpen} cardapio={cardapioParaRemover} />
             <DialogClonarCardapio open={dialogClonarOpen} onOpenChange={setDialogClonarOpen} cardapio={cardapioParaClonar} />
             <DialogExportarCardapio open={dialogExportacaoOpen} onOpenChange={setDialogExportacaoOpen} cardapio={cardapioParaExportar} />
+            <DialogImportarIfood open={dialogImportarIfood} onOpenChange={setDialogImportarIfood} />
         </LayoutAutenticado>
     );
 }

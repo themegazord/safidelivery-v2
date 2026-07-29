@@ -26,6 +26,7 @@ export interface ICardapio {
     descricao: string;
     dias_funcionamento: DiaFuncionamento[];
     tipo_funcionamento: TipoFuncionamento;
+    tipo_importacao: string;
     categorias: ICategoria[];
 }
 

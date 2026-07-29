@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Empresa\Cardapios;
 use App\Actions\Cardapios\CloneCardapioAction;
 use App\Actions\Cardapios\DestroyCardapioAction;
 use App\Actions\Cardapios\ExportCardapioAction;
+use App\Actions\Cardapios\ImportCardapioIFOODAction;
 use App\Actions\Cardapios\ShowCardapioAction;
 use App\Actions\Cardapios\StoreCardapioAction;
 use App\Actions\Cardapios\UpdateCardapioAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Cardapios\CloneCardapioRequest;
+use App\Http\Requests\Cardapios\ImportIFOODRequest;
 use App\Http\Requests\Cardapios\StoreCardapioRequest;
 use App\Http\Requests\Cardapios\UpdateCardapioRequest;
 use App\Models\Empresa;
@@ -19,7 +21,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -35,9 +36,14 @@ class CardapioController extends Controller
      */
     public function index(Request $request)
     {
-        $existeTokenAnotaai = !is_null($this->empresa->integracoes->where('tipo', 'anotaai')->value('companyToken'));
+        $existeTokenAnotaai = !\is_null($this->empresa->integracoes->where('tipo', 'anotaai')->value('companyToken'));
+        $ifoodTokenBuilder = $this->empresa->integracoes->where('tipo', 'ifood');
+        $existeTokensIFOOD = !\is_null($ifoodTokenBuilder->value('clientId'))
+            && !\is_null($ifoodTokenBuilder->value('clientSecret'))
+            && !\is_null($ifoodTokenBuilder->value('merchantId'));
         $cardapios = $this->carregaCardapio($this->empresa);
         return Inertia::render('Empresa/Cardapios/ListagemCardapio', [
+            'existeTokensIFOOD' => $existeTokensIFOOD,
             'existeTokenAnotaai' => $existeTokenAnotaai,
             'cardapios' => $cardapios
         ]);
@@ -109,6 +115,18 @@ class CardapioController extends Controller
         return response()->streamDownload(function () use ($arquivo) {
             echo $arquivo->stream();
         }, "cardapio-" . now()->format('d-m-Y-H-i-s') . ".{$tipo}");
+    }
+
+    public function importIfood(ImportIFOODRequest $request, string $cnpj, ImportCardapioIFOODAction $action): RedirectResponse {
+        $ifood = $this->empresa->integracoes->where('tipo', 'ifood')->first();
+        if (!$ifood && !$ifood->merchantId && !$ifood->clientSecret && !$ifood->clientId) {
+            throw new Exception("Falha na importação do IFOOD. Falta completar a configuração das variaveis de importação.");
+        }
+        $dados = $request->validated();
+        $merchantId = $this->empresa->integracoes->where('tipo', 'ifood')->value('merchantId');
+        $action->handle($merchantId, $dados, $this->empresa->getAttribute('id'));
+
+        return redirect()->back();
     }
 
     private function carregaCardapio(Empresa $empresa): Collection
