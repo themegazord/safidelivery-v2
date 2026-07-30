@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Empresa\Cardapios\Categorias;
 
+use App\Actions\Categorias\CloneCategoriaAction;
 use App\Actions\Categorias\IndexCategoriaAction;
 use App\Actions\Categorias\ReordenarCategoriaAction;
 use App\Actions\Categorias\ShowCategoriaAction;
@@ -15,6 +16,7 @@ use App\Http\Requests\Cardapios\Categorias\UpdateCategoriaRequest;
 use App\Models\Cardapio;
 use App\Models\Empresa;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
@@ -80,11 +82,16 @@ class CategoriaController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateCategoriaRequest $request,string $cnpj, string $cardaio_id, string $categoria_id, UpdateCategoriaAction $action)
+    public function update(UpdateCategoriaRequest $request,string $cnpj, string $cardapio_id, string $categoria_id, UpdateCategoriaAction $action): JsonResponse
     {
         $dados = $request->validated();
-        $action->handle($dados, $categoria_id, $cardaio_id);
+        $action->handle($dados, $categoria_id, $cardapio_id);
         return response()->json(['message' => 'Categoria atualizada com sucesso.']);
+    }
+
+    public function clone(string $cnpj, string $cardapio_id, string $categoria_id, CloneCategoriaAction $action): RedirectResponse {
+        $action->handle($cardapio_id, $categoria_id);
+        return redirect()->back();
     }
 
     /**

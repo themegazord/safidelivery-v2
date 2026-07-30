@@ -1,3 +1,4 @@
+import ConfirmarClonagemCategoriaDialog from "@/components/Empresa/Categorias/ConfirmarClonagemCategoriaDialog";
 import GerenciarOrdenacaoDialog from "@/components/Empresa/Categorias/GerenciarOrdenacaoDialog";
 import ItensCategoriaTable, {
     ItemNormal,
@@ -54,6 +55,8 @@ export default function Categoria() {
         setHandleDialogGerenciarOrdernacao,
     ] = useState(false);
     const [handleDrawerUpsertCategoria, setHandleDrawerUpsertCategoria] = useState(false)
+    const [handleDialogClonagemCategoria, setHandleDialogClonagemCategoria] = useState(false)
+    const [loadingClonagemCategoria, setLoadingClonagemCategoria] = useState(false)
     const [categoriasState, setCategoriasState] = useState<ICategoria[]>();
     const [categoria, setCategoria] = useState<
         (Partial<CategoriaFormData> & { id: number }) | undefined
@@ -156,10 +159,20 @@ export default function Categoria() {
         setCategoria(undefined)
     }
 
+    async function abreDialogConfirmacaoClonagemCategoria(categoria_id: number) {
+        await axios.get(route('aplicacao.empresa.cardapios.categorias.show', {cnpj, cardapio_id, categoria_id}))
+            .then((response) => {
+                setCategoria(response.data.categoria)
+                setHandleDialogClonagemCategoria(true)
+            })
+            .catch((error) => {
+                toast.error(error.response.data.message)
+            })
+    }
+
     async function abreEdicaoCategoria(categoria_id: number) {
         await axios.get(route('aplicacao.empresa.cardapios.categorias.show', {cnpj, cardapio_id, categoria_id}))
             .then((response) => {
-                console.log(response.data.categoria)
                 setCategoria(response.data.categoria)
                 setHandleDrawerUpsertCategoria(true)
             })
@@ -181,14 +194,7 @@ export default function Categoria() {
     }
 
     async function editarCategoria(categoriaDigitada: CategoriaFormData, categoria_id?: number) {
-        console.log('editarCategoria disparado', { categoria_id, cardapio_id, cnpj })
-        if (!categoria_id) {
-            console.error('editarCategoria chamado sem categoria_id', { categoriaDigitada, categoria_id, categoria })
-            toast.error('Não foi possível identificar a categoria para edição. Feche e reabra o formulário.')
-            return
-        }
         const url = route('aplicacao.empresa.cardapios.categorias.update', {cnpj, cardapio_id, categoria_id})
-        console.log('URL final do PUT:', url)
         await axios.put(url, categoriaDigitada)
             .then((response) => {
                 toast.success(response.data.message);
@@ -199,6 +205,21 @@ export default function Categoria() {
             .catch((error) => {
                 toast.error(error.response.data.message)
             })
+    }
+
+    async function clonarCategoria() {
+        setLoadingClonagemCategoria(true)
+        await axios.post(route('aplicacao.empresa.cardapios.categorias.clone', {cnpj, cardapio_id, categoria_id: categoria?.id}))
+            .then(() => {
+                toast.success('Categoria clonada com sucesso')
+                setCategoria(undefined)
+                setHandleDialogClonagemCategoria(false)
+                router.reload({ only: ['categorias', 'categoriaStatus'] })
+            })
+            .catch((error) => {
+                toast.error(error.response.data.message)
+            })
+            .finally(() => setLoadingClonagemCategoria(false))
     }
 
     return (
@@ -321,7 +342,7 @@ export default function Categoria() {
                                                     setStatusCategoria={() => {}}
                                                     onCriarCombo={() => {}}
                                                     onCriarItem={() => {}}
-                                                    onCategoriaDuplicar={() => {}}
+                                                    onCategoriaDuplicar={abreDialogConfirmacaoClonagemCategoria}
                                                     onCategoriaEditar={abreEdicaoCategoria}
                                                     onCategoriaRemover={() => {}}
                                                     onItensAlterarStatus={() => {}}
@@ -359,6 +380,13 @@ export default function Categoria() {
                         ? editarCategoria(dados, categoria.id)
                         : cadastrarCategoria(dados)
                 }
+            />
+            <ConfirmarClonagemCategoriaDialog
+                open={handleDialogClonagemCategoria}
+                onOpenChange={setHandleDialogClonagemCategoria}
+                categoria={categoria}
+                loading={loadingClonagemCategoria}
+                onSubmit={clonarCategoria}
             />
         </LayoutAutenticado>
     );
