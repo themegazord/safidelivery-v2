@@ -5,7 +5,7 @@ namespace App\Http\Requests\Cardapios\Categorias;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreCategoriaRequest extends FormRequest
+class UpdateCategoriaRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

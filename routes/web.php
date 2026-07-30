@@ -91,6 +91,8 @@ Route::group([], function () {
             Route::prefix('{cardapio_id}/categorias')->group(function () {
                 Route::get('/', [CategoriaController::class, 'index'])->name('aplicacao.empresa.cardapios.categorias.index');
                 Route::post('/', [CategoriaController::class, 'store'])->name('aplicacao.empresa.cardapios.categorias.store');
+                Route::get('/{categoria_id}', [CategoriaController::class, 'show'])->name('aplicacao.empresa.cardapios.categorias.show');
+                Route::put('/{categoria_id}', [CategoriaController::class, 'update'])->name('aplicacao.empresa.cardapios.categorias.update');
                 Route::post('/reordenar', [CategoriaController::class, 'reordenar'])->name('aplicacao.empresa.cardapios.categorias.reordenar');
                 Route::get('/{categoria_id}/itens', [CategoriaController::class, 'itensPorCategoria'])->name('aplicacao.empresa.cardapios.categorias.itens.itens_por_categoria');
             });

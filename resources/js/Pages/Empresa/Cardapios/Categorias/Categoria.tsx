@@ -55,7 +55,9 @@ export default function Categoria() {
     ] = useState(false);
     const [handleDrawerUpsertCategoria, setHandleDrawerUpsertCategoria] = useState(false)
     const [categoriasState, setCategoriasState] = useState<ICategoria[]>();
-    const [categoria, setCategoria] = useState<Partial<CategoriaFormData>>()
+    const [categoria, setCategoria] = useState<
+        (Partial<CategoriaFormData> & { id: number }) | undefined
+    >()
     const TABS_INFO = [
         { value: "categorias", label: "Categorias" },
         { value: "produtos", label: "Produtos" },
@@ -108,7 +110,6 @@ export default function Categoria() {
 
     const handleOpenChange = async (categoriaId: number, open: boolean) => {
         if (open && !itensPorCategoria[categoriaId]) {
-            console.log({ cnpj, cardapio_id, categoria_id: categoriaId });
             setLoadingCategoria(categoriaId);
             await axios
                 .get(
@@ -155,11 +156,44 @@ export default function Categoria() {
         setCategoria(undefined)
     }
 
+    async function abreEdicaoCategoria(categoria_id: number) {
+        await axios.get(route('aplicacao.empresa.cardapios.categorias.show', {cnpj, cardapio_id, categoria_id}))
+            .then((response) => {
+                console.log(response.data.categoria)
+                setCategoria(response.data.categoria)
+                setHandleDrawerUpsertCategoria(true)
+            })
+            .catch((error) => {
+                toast.error(error.response.data.message)
+            })
+    }
+
     async function cadastrarCategoria(categoriaDigitada: CategoriaFormData) {
         await axios.post(route('aplicacao.empresa.cardapios.categorias.store', {cnpj, cardapio_id}), categoriaDigitada)
             .then(() => {
                 toast.success('Categoria cadastrada com sucesso.');
                 setHandleDrawerUpsertCategoria(false)
+                router.reload({ only: ['categorias', 'categoriaStatus'] })
+            })
+            .catch((error) => {
+                toast.error(error.response.data.message)
+            })
+    }
+
+    async function editarCategoria(categoriaDigitada: CategoriaFormData, categoria_id?: number) {
+        console.log('editarCategoria disparado', { categoria_id, cardapio_id, cnpj })
+        if (!categoria_id) {
+            console.error('editarCategoria chamado sem categoria_id', { categoriaDigitada, categoria_id, categoria })
+            toast.error('Não foi possível identificar a categoria para edição. Feche e reabra o formulário.')
+            return
+        }
+        const url = route('aplicacao.empresa.cardapios.categorias.update', {cnpj, cardapio_id, categoria_id})
+        console.log('URL final do PUT:', url)
+        await axios.put(url, categoriaDigitada)
+            .then((response) => {
+                toast.success(response.data.message);
+                setHandleDrawerUpsertCategoria(false)
+                setCategoria(undefined)
                 router.reload({ only: ['categorias', 'categoriaStatus'] })
             })
             .catch((error) => {
@@ -288,7 +322,7 @@ export default function Categoria() {
                                                     onCriarCombo={() => {}}
                                                     onCriarItem={() => {}}
                                                     onCategoriaDuplicar={() => {}}
-                                                    onCategoriaEditar={() => {}}
+                                                    onCategoriaEditar={abreEdicaoCategoria}
                                                     onCategoriaRemover={() => {}}
                                                     onItensAlterarStatus={() => {}}
                                                     onItensDuplicar={() => {}}
@@ -314,13 +348,17 @@ export default function Categoria() {
                 categorias={categorias}
                 onOrdenar={ordernarCategorias}
             />
-            <UpsertCategoriaDrawer 
-                open={handleDrawerUpsertCategoria} 
-                onOpenChange={setHandleDrawerUpsertCategoria} 
+            <UpsertCategoriaDrawer
+                open={handleDrawerUpsertCategoria}
+                onOpenChange={setHandleDrawerUpsertCategoria}
                 categoria={categoria}
                 diasSemana={DIAS_SEMANA}
                 opcoesQtdSabores={QTD_SABORES}
-                onSubmit={!categoria ? cadastrarCategoria : () => {}}
+                onSubmit={(dados) =>
+                    categoria
+                        ? editarCategoria(dados, categoria.id)
+                        : cadastrarCategoria(dados)
+                }
             />
         </LayoutAutenticado>
     );

@@ -66,9 +66,9 @@ export interface CategoriaFormData {
     tipo: TipoCategoria;
     nome: string;
     dias_funcionamento: number[];
-    tamanho: TamanhoPizza[];
-    massa: MassaPizza[];
-    borda: BordaPizza[];
+    tamanhos: TamanhoPizza[];
+    massas: MassaPizza[];
+    bordas: BordaPizza[];
 }
 
 interface UpsertCategoriaDrawerProps {
@@ -78,7 +78,7 @@ interface UpsertCategoriaDrawerProps {
     categoria?: Partial<CategoriaFormData> | null;
     diasSemana: DiaSemana[];
     opcoesQtdSabores: OpcaoQtdSabores[];
-    onSubmit: (categoria: CategoriaFormData) => void;
+    onSubmit: (categoria: CategoriaFormData, categoria_id?: number) => void;
 }
 
 type TabPizza = "detalhes" | "tamanhos" | "massas" | "bordas";
@@ -106,9 +106,9 @@ function criarCategoriaInicial(
         tipo: base?.tipo ?? null,
         nome: base?.nome ?? "",
         dias_funcionamento: base?.dias_funcionamento ?? [],
-        tamanho: base?.tamanho?.length ? base.tamanho : [criarTamanhoVazio()],
-        massa: base?.massa?.length ? base.massa : [criarMassaVazia()],
-        borda: base?.borda?.length ? base.borda : [criarBordaVazia()],
+        tamanhos: base?.tamanhos?.length ? base.tamanhos : [criarTamanhoVazio()],
+        massas: base?.massas?.length ? base.massas : [criarMassaVazia()],
+        bordas: base?.bordas?.length ? base.bordas : [criarBordaVazia()],
     };
 }
 
@@ -553,7 +553,6 @@ export function UpsertCategoriaDrawer({
                                         "flex h-auto flex-col gap-4 overflow-y-auto sm:h-[74vh]",
                                     )}
                                 >
-                                    <h1 className="mb-4 text-2xl sm:text-3xl">Modelo</h1>
                                     <ModeloSelecionado
                                         icon={<Pizza className="size-6" />}
                                         titulo="Pizza"
@@ -618,16 +617,16 @@ export function UpsertCategoriaDrawer({
                                     </p>
 
                                     <div className="flex flex-col gap-4">
-                                        {categoria.tamanho.map((tamanho, idx) => (
+                                        {categoria.tamanhos.map((tamanhos, idx) => (
                                             <LinhaTamanho
                                                 key={idx}
-                                                tamanho={tamanho}
+                                                tamanho={tamanhos}
                                                 opcoesQtdSabores={opcoesQtdSabores}
-                                                podeRemover={categoria.tamanho.length > 1}
+                                                podeRemover={categoria.tamanhos.length > 1}
                                                 onChange={(novoTamanho) =>
                                                     setCategoria((prev) => ({
                                                         ...prev,
-                                                        tamanho: prev.tamanho.map((t, i) =>
+                                                        tamanhos: prev.tamanhos.map((t, i) =>
                                                             i === idx ? novoTamanho : t,
                                                         ),
                                                     }))
@@ -635,7 +634,7 @@ export function UpsertCategoriaDrawer({
                                                 onRemover={() =>
                                                     setCategoria((prev) => ({
                                                         ...prev,
-                                                        tamanho: prev.tamanho.filter(
+                                                        tamanhos: prev.tamanhos.filter(
                                                             (_, i) => i !== idx,
                                                         ),
                                                     }))
@@ -650,8 +649,8 @@ export function UpsertCategoriaDrawer({
                                             onClick={() =>
                                                 setCategoria((prev) => ({
                                                     ...prev,
-                                                    tamanho: [
-                                                        ...prev.tamanho,
+                                                    tamanhos: [
+                                                        ...prev.tamanhos,
                                                         criarTamanhoVazio(),
                                                     ],
                                                 }))
@@ -690,17 +689,17 @@ export function UpsertCategoriaDrawer({
                                     </p>
 
                                     <div className="flex flex-col gap-4">
-                                        {categoria.massa.map((massa, idx) => (
+                                        {categoria.massas.map((massa, idx) => (
                                             <LinhaPrecoNomeCodigo
                                                 key={idx}
                                                 nome={massa.nome}
                                                 preco={massa.preco}
                                                 externalId={massa.external_id}
-                                                podeRemover={categoria.massa.length > 1}
+                                                podeRemover={categoria.massas.length > 1}
                                                 onChangeNome={(v) =>
                                                     setCategoria((prev) => ({
                                                         ...prev,
-                                                        massa: prev.massa.map((m, i) =>
+                                                        massas: prev.massas.map((m, i) =>
                                                             i === idx ? { ...m, nome: v } : m,
                                                         ),
                                                     }))
@@ -708,7 +707,7 @@ export function UpsertCategoriaDrawer({
                                                 onChangePreco={(v) =>
                                                     setCategoria((prev) => ({
                                                         ...prev,
-                                                        massa: prev.massa.map((m, i) =>
+                                                        massas: prev.massas.map((m, i) =>
                                                             i === idx ? { ...m, preco: v } : m,
                                                         ),
                                                     }))
@@ -716,7 +715,7 @@ export function UpsertCategoriaDrawer({
                                                 onChangeExternalId={(v) =>
                                                     setCategoria((prev) => ({
                                                         ...prev,
-                                                        massa: prev.massa.map((m, i) =>
+                                                        massas: prev.massas.map((m, i) =>
                                                             i === idx
                                                                 ? { ...m, external_id: v }
                                                                 : m,
@@ -726,7 +725,7 @@ export function UpsertCategoriaDrawer({
                                                 onRemover={() =>
                                                     setCategoria((prev) => ({
                                                         ...prev,
-                                                        massa: prev.massa.filter(
+                                                        massas: prev.massas.filter(
                                                             (_, i) => i !== idx,
                                                         ),
                                                     }))
@@ -741,7 +740,7 @@ export function UpsertCategoriaDrawer({
                                             onClick={() =>
                                                 setCategoria((prev) => ({
                                                     ...prev,
-                                                    massa: [...prev.massa, criarMassaVazia()],
+                                                    massas: [...prev.massas, criarMassaVazia()],
                                                 }))
                                             }
                                         >
@@ -778,17 +777,17 @@ export function UpsertCategoriaDrawer({
                                     </p>
 
                                     <div className="flex flex-col gap-4">
-                                        {categoria.borda.map((borda, idx) => (
+                                        {categoria.bordas.map((bordas, idx) => (
                                             <LinhaPrecoNomeCodigo
                                                 key={idx}
-                                                nome={borda.nome}
-                                                preco={borda.preco}
-                                                externalId={borda.external_id}
-                                                podeRemover={categoria.borda.length > 1}
+                                                nome={bordas.nome}
+                                                preco={bordas.preco}
+                                                externalId={bordas.external_id}
+                                                podeRemover={categoria.bordas.length > 1}
                                                 onChangeNome={(v) =>
                                                     setCategoria((prev) => ({
                                                         ...prev,
-                                                        borda: prev.borda.map((b, i) =>
+                                                        bordas: prev.bordas.map((b, i) =>
                                                             i === idx ? { ...b, nome: v } : b,
                                                         ),
                                                     }))
@@ -796,7 +795,7 @@ export function UpsertCategoriaDrawer({
                                                 onChangePreco={(v) =>
                                                     setCategoria((prev) => ({
                                                         ...prev,
-                                                        borda: prev.borda.map((b, i) =>
+                                                        bordas: prev.bordas.map((b, i) =>
                                                             i === idx ? { ...b, preco: v } : b,
                                                         ),
                                                     }))
@@ -804,7 +803,7 @@ export function UpsertCategoriaDrawer({
                                                 onChangeExternalId={(v) =>
                                                     setCategoria((prev) => ({
                                                         ...prev,
-                                                        borda: prev.borda.map((b, i) =>
+                                                        bordas: prev.bordas.map((b, i) =>
                                                             i === idx
                                                                 ? { ...b, external_id: v }
                                                                 : b,
@@ -814,7 +813,7 @@ export function UpsertCategoriaDrawer({
                                                 onRemover={() =>
                                                     setCategoria((prev) => ({
                                                         ...prev,
-                                                        borda: prev.borda.filter(
+                                                        bordas: prev.bordas.filter(
                                                             (_, i) => i !== idx,
                                                         ),
                                                     }))
@@ -829,7 +828,7 @@ export function UpsertCategoriaDrawer({
                                             onClick={() =>
                                                 setCategoria((prev) => ({
                                                     ...prev,
-                                                    borda: [...prev.borda, criarBordaVazia()],
+                                                    bordas: [...prev.bordas, criarBordaVazia()],
                                                 }))
                                             }
                                         >

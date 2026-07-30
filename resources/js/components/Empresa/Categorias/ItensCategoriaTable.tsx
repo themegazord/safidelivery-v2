@@ -19,7 +19,7 @@ import { Eye, EyeOff, Copy, Pencil, Trash2, Plus, EllipsisVertical, SquarePen, T
 import { ICategoriaStatus } from "@/types/empresa/cardapios/types";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 // ---------------------------------------------------------------------------
 // Tipos
@@ -188,23 +188,27 @@ function CelulaCodPdv({
 // Tabela de pizzas (categoriaTipo === "P")
 // ---------------------------------------------------------------------------
 
+type ItensTabelaComunsProps = Pick<
+    ItensCategoriaTableProps,
+    | "categoriaId"
+    | "atualizacaoEmMassa"
+    | "onItensAlterarStatus"
+    | "onItensDuplicar"
+    | "onItensEditar"
+    | "onItensRemover"
+    | "onItensAtualizaCodPdv"
+>;
+
 function TabelaPizzas({
     itens,
     categoriaId,
     atualizacaoEmMassa,
-    status,
-    setStatusCategoria,
-    onCriarCombo,
-    onCriarItem,
-    onCategoriaDuplicar,
-    onCategoriaEditar,
-    onCategoriaRemover,
     onItensAlterarStatus,
     onItensDuplicar,
     onItensEditar,
     onItensRemover,
     onItensAtualizaCodPdv,
-}: Omit<ItensCategoriaTableProps, "categoriaTipo" | "itens" | "onItensAtualizaPreco" | "categoriasStatus"> & {
+}: ItensTabelaComunsProps & {
     itens: ItemPizza[];
 }) {
     const linhas = itens.map((item) => {
@@ -224,27 +228,6 @@ function TabelaPizzas({
 
     return (
         <div className="flex flex-col gap-2">
-            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 w-full">
-                <Field orientation={"horizontal"}>
-                    <Checkbox checked={status} onCheckedChange={(checked) => setStatusCategoria(categoriaId, checked as boolean)} />
-                    <FieldLabel>Inativo?</FieldLabel>
-                </Field>
-                <div className="flex flex-row gap-4">
-                    <Button onClick={() => onCriarCombo(categoriaId, true)}>{<Plus />}Adicionar combo</Button>
-                    <Button onClick={() => onCriarItem(categoriaId, true)}>{<Plus />}Adicionar item</Button>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger render={<Button variant={"ghost"} />}>
-                            <EllipsisVertical />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                            <DropdownMenuLabel>Opções</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => onCategoriaDuplicar(categoriaId)}><Copy /> Duplicar</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onCategoriaEditar(categoriaId)}><SquarePen /> Editar</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onCategoriaRemover(categoriaId)} variant="destructive"><Trash /> Remover</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-            </div>
             <Table>
                 <TableHeader>
                     <TableRow>
@@ -362,44 +345,17 @@ function TabelaItensNormais({
     categoriaId,
     atualizacaoEmMassa,
     onItensAlterarStatus,
-    status,
-    setStatusCategoria,
-    onCriarCombo,
-    onCriarItem,
-    onCategoriaDuplicar,
-    onCategoriaEditar,
-    onCategoriaRemover,
     onItensDuplicar,
     onItensEditar,
     onItensRemover,
     onItensAtualizaCodPdv,
     onItensAtualizaPreco,
-}: Omit<ItensCategoriaTableProps, "categoriaTipo" | "itens" | "categoriasStatus"> & {
+}: ItensTabelaComunsProps & {
     itens: ItemNormal[];
+    onItensAtualizaPreco: ItensCategoriaTableProps["onItensAtualizaPreco"];
 }) {
     return (
         <div className="flex flex-col gap-2">
-            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 w-full">
-                <Field orientation={"horizontal"}>
-                    <Checkbox checked={status} onCheckedChange={(checked) => setStatusCategoria(categoriaId, checked as boolean)} />
-                    <FieldLabel>Inativo?</FieldLabel>
-                </Field>
-                <div className="flex flex-row gap-4">
-                    <Button onClick={() => onCriarCombo(categoriaId, true)}>{<Plus />}Adicionar combo</Button>
-                    <Button onClick={() => onCriarItem(categoriaId, true)}>{<Plus />}Adicionar item</Button>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger render={<Button variant={"ghost"} />}>
-                            <EllipsisVertical />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                            <DropdownMenuLabel>Opções</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => onCategoriaDuplicar(categoriaId)}><Copy /> Duplicar</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onCategoriaEditar(categoriaId)}><SquarePen /> Editar</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onCategoriaRemover(categoriaId)} variant="destructive"><Trash /> Remover</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-            </div>
             <Table>
                 <TableHeader>
                     <TableRow>
@@ -467,6 +423,7 @@ export function ItensCategoriaTable({
     categoriaId,
     categoriasStatus,
     setStatusCategoria,
+    status,
     itens,
     atualizacaoEmMassa = null,
     onCriarCombo,
@@ -480,57 +437,62 @@ export function ItensCategoriaTable({
     onItensRemover,
     onItensAtualizaCodPdv,
     onItensAtualizaPreco,
-}: Omit<ItensCategoriaTableProps, 'status'>) {
-    if (itens.length === 0) {
-        return (
-            <div className="p-4 text-center text-muted-foreground">
-                Nenhum item cadastrado nesta categoria.
-            </div>
-        );
-    }
-
-    if (categoriaTipo === "P") {
-        return (
-            <TabelaPizzas
-                itens={itens as ItemPizza[]}
-                categoriaId={categoriaId}
-                status={categoriasStatus.find(cs => cs.id === categoriaId)?.inativo}
-                setStatusCategoria={setStatusCategoria}
-                atualizacaoEmMassa={atualizacaoEmMassa}
-                onCriarCombo={onCriarCombo}
-                onCriarItem={onCriarItem}
-                onCategoriaDuplicar={onCategoriaDuplicar}
-                onCategoriaEditar={onCategoriaEditar}
-                onCategoriaRemover={onCategoriaRemover}
-                onItensAlterarStatus={onItensAlterarStatus}
-                onItensDuplicar={onItensDuplicar}
-                onItensEditar={onItensEditar}
-                onItensRemover={onItensRemover}
-                onItensAtualizaCodPdv={onItensAtualizaCodPdv}
-            />
-        );
-    }
-
+}: ItensCategoriaTableProps) {
     return (
-        <TabelaItensNormais
-            itens={itens as ItemNormal[]}
-            categoriaId={categoriaId}
-            atualizacaoEmMassa={atualizacaoEmMassa}
-            status={categoriasStatus.find(cs => cs.id === categoriaId)?.inativo}
-            setStatusCategoria={setStatusCategoria}
-            onCriarCombo={onCriarCombo}
-            onCriarItem={onCriarItem}
-            onCategoriaDuplicar={onCategoriaDuplicar}
-            onCategoriaEditar={onCategoriaEditar}
-            onCategoriaRemover={onCategoriaRemover}
-            onItensAlterarStatus={onItensAlterarStatus}
-            onItensDuplicar={onItensDuplicar}
-            onItensEditar={onItensEditar}
-            onItensRemover={onItensRemover}
-            onItensAtualizaCodPdv={onItensAtualizaCodPdv}
-            onItensAtualizaPreco={onItensAtualizaPreco}
-        />
-    );
+        <div className="flex flex-col gap-2">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 w-full">
+                <Field orientation={"horizontal"}>
+                    <Checkbox checked={status} onCheckedChange={(checked) => setStatusCategoria(categoriaId, checked as boolean)} />
+                    <FieldLabel>Inativo?</FieldLabel>
+                </Field>
+                <div className="flex flex-row gap-4">
+                    <Button onClick={() => onCriarCombo(categoriaId, true)}>{<Plus />}Adicionar combo</Button>
+                    <Button onClick={() => onCriarItem(categoriaId, true)}>{<Plus />}Adicionar item</Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger render={<Button variant={"ghost"} />}>
+                            <EllipsisVertical />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuGroup>
+                                <DropdownMenuLabel>Opções</DropdownMenuLabel>
+                                <DropdownMenuItem onClick={() => onCategoriaDuplicar(categoriaId)}><Copy /> Duplicar</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => onCategoriaEditar(categoriaId)}><SquarePen /> Editar</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => onCategoriaRemover(categoriaId)} variant="destructive"><Trash /> Remover</DropdownMenuItem>
+                            </DropdownMenuGroup>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            </div>
+            {itens.length === 0 ? (
+                <div className="p-4 text-center text-muted-foreground">
+                    Nenhum item cadastrado nesta categoria.
+                </div>
+            ) : categoriaTipo === "P" ? (
+                <TabelaPizzas
+                    itens={itens as ItemPizza[]}
+                    categoriaId={categoriaId}
+                    atualizacaoEmMassa={atualizacaoEmMassa}
+                    onItensAlterarStatus={onItensAlterarStatus}
+                    onItensDuplicar={onItensDuplicar}
+                    onItensEditar={onItensEditar}
+                    onItensRemover={onItensRemover}
+                    onItensAtualizaCodPdv={onItensAtualizaCodPdv}
+                />
+            ) : (
+                <TabelaItensNormais
+                    itens={itens as ItemNormal[]}
+                    categoriaId={categoriaId}
+                    atualizacaoEmMassa={atualizacaoEmMassa}
+                    onItensAlterarStatus={onItensAlterarStatus}
+                    onItensDuplicar={onItensDuplicar}
+                    onItensEditar={onItensEditar}
+                    onItensRemover={onItensRemover}
+                    onItensAtualizaCodPdv={onItensAtualizaCodPdv}
+                    onItensAtualizaPreco={onItensAtualizaPreco}
+                />
+            )}
+        </div>
+    )
 }
 
 export default ItensCategoriaTable;

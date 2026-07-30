@@ -21,9 +21,9 @@ namespace App\Actions\Categorias {
     public function handle(array $dados, Cardapio $cardapio, bool $exportaDadosIfood, Empresa $empresa)
     {
       if ($dados['tipo'] === 'P') {
-        $conflito = $this->validarExternalIdUnico($dados['tamanho'], 'tamanho', $cardapio->id)
-          ?? $this->validarExternalIdUnico($dados['massa'], 'massa', $cardapio->id)
-          ?? $this->validarExternalIdUnico($dados['borda'], 'borda', $cardapio->id);
+        $conflito = $this->validarExternalIdUnico($dados['tamanhos'], 'tamanho', $cardapio->id)
+          ?? $this->validarExternalIdUnico($dados['massas'], 'massa', $cardapio->id)
+          ?? $this->validarExternalIdUnico($dados['bordas'], 'borda', $cardapio->id);
 
         if ($conflito) {
           throw new Exception($conflito, Response::HTTP_UNPROCESSABLE_ENTITY);
@@ -41,19 +41,19 @@ namespace App\Actions\Categorias {
           ]);
 
           if ($dados['tipo'] === 'P') {
-            foreach ($dados['tamanho'] as $tamanho) {
+            foreach ($dados['tamanhos'] as $tamanho) {
               CategoriaTamanho::query()->create([
                 'categoria_id' => $categoria->id,
                 ...$tamanho,
               ]);
             }
-            foreach ($dados['massa'] as $massa) {
+            foreach ($dados['massas'] as $massa) {
               CategoriaMassa::query()->create([
                 'categoria_id' => $categoria->id,
                 ...$massa,
               ]);
             }
-            foreach ($dados['borda'] as $borda) {
+            foreach ($dados['bordas'] as $borda) {
               CategoriaBorda::query()->create([
                 'categoria_id' => $categoria->id,
                 ...$borda,
