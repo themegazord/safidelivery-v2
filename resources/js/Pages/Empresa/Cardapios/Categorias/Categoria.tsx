@@ -1,4 +1,5 @@
 import ConfirmarClonagemCategoriaDialog from "@/components/Empresa/Categorias/ConfirmarClonagemCategoriaDialog";
+import ConfirmarRemocaoCategoriaDialog from "@/components/Empresa/Categorias/ConfirmarRemocaoCategoriaDialog";
 import GerenciarOrdenacaoDialog from "@/components/Empresa/Categorias/GerenciarOrdenacaoDialog";
 import ItensCategoriaTable, {
     ItemNormal,
@@ -56,7 +57,9 @@ export default function Categoria() {
     ] = useState(false);
     const [handleDrawerUpsertCategoria, setHandleDrawerUpsertCategoria] = useState(false)
     const [handleDialogClonagemCategoria, setHandleDialogClonagemCategoria] = useState(false)
+    const [handleDialogRemocaoCategoria, setHandleDialogRemocaoCategoria] = useState(false)
     const [loadingClonagemCategoria, setLoadingClonagemCategoria] = useState(false)
+    const [loadingRemocaoCategoria, setLoadingRemocaoCategoria] = useState(false)
     const [categoriasState, setCategoriasState] = useState<ICategoria[]>();
     const [categoria, setCategoria] = useState<
         (Partial<CategoriaFormData> & { id: number }) | undefined
@@ -181,6 +184,17 @@ export default function Categoria() {
             })
     }
 
+    async function abreRemocaoCategoria(categoria_id: number) {
+        await axios.get(route('aplicacao.empresa.cardapios.categorias.show', {cnpj, cardapio_id, categoria_id}))
+            .then((response) => {
+                setCategoria(response.data.categoria)
+                setHandleDialogRemocaoCategoria(true)
+            })
+            .catch((error) => {
+                toast.error(error.response.data.message)
+            })
+    }
+
     async function cadastrarCategoria(categoriaDigitada: CategoriaFormData) {
         await axios.post(route('aplicacao.empresa.cardapios.categorias.store', {cnpj, cardapio_id}), categoriaDigitada)
             .then(() => {
@@ -220,6 +234,21 @@ export default function Categoria() {
                 toast.error(error.response.data.message)
             })
             .finally(() => setLoadingClonagemCategoria(false))
+    }
+
+    async function removerCategoria() {
+        setLoadingRemocaoCategoria(true)
+        await axios.delete(route('aplicacao.empresa.cardapios.categorias.delete', {cnpj, cardapio_id, categoria_id: categoria?.id}))
+            .then((response) => {
+                toast.success(response.data.mensagem)
+                setHandleDialogRemocaoCategoria(false)
+                setCategoria(undefined)
+                router.reload({ only: ['categorias', 'categoriaStatus'] })
+            })
+            .catch((error) => {
+                toast.error(error.response.data.message)
+            })
+            .finally(() => setLoadingRemocaoCategoria(false))
     }
 
     return (
@@ -344,7 +373,7 @@ export default function Categoria() {
                                                     onCriarItem={() => {}}
                                                     onCategoriaDuplicar={abreDialogConfirmacaoClonagemCategoria}
                                                     onCategoriaEditar={abreEdicaoCategoria}
-                                                    onCategoriaRemover={() => {}}
+                                                    onCategoriaRemover={abreRemocaoCategoria}
                                                     onItensAlterarStatus={() => {}}
                                                     onItensDuplicar={() => {}}
                                                     onItensEditar={() => {}}
@@ -387,6 +416,13 @@ export default function Categoria() {
                 categoria={categoria}
                 loading={loadingClonagemCategoria}
                 onSubmit={clonarCategoria}
+            />
+            <ConfirmarRemocaoCategoriaDialog
+                open={handleDialogRemocaoCategoria}
+                onOpenChange={setHandleDialogRemocaoCategoria}
+                categoria={categoria}
+                loading={loadingRemocaoCategoria}
+                onSubmit={removerCategoria}
             />
         </LayoutAutenticado>
     );

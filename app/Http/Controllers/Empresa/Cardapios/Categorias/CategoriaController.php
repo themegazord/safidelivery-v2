@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Empresa\Cardapios\Categorias;
 
 use App\Actions\Categorias\CloneCategoriaAction;
+use App\Actions\Categorias\DestroyCategoriaAction;
 use App\Actions\Categorias\IndexCategoriaAction;
 use App\Actions\Categorias\ReordenarCategoriaAction;
 use App\Actions\Categorias\ShowCategoriaAction;
@@ -97,8 +98,9 @@ class CategoriaController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(string $cnpj, string $cardapio_id, string $categoria_id, DestroyCategoriaAction $action): JsonResponse
     {
-        //
+        $action->handle($categoria_id, $cardapio_id);
+        return response()->json(['mensagem' => 'Categoria removida com sucesso.']);
     }
 }
