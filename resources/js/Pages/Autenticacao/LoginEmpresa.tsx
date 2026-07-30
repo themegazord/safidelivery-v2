@@ -93,7 +93,7 @@ export default function LoginEmpresa() {
                             </CardContent>
                             <CardFooter>
                                 <div className="flex w-full flex-col gap-2">
-                                    <Button className="w-full" disabled={processing}>
+                                    <Button type="submit" className="w-full" disabled={processing}>
                                         <span className="flex items-center gap-2">
                                             {processing ? (
                                                 <>
