@@ -132,9 +132,9 @@ function OpcaoTipoCategoria({
             type="button"
             variant="outline"
             onClick={onClick}
-            className="flex h-24 w-full flex-nowrap items-center justify-start gap-4 p-4 text-left hover:border-primary hover:bg-primary/5"
+            className="flex h-24 w-full flex-nowrap justify-start gap-4 p-4"
         >
-            <span className="shrink-0 text-muted-foreground">{icon}</span>
+            {icon}
             <div className="flex flex-col items-start gap-1 whitespace-normal">
                 <h3 className="text-base font-bold sm:text-lg">{titulo}</h3>
                 <p className="w-full text-sm text-muted-foreground sm:text-base">

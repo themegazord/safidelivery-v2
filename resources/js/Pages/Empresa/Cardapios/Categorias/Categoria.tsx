@@ -7,6 +7,7 @@ import ItensCategoriaTable, {
 } from "@/components/Empresa/Categorias/ItensCategoriaTable";
 import ItensCategoriaTableSkeleton from "@/components/Empresa/Categorias/ItensCategoriaTableSkeleton";
 import UpsertCategoriaDrawer, { CategoriaFormData } from "@/components/Empresa/Categorias/UpsertCategoriaDrawer";
+import UpsertItemDrawer, { TItem } from "@/components/Empresa/Itens/UpsertItemDrawer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -56,6 +57,7 @@ export default function Categoria() {
         setHandleDialogGerenciarOrdernacao,
     ] = useState(false);
     const [handleDrawerUpsertCategoria, setHandleDrawerUpsertCategoria] = useState(false)
+    const [handleDrawerUpsertItem, setHandleDrawerUpsertItem] = useState(false)
     const [handleDialogClonagemCategoria, setHandleDialogClonagemCategoria] = useState(false)
     const [handleDialogRemocaoCategoria, setHandleDialogRemocaoCategoria] = useState(false)
     const [loadingClonagemCategoria, setLoadingClonagemCategoria] = useState(false)
@@ -64,6 +66,7 @@ export default function Categoria() {
     const [categoria, setCategoria] = useState<
         (Partial<CategoriaFormData> & { id: number }) | undefined
     >()
+    const [item, setItem] = useState<(Partial<TItem> & {id?: number}) | undefined>()
     const TABS_INFO = [
         { value: "categorias", label: "Categorias" },
         { value: "produtos", label: "Produtos" },
@@ -156,45 +159,36 @@ export default function Categoria() {
                 ),
             );
     }
-
+    // Funções de manipulação do drawer item
     function abreCadastroCategoria() {
         setHandleDrawerUpsertCategoria(true)
         setCategoria(undefined)
     }
 
     async function abreDialogConfirmacaoClonagemCategoria(categoria_id: number) {
-        await axios.get(route('aplicacao.empresa.cardapios.categorias.show', {cnpj, cardapio_id, categoria_id}))
-            .then((response) => {
-                setCategoria(response.data.categoria)
-                setHandleDialogClonagemCategoria(true)
-            })
-            .catch((error) => {
-                toast.error(error.response.data.message)
-            })
+        setCategoriaAtual(categoria_id)
+        setHandleDialogClonagemCategoria(true)
     }
 
     async function abreEdicaoCategoria(categoria_id: number) {
-        await axios.get(route('aplicacao.empresa.cardapios.categorias.show', {cnpj, cardapio_id, categoria_id}))
-            .then((response) => {
-                setCategoria(response.data.categoria)
-                setHandleDrawerUpsertCategoria(true)
-            })
-            .catch((error) => {
-                toast.error(error.response.data.message)
-            })
+        setCategoriaAtual(categoria_id)
+        setHandleDrawerUpsertCategoria(true)
     }
 
     async function abreRemocaoCategoria(categoria_id: number) {
-        await axios.get(route('aplicacao.empresa.cardapios.categorias.show', {cnpj, cardapio_id, categoria_id}))
-            .then((response) => {
-                setCategoria(response.data.categoria)
-                setHandleDialogRemocaoCategoria(true)
-            })
-            .catch((error) => {
-                toast.error(error.response.data.message)
-            })
+        setCategoriaAtual(categoria_id)
+        setHandleDialogRemocaoCategoria(true)
     }
-
+    // Funções de manipulação do drawer item
+    function abreCadastroItem(categoria_id: number, status: boolean) {
+        const categoriaSelecionada = categoriasState?.find((c) => c.id === categoria_id)
+        setItem({
+            categoria_id,
+            categoria_tipo: categoriaSelecionada?.tipo as 'I' | 'P',
+        })
+        setHandleDrawerUpsertItem(status)
+    }
+    // Funções CRUD categoria
     async function cadastrarCategoria(categoriaDigitada: CategoriaFormData) {
         await axios.post(route('aplicacao.empresa.cardapios.categorias.store', {cnpj, cardapio_id}), categoriaDigitada)
             .then(() => {
@@ -249,6 +243,18 @@ export default function Categoria() {
                 toast.error(error.response.data.message)
             })
             .finally(() => setLoadingRemocaoCategoria(false))
+    }
+
+    // Utils
+
+    async function setCategoriaAtual(categoria_id: number) {
+        await axios.get(route('aplicacao.empresa.cardapios.categorias.show', {cnpj, cardapio_id, categoria_id}))
+            .then((response) => {
+                setCategoria(response.data.categoria)
+            })
+            .catch((error) => {
+                toast.error(error.response.data.message)
+            })
     }
 
     return (
@@ -370,7 +376,7 @@ export default function Categoria() {
                                                     }
                                                     setStatusCategoria={() => {}}
                                                     onCriarCombo={() => {}}
-                                                    onCriarItem={() => {}}
+                                                    onCriarItem={abreCadastroItem}
                                                     onCategoriaDuplicar={abreDialogConfirmacaoClonagemCategoria}
                                                     onCategoriaEditar={abreEdicaoCategoria}
                                                     onCategoriaRemover={abreRemocaoCategoria}
@@ -409,6 +415,11 @@ export default function Categoria() {
                         ? editarCategoria(dados, categoria.id)
                         : cadastrarCategoria(dados)
                 }
+            />
+            <UpsertItemDrawer 
+                item={item}
+                open={handleDrawerUpsertItem}
+                onOpenChange={setHandleDrawerUpsertItem}
             />
             <ConfirmarClonagemCategoriaDialog
                 open={handleDialogClonagemCategoria}

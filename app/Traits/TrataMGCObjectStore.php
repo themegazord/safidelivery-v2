@@ -4,8 +4,11 @@ namespace App\Traits;
 
 use Aws\S3\S3Client;
 use Aws\Exception\AwsException;
+use Exception;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpFoundation\Response;
 
 trait TrataMGCObjectStore
 {
@@ -19,8 +22,36 @@ trait TrataMGCObjectStore
         'secret' => env('MGC_SECRET_ACCESS_KEY')
       ],
       'endpoint' => env('MGC_ENDPOINT'),
-      'use_path_style_endpoint' => env('MGC_USE_PATH_STYLE_ENDPOINT'),
+      'use_path_style_endpoint' => filter_var(env('MGC_USE_PATH_STYLE_ENDPOINT'), FILTER_VALIDATE_BOOLEAN),
     ]);
+  }
+
+  public function uploadImagem(string $nomeBucket, UploadedFile $imagem): string|bool
+  {
+    try {
+      $s3client = $this->criarClienteS3();
+
+      $caminhoArquivo = $imagem->getRealPath();
+      $nomeArquivo = $imagem->getClientOriginalName();
+      $extensao = $imagem->getClientOriginalExtension();
+      $key = uuid_create() . ($extensao ? ".{$extensao}" : '');
+
+      if (!file_exists($caminhoArquivo)) {
+        throw new Exception("O arquivo {$caminhoArquivo} não foi encontrado. Por favor, entrar em contato com o suporte.", Response::HTTP_INTERNAL_SERVER_ERROR);
+      }
+
+      $resultado = $s3client->putObject([
+        'Bucket' => $nomeBucket,
+        'Key' => $key,
+        'SourceFile' => $caminhoArquivo,
+        'ContentType' => mime_content_type($caminhoArquivo),
+      ]);
+
+      return $resultado->get('ObjectURL');
+
+    } catch (AwsException $e) {
+      throw new Exception('Erro ao enviar a imagem para a nuvem: ' . $e->getMessage(), $e->getCode(), $e);
+    }
   }
 
   /**
@@ -36,8 +67,7 @@ public function importarImagemUrl(string $nomeBucket, string $imageUrl, ?string 
     try {
         // 1. Valida a URL
         if (empty($imageUrl) || !filter_var($imageUrl, FILTER_VALIDATE_URL)) {
-            $this->warning("URL de imagem inválida: {$imageUrl}");
-            return false;
+            throw new Exception("URL de imagem inválida: {$imageUrl}", Response::HTTP_NOT_FOUND);
         }
 
         // 2. Baixa a imagem
@@ -46,8 +76,7 @@ public function importarImagemUrl(string $nomeBucket, string $imageUrl, ?string 
             ->get($imageUrl);
 
         if (!$response->successful()) {
-            $this->warning("Falha ao baixar imagem: {$imageUrl} (Status: {$response->status()})");
-            return false;
+            throw new Exception("Falha ao baixar imagem: {$imageUrl} (Status: {$response->status()})", Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $imageContent = $response->body();
@@ -108,7 +137,7 @@ public function importarImagemUrl(string $nomeBucket, string $imageUrl, ?string 
     }
 }
 
-  public function removeImagem(string $nomeBucket, string $link_imagem): void {
+  public function removeImagem(string $nomeBucket, string $link_imagem): bool {
     try {
       $s3client = $this->criarClienteS3();
 
@@ -116,9 +145,9 @@ public function importarImagemUrl(string $nomeBucket, string $imageUrl, ?string 
         'Bucket' => $nomeBucket,
         'Key' => substr($link_imagem, -36)
       ]);
-      $this->info('Imagem removida da nuvem');
+      return true;
     } catch (AwsException $e) {
-      $this->warning('Erro ao remover a imagem da nuvem: ' . $e->getMessage());
+      throw new Exception('Erro ao remover a imagem da nuvem: ' . $e->getMessage(), $e->getCode(), $e);
     }
   }
 }

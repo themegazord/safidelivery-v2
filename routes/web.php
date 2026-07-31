@@ -6,6 +6,7 @@ use App\Http\Controllers\Empresa\CardapioDigital\CardapioController;
 use App\Http\Controllers\Empresa\CardapioDigital\FinalizarPedidoController;
 use App\Http\Controllers\Empresa\Cardapios\CardapioController as EmpresaCardapioController;
 use App\Http\Controllers\Empresa\Cardapios\Categorias\CategoriaController;
+use App\Http\Controllers\Empresa\Cardapios\Categorias\Itens\ItemController;
 use App\Http\Controllers\Empresa\Cashback\CashbackConfigController;
 use App\Http\Controllers\Empresa\ConfigEmpresa\ConfiguracoesController;
 use App\Http\Controllers\Empresa\ConfigEmpresa\IntegracoesController;
@@ -97,6 +98,9 @@ Route::group([], function () {
                 Route::delete('/{categoria_id}', [CategoriaController::class, 'destroy'])->name('aplicacao.empresa.cardapios.categorias.delete');
                 Route::post('/reordenar', [CategoriaController::class, 'reordenar'])->name('aplicacao.empresa.cardapios.categorias.reordenar');
                 Route::get('/{categoria_id}/itens', [CategoriaController::class, 'itensPorCategoria'])->name('aplicacao.empresa.cardapios.categorias.itens.itens_por_categoria');
+                Route::prefix('itens')->group(function () {
+                    Route::post('storeImage', [ItemController::class, 'storeImage'])->name('aplicacao.empresa.cardapios.categorias.item.store-imagem');
+                });
             });
         });
     });
