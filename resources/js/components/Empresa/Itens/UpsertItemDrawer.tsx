@@ -52,6 +52,15 @@ type TPrecoPizza = {
 
 export type TItem = IItemBase & IItemNormal & IItemPizza
 
+// Remove uma imagem ainda não vinculada a um item salvo (best-effort: se
+// falhar aqui, a limpeza agendada no backend remove mais tarde).
+async function apagarImagemPendente(cnpj: string, cardapio_id: string, url: string) {
+  await axios.delete(route('aplicacao.empresa.cardapios.categorias.item.destroy-imagem', {
+    cnpj,
+    cardapio_id,
+  }), { data: { url } }).catch(() => {})
+}
+
 type TBotoesSelecionarTipoItem = {
   tipo: 'PRE' | 'BEB' | 'IND',
   title: string,
@@ -118,6 +127,7 @@ function DrawerContentItemNormal({
   }
   async function uploadImagem(file: File) {
     setIsUploadingImage(true)
+    const imagemAnterior = item.imagem
     const formData = new FormData();
     formData.append('imagem', file);
     await axios.post(route('aplicacao.empresa.cardapios.categorias.item.store-imagem', {
@@ -129,6 +139,10 @@ function DrawerContentItemNormal({
           ...prev,
           imagem: response.data.url
         }))
+        // Troca de imagem: a anterior nunca foi vinculada a um item salvo, então some.
+        if (imagemAnterior) {
+          apagarImagemPendente(cnpj, cardapio_id, imagemAnterior)
+        }
       })
       .catch((error) => {
         toast.error(error.response.data.message)
@@ -202,6 +216,15 @@ export default function UpsertItemDrawer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
+  // Fechou sem finalizar o cadastro (Esc, clique fora, swipe, botão Cancelar):
+  // a imagem enviada ainda não está vinculada a nenhum item, então remove.
+  function handleOpenChange(value: boolean) {
+    if (!value && item.imagem) {
+      apagarImagemPendente(cnpj, cardapio_id, item.imagem)
+    }
+    onOpenChange(value)
+  }
+
   const SELECT_ITEM_TYPE_BUTTON: TBotoesSelecionarTipoItem[] = [
   {
     tipo: 'PRE',
@@ -223,7 +246,7 @@ export default function UpsertItemDrawer({
   },
 ]
   return (
-    <Drawer open={open} onOpenChange={onOpenChange} swipeDirection="right">
+    <Drawer open={open} onOpenChange={handleOpenChange} swipeDirection="right">
       {item.categoria_tipo === 'I' && !item.tipo && (
         <DrawerContent className="w-full p-6 lg:w-[55vw]">
           <DrawerHeader>
@@ -232,10 +255,10 @@ export default function UpsertItemDrawer({
           </DrawerHeader>
           <div className="flex flex-col gap-4 mt-4">
             {SELECT_ITEM_TYPE_BUTTON.map((b, bIdx) => (
-              <Button 
-                variant={"outline"} 
-                type="button" key={bIdx} 
-                className="flex h-24 w-full flex-nowrap justify-start gap-4 p-4" 
+              <Button
+                variant={"outline"}
+                type="button" key={bIdx}
+                className="flex h-24 w-full flex-nowrap justify-start gap-4 p-4"
                 onClick={() => setItem(prev => ({
                   ...prev,
                   tipo: b.tipo
@@ -251,7 +274,7 @@ export default function UpsertItemDrawer({
         </DrawerContent>
       )}
       {item.tipo === 'PRE' && (
-        <DrawerContentItemNormal 
+        <DrawerContentItemNormal
           item={item}
           setItem={setItem}
           cnpj={cnpj}

@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Empresa\Cardapios\Categorias\Itens;
 
+use App\Actions\Itens\DestroyImagemItemAction;
 use App\Actions\Itens\StoreImagemItemAction;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Cardapios\Categorias\Itens\DestroyImagemItemRequest;
 use App\Http\Requests\Cardapios\Categorias\Itens\StoreImagemItemRequest;
 use Illuminate\Http\Request;
 
@@ -31,6 +33,12 @@ class ItemController extends Controller
         $imagem = $request->file('imagem');
         $url = $action->handle($imagem);
         return response()->json(['url' => $url]);
+    }
+
+    public function destroyImage(DestroyImagemItemRequest $request, string $cnpj, string $cardapio_id, DestroyImagemItemAction $action)
+    {
+        $action->handle($request->validated('url'));
+        return response()->json(['message' => 'Imagem removida com sucesso.']);
     }
 
     /**

@@ -100,6 +100,7 @@ Route::group([], function () {
                 Route::get('/{categoria_id}/itens', [CategoriaController::class, 'itensPorCategoria'])->name('aplicacao.empresa.cardapios.categorias.itens.itens_por_categoria');
                 Route::prefix('itens')->group(function () {
                     Route::post('storeImage', [ItemController::class, 'storeImage'])->name('aplicacao.empresa.cardapios.categorias.item.store-imagem');
+                    Route::delete('destroyImage', [ItemController::class, 'destroyImage'])->name('aplicacao.empresa.cardapios.categorias.item.destroy-imagem');
                 });
             });
         });

@@ -143,11 +143,27 @@ public function importarImagemUrl(string $nomeBucket, string $imageUrl, ?string 
 
       $s3client->deleteObject([
         'Bucket' => $nomeBucket,
-        'Key' => substr($link_imagem, -36)
+        'Key' => $this->extrairKeyDoLinkImagem($nomeBucket, $link_imagem)
       ]);
       return true;
     } catch (AwsException $e) {
       throw new Exception('Erro ao remover a imagem da nuvem: ' . $e->getMessage(), $e->getCode(), $e);
     }
+  }
+
+  /**
+   * Extrai a key do objeto (incluindo eventuais prefixos/pastas) a partir da URL
+   * pública retornada pelo upload. Antes disso, um `substr(-36)` assumia que a
+   * key era sempre um UUID puro de 36 caracteres, o que quebrava sempre que o
+   * arquivo tinha extensão (ex: "uuid.jpg") ou prefixo (ex: "produtos/uuid.jpg").
+   */
+  protected function extrairKeyDoLinkImagem(string $nomeBucket, string $link_imagem): string
+  {
+    $path = ltrim(parse_url($link_imagem, PHP_URL_PATH) ?? '', '/');
+    $prefixoBucket = $nomeBucket . '/';
+
+    return str_starts_with($path, $prefixoBucket)
+      ? substr($path, strlen($prefixoBucket))
+      : $path;
   }
 }
