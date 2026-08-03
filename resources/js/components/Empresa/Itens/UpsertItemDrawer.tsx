@@ -232,161 +232,166 @@ function DrawerContentItemNormal({
         ))}
         </TabsList>
         <TabsContent value={'detalhes'} className="flex min-h-0 flex-col">
-        <div className="flex-1 scroll-fade overflow-y-auto p-4">
-            <div className="mb-4 flex flex-col gap-4 sm:flex-row">
-                <label className="cursor-pointer">
-                <Attachment state={isUploadingImage ? 'uploading' : 'idle'} orientation={'vertical'} className="size-75">
-                    <AttachmentMedia variant={'image'}>
-                    {isUploadingImage ? (
-                        <Spinner />
-                    ) : (
-                        <img className="h-full w-full object-cover" src={item?.imagem ?? 'https://placehold.co/300'} alt="Imagem de item novo" />
-                    )}
-                    </AttachmentMedia>
-                </Attachment>
-                <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleFileChange}
-                />
-                </label>
-                <div className="w-full">
-                    <FieldGroup>
-                        <Field>
-                            <FieldLabel htmlFor="categoria_id">Categoria</FieldLabel>
-                            <Select
-                                id="categoria_id"
-                                name="categoria_id"
-                                items={categorias}
-                                value={categorias.find(categoria => categoria.value === String(item.categoria_id))?.value}
-                                onValueChange={(e) => handleInputsItem(setItem, e, 'categoria_id')}>
-                                <SelectTrigger className="w-full">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectGroup>
-                                        <SelectLabel>Categorias</SelectLabel>
-                                        {categorias.map((categoria) => (
-                                            <SelectItem key={categoria.value} value={categoria.value}>
-                                                {categoria.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectGroup>
-                                </SelectContent>
-                            </Select>
-                        </Field>
-                        <Field>
-                            <FieldLabel htmlFor="nome">Nome do item</FieldLabel>
-                            <Input id="nome" name="nome" value={item.nome ?? ''} onBlur={(e) => handleInputsItem(setItem, e, 'external_id')}/>
-                        </Field>
-                        <Field>
-                            <FieldLabel htmlFor="external_id">Código PDV.</FieldLabel>
-                            <Input id="external_id" name="external_id" value={item.external_id ?? ''} onBlur={(e) => handleInputsItem(setItem, e, 'external_id')}/>
-                        </Field>
-                    </FieldGroup>
-                </div>
-            </div>
-            <FieldGroup>
-                <Field>
-                    <FieldLabel>Descrição</FieldLabel>
-                    <Textarea rows={5} defaultValue={item.descricao ?? ''} onBlur={(e) => handleInputsItem(setItem, e, 'descricao')}/>
-                </Field>
-                <Field>
-                    <FieldLabel htmlFor="dias_funcionamento">
-                        Dias de funcionamento
-                    </FieldLabel>
-                    <Combobox
-                        id="dias_funcionamento"
-                        items={DIAS_SEMANA}
-                        multiple
-                        itemToStringValue={(item: TDiaSemana) =>
-                            item.label
-                        }
-                        value={DIAS_SEMANA.filter((ds) =>
-                            item.dias_funcionamento?.includes(ds.value),
+            <div className="flex-1 scroll-fade overflow-y-auto p-4">
+                <div className="mb-4 flex flex-col gap-4 sm:flex-row">
+                    <label className="cursor-pointer">
+                    <Attachment state={isUploadingImage ? 'uploading' : 'idle'} orientation={'vertical'} className="size-75">
+                        <AttachmentMedia variant={'image'}>
+                        {isUploadingImage ? (
+                            <Spinner />
+                        ) : (
+                            <img className="h-full w-full object-cover" src={item?.imagem ?? 'https://placehold.co/300'} alt="Imagem de item novo" />
                         )}
-                        onValueChange={(itens: TDiaSemana[]) =>
-                            handleInputsItem(setItem, itens, 'dias_funcionamento')
-                        }
-                    >
-                        <ComboboxChips ref={diasFuncionamentoAnchor}>
-                            <ComboboxValue>
-                                {item.dias_funcionamento?.map((df) => (
-                                    <ComboboxChip key={df}>
-                                        {DIA_SEMANA(Number(df))}
-                                    </ComboboxChip>
-                                ))}
-                                <ComboboxChipsInput />
-                            </ComboboxValue>
-                        </ComboboxChips>
-                        <ComboboxContent anchor={diasFuncionamentoAnchor}>
-                            <ComboboxEmpty>
-                                Não contêm dias a ser informado
-                            </ComboboxEmpty>
-                            <ComboboxList>
-                                {(item: TDiaSemana) => (
-                                    <ComboboxItem
-                                        key={item.value}
-                                        value={item}
-                                    >
-                                        {item.label}
-                                    </ComboboxItem>
-                                )}
-                            </ComboboxList>
-                        </ComboboxContent>
-                    </Combobox>
-                    <p className="text-muted-foreground text-xs">
-                        Selecione os dias que o cardápio vai funcionar
-                    </p>
-                </Field>
-                <Alert>
-                    <AlertCircle />
-                    <AlertTitle>Empresário, atenção!</AlertTitle>
-                    <AlertDescription>Ajude seus clientes a entender o tamanho dos itens do seu cardápio.</AlertDescription>
-                </Alert>
-                <RadioGroup value={String(item.qtde_pessoas ?? '')} onValueChange={(e) => handleInputsItem(setItem, Number(e), 'qtde_pessoas')}>
-                    <p className="text-lg font-bold md:text-xl">Pra qual tamanho de fome é esse item</p>
-                    <p className="text-base md:text-lg">Dê mais detalhes para que o cliente possa planejar a refeição.</p>
-                    <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                        {QTDE_PESSOAS_INFO.map((qtde, qtdeIdx) => (
-                            <Card key={qtdeIdx}>
-                                <CardContent>
-                                    <Label
-                                        htmlFor={qtde.value}
-                                        className="flex flex-col items-center justify-center gap-2 cursor-pointer"
-                                    >
-                                        <RadioGroupItem value={qtde.value} id={qtde.value} />
-                                        {qtde.icon}
-                                        {qtde.label}
-                                    </Label>
-                                </CardContent>
-                            </Card>
-                        ))}
+                        </AttachmentMedia>
+                    </Attachment>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleFileChange}
+                    />
+                    </label>
+                    <div className="w-full">
+                        <FieldGroup>
+                            <Field>
+                                <FieldLabel htmlFor="categoria_id">Categoria</FieldLabel>
+                                <Select
+                                    id="categoria_id"
+                                    name="categoria_id"
+                                    items={categorias}
+                                    value={categorias.find(categoria => categoria.value === String(item.categoria_id))?.value}
+                                    onValueChange={(e) => handleInputsItem(setItem, e, 'categoria_id')}>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectGroup>
+                                            <SelectLabel>Categorias</SelectLabel>
+                                            {categorias.map((categoria) => (
+                                                <SelectItem key={categoria.value} value={categoria.value}>
+                                                    {categoria.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectGroup>
+                                    </SelectContent>
+                                </Select>
+                            </Field>
+                            <Field>
+                                <FieldLabel htmlFor="nome">Nome do item</FieldLabel>
+                                <Input id="nome" name="nome" value={item.nome ?? ''} onBlur={(e) => handleInputsItem(setItem, e, 'external_id')}/>
+                            </Field>
+                            <Field>
+                                <FieldLabel htmlFor="external_id">Código PDV.</FieldLabel>
+                                <Input id="external_id" name="external_id" value={item.external_id ?? ''} onBlur={(e) => handleInputsItem(setItem, e, 'external_id')}/>
+                            </Field>
+                        </FieldGroup>
                     </div>
-                </RadioGroup>
-                <Field>
-                    <FieldLabel htmlFor="peso">Peso</FieldLabel>
-                    <InputGroup>
-                        <InputGroupInput id="peso" name="peso" value={item.peso ?? ''} onBlur={(e) => handleInputsItem(setItem, e, 'peso')}/>
-                        <InputGroupAddon align={'inline-end'}>
-                            <Select value={item.gramagem ?? ''} onValueChange={(e) => handleInputsItem(setItem, e, 'gramagem')} items={GRAMAGEM_INFO}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Informe a gramagem"/>
-                                </SelectTrigger>
-                                <SelectContent align="end" sideOffset={8} alignOffset={-4}>
-                                    {GRAMAGEM_INFO.map(gramagem => (
-                                        <SelectItem key={gramagem.value} value={gramagem.value}>{gramagem.label}</SelectItem>
+                </div>
+                <FieldGroup>
+                    <Field>
+                        <FieldLabel>Descrição</FieldLabel>
+                        <Textarea rows={5} defaultValue={item.descricao ?? ''} onBlur={(e) => handleInputsItem(setItem, e, 'descricao')}/>
+                    </Field>
+                    <Field>
+                        <FieldLabel htmlFor="dias_funcionamento">
+                            Dias de funcionamento
+                        </FieldLabel>
+                        <Combobox
+                            id="dias_funcionamento"
+                            items={DIAS_SEMANA}
+                            multiple
+                            itemToStringValue={(item: TDiaSemana) =>
+                                item.label
+                            }
+                            value={DIAS_SEMANA.filter((ds) =>
+                                item.dias_funcionamento?.includes(ds.value),
+                            )}
+                            onValueChange={(itens: TDiaSemana[]) =>
+                                handleInputsItem(setItem, itens, 'dias_funcionamento')
+                            }
+                        >
+                            <ComboboxChips ref={diasFuncionamentoAnchor}>
+                                <ComboboxValue>
+                                    {item.dias_funcionamento?.map((df) => (
+                                        <ComboboxChip key={df}>
+                                            {DIA_SEMANA(Number(df))}
+                                        </ComboboxChip>
                                     ))}
-                                </SelectContent>
-                            </Select>
-                        </InputGroupAddon>
-                    </InputGroup>
-                </Field>
-            </FieldGroup>
-        </div>
+                                    <ComboboxChipsInput />
+                                </ComboboxValue>
+                            </ComboboxChips>
+                            <ComboboxContent anchor={diasFuncionamentoAnchor}>
+                                <ComboboxEmpty>
+                                    Não contêm dias a ser informado
+                                </ComboboxEmpty>
+                                <ComboboxList>
+                                    {(item: TDiaSemana) => (
+                                        <ComboboxItem
+                                            key={item.value}
+                                            value={item}
+                                        >
+                                            {item.label}
+                                        </ComboboxItem>
+                                    )}
+                                </ComboboxList>
+                            </ComboboxContent>
+                        </Combobox>
+                        <p className="text-muted-foreground text-xs">
+                            Selecione os dias que o cardápio vai funcionar
+                        </p>
+                    </Field>
+                    {item.tipo === 'PRE' && (
+                        <>
+                            <Alert>
+                                <AlertCircle />
+                                <AlertTitle>Empresário, atenção!</AlertTitle>
+                                <AlertDescription>Ajude seus clientes a entender o tamanho dos itens do seu cardápio.</AlertDescription>
+                            </Alert>
+                            <RadioGroup value={String(item.qtde_pessoas ?? '')} onValueChange={(e) => handleInputsItem(setItem, Number(e), 'qtde_pessoas')}>
+                                <p className="text-lg font-bold md:text-xl">Pra qual tamanho de fome é esse item</p>
+                                <p className="text-base md:text-lg">Dê mais detalhes para que o cliente possa planejar a refeição.</p>
+                                <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                                    {QTDE_PESSOAS_INFO.map((qtde, qtdeIdx) => (
+                                        <Card key={qtdeIdx}>
+                                            <CardContent>
+                                                <Label
+                                                    htmlFor={qtde.value}
+                                                    className="flex flex-col items-center justify-center gap-2 cursor-pointer"
+                                                >
+                                                    <RadioGroupItem value={qtde.value} id={qtde.value} />
+                                                    {qtde.icon}
+                                                    {qtde.label}
+                                                </Label>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                </div>
+                            </RadioGroup>
+                            <Field>
+                                <FieldLabel htmlFor="peso">Peso</FieldLabel>
+                                <InputGroup>
+                                    <InputGroupInput id="peso" name="peso" value={item.peso ?? ''} onBlur={(e) => handleInputsItem(setItem, e, 'peso')}/>
+                                    <InputGroupAddon align={'inline-end'}>
+                                        <Select value={item.gramagem ?? ''} onValueChange={(e) => handleInputsItem(setItem, e, 'gramagem')} items={GRAMAGEM_INFO}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Informe a gramagem"/>
+                                            </SelectTrigger>
+                                            <SelectContent align="end" sideOffset={8} alignOffset={-4}>
+                                                {GRAMAGEM_INFO.map(gramagem => (
+                                                    <SelectItem key={gramagem.value} value={gramagem.value}>{gramagem.label}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </InputGroupAddon>
+                                </InputGroup>
+                            </Field>
+                        </>
+                    )}
+                </FieldGroup>
+            </div>
         </TabsContent>
-        <TabsContent value={'preco_estoque'}></TabsContent>
+        <TabsContent value={'preco_estoque'} className="flex min-h-0 flex-col">
+        </TabsContent>
         <TabsContent value={'classificacao'}></TabsContent>
       </Tabs>
         <DrawerFooter className="flex flex-row-reverse">
@@ -482,7 +487,7 @@ export default function UpsertItemDrawer({
           </div>
         </DrawerContent>
       )}
-      {item.tipo === 'PRE' && (
+      {['PRE', 'IND', 'BEB'].includes(item.tipo!) && (
         <DrawerContentItemNormal
           item={item}
           setItem={setItem}
