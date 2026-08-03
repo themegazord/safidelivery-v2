@@ -140,12 +140,12 @@ type TEventInputItem = React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
 
 function handleInputsItem(
     setItem: (value: React.SetStateAction<TItem>) => void,
-    e: TEventInputItem | string | number | TDiaSemana[] | null,
+    e: TEventInputItem | string | number | boolean | TDiaSemana[] | null,
     target: string
 ) {
     const value = Array.isArray(e)
         ? e.map((diaSemana) => diaSemana.value)
-        : typeof e === 'string' || typeof e === 'number' || e === null
+        : typeof e === 'string' || typeof e === 'number' || typeof e === 'boolean' || e === null
             ? e
             : e.currentTarget.value;
 
@@ -222,6 +222,82 @@ function DrawerContentItemNormal({
       })
       .finally(() => setIsUploadingImage(false))
   }
+
+  function setTabCadastroItemPreparado(tab: TTab) {
+    setTab(tab)
+  }
+
+function calcularDescontoPorNovoPreco(novoPreco: number) {
+    const preco = item.preco ?? 0;
+
+    if (preco === 0) {
+        toast.warning('Para calcular qualquer tipo de desconto, antes, adicione o preço unitário do item.');
+        return;
+    }
+
+    if (Number.isNaN(novoPreco)) {
+        setItem(prev => ({
+            ...prev,
+            valor_desconto: undefined,
+            porcentagem_desconto: undefined
+        }));
+        return;
+    }
+
+    if (novoPreco < 0) {
+        toast.warning('O novo preço do item deve ser maior ou igual a 0.');
+        return
+    }
+
+    if (novoPreco > preco) {
+        toast.warning('O novo preço do item deve ser menor que o preço unitário cadastrado.')
+        return
+    }
+
+    const porcentagemDesconto = ((preco - novoPreco) / preco) * 100;
+
+    setItem(prev => ({
+        ...prev,
+        valor_desconto: novoPreco,
+        porcentagem_desconto: Number(porcentagemDesconto.toFixed(2))
+    }));
+}
+
+function calcularDescontoPorPorcentagem(porcentagem: number) {
+    const preco = item.preco ?? 0;
+
+    if (preco === 0) {
+        toast.warning('Para calcular qualquer tipo de desconto, antes, adicione o preço unitário do item.');
+        return;
+    }
+
+    if (Number.isNaN(porcentagem)) {
+        setItem(prev => ({
+            ...prev,
+            valor_desconto: undefined,
+            porcentagem_desconto: undefined
+        }));
+        return;
+    }
+
+    if (porcentagem < 0) {
+        toast.warning('A porcentagem deve ser maior ou igual a 0%.')
+        return
+    }
+
+    if (porcentagem > 100) {
+        toast.warning('A porcentagem não pode ser maior que 100%.')
+        return
+    }
+
+    const novoPreco = preco - (preco * porcentagem) / 100;
+
+    setItem(prev => ({
+        ...prev,
+        porcentagem_desconto: porcentagem,
+        valor_desconto: Number(novoPreco.toFixed(2))
+    }));
+}
 
   return (
     <DrawerContent className="w-full p-6 lg:w-[55vw]">
@@ -391,6 +467,86 @@ function DrawerContentItemNormal({
             </div>
         </TabsContent>
         <TabsContent value={'preco_estoque'} className="flex min-h-0 flex-col">
+            {!item.desconto ? (
+                <div className="flex flex-col gap-6">
+                    <div className="flex flex-col items-start gap-4 md:flex-row md:items-end">
+                        <div className="w-full">
+                            <Field>
+                                <FieldLabel htmlFor="preco">
+                                    Preço
+                                </FieldLabel>
+                                <InputGroup>
+                                    <InputGroupAddon align={'inline-start'}>R$</InputGroupAddon>
+                                    <InputGroupInput
+                                        id="preco"
+                                        value={item.preco ?? ''}
+                                        onChange={(e) => handleInputsItem(setItem, Number(e.currentTarget.value), 'preco')}
+                                    />
+                                </InputGroup>
+                            </Field>
+                        </div>
+
+                        <Button
+                            variant="outline"
+                            onClick={() => handleInputsItem(setItem, true, 'desconto')}
+                        >
+                            Aplicar desconto
+                        </Button>
+                    </div>
+                </div>
+            ) : (
+                <div className="flex flex-col gap-6">
+                    <div className="flex gap-2">
+                        <p className="text-lg font-bold md:text-xl">Desconto direto no item</p>
+                        <Button
+                            type="button"
+                            onClick={() => handleInputsItem(setItem, false, 'desconto')}
+                            variant={'destructive'}
+                        >
+                            Remover desconto
+                        </Button>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                        <Field>
+                            <FieldLabel htmlFor="preco">
+                                Preço
+                            </FieldLabel>
+                            <InputGroup>
+                                <InputGroupAddon align={'inline-start'}>R$</InputGroupAddon>
+                                <InputGroupInput
+                                    disabled
+                                    readOnly
+                                    id="preco"
+                                    value={item.preco ?? ''}
+                                />
+                            </InputGroup>
+                        </Field>
+                        <Field>
+                            <FieldLabel htmlFor="valor_desconto">Novo preço</FieldLabel>
+                            <InputGroup>
+                                <InputGroupAddon align={'inline-start'}>R$</InputGroupAddon>
+                                <InputGroupInput
+                                    id="valor_desconto"
+                                    value={item.valor_desconto ?? ''}
+                                    onChange={(e) => calcularDescontoPorNovoPreco(Number(e.currentTarget.value))}
+                                />
+                            </InputGroup>
+                        </Field>
+                        <Field>
+                            <FieldLabel htmlFor="porcentagem-desconto">Desconto em %</FieldLabel>
+                            <InputGroup>
+                                <InputGroupInput
+                                    id="porcentagem-desconto"
+                                    value={item.porcentagem_desconto ?? ''}
+                                    onChange={(e) => calcularDescontoPorPorcentagem(Number(e.currentTarget.value))}
+                                />
+                                <InputGroupAddon align={'inline-end'}>%</InputGroupAddon>
+                            </InputGroup>
+                        </Field>
+                    </div>
+                </div>
+            )}
         </TabsContent>
         <TabsContent value={'classificacao'}></TabsContent>
       </Tabs>
