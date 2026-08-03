@@ -416,10 +416,11 @@ export default function Categoria() {
                         : cadastrarCategoria(dados)
                 }
             />
-            <UpsertItemDrawer 
+            <UpsertItemDrawer
                 item={item}
                 open={handleDrawerUpsertItem}
                 onOpenChange={setHandleDrawerUpsertItem}
+                categorias={categorias}
             />
             <ConfirmarClonagemCategoriaDialog
                 open={handleDialogClonagemCategoria}

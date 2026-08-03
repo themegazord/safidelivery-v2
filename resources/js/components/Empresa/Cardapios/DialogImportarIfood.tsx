@@ -19,6 +19,7 @@ import {
     ComboboxItem,
     ComboboxList,
     ComboboxValue,
+    useComboboxAnchor,
 } from "@/components/ui/combobox";
 import {
     Field,
@@ -42,7 +43,7 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { ArrowDownToLine } from "lucide-react";
 
-const DIAS_SEMANA = [
+export const DIAS_SEMANA = [
     { value: 0, label: "Domingo" },
     { value: 1, label: "Segunda-feira" },
     { value: 2, label: "Terça-feira" },
@@ -57,10 +58,10 @@ const TIPO_FUNCIONAMENTO = [
     { value: "mesa", label: "Atendimento em mesa" },
 ] as const;
 
-const DIA_SEMANA = (value: number) =>
+export const DIA_SEMANA = (value: number) =>
     DIAS_SEMANA.find((ds) => ds.value === value)?.label ?? "—";
 
-type TDiaSemana = { value: number; label: string };
+export type TDiaSemana = { value: number; label: string };
 
 export default function DialogImportarIfood({
     open,
@@ -70,6 +71,7 @@ export default function DialogImportarIfood({
     onOpenChange: (value: boolean) => void;
 }) {
     const { cnpj } = usePage<{ cnpj: string }>().props;
+    const diasFuncionamentoAnchor = useComboboxAnchor();
 
     const { data, setData, post, processing, errors, reset, clearErrors } =
         useForm<{
@@ -201,7 +203,7 @@ export default function DialogImportarIfood({
                                     )
                                 }
                             >
-                                <ComboboxChips>
+                                <ComboboxChips ref={diasFuncionamentoAnchor}>
                                     <ComboboxValue>
                                         {data.dias_funcionamento.map((df) => (
                                             <ComboboxChip key={df}>
@@ -211,7 +213,7 @@ export default function DialogImportarIfood({
                                         <ComboboxChipsInput placeholder="Selecione os dias de funcionamento" />
                                     </ComboboxValue>
                                 </ComboboxChips>
-                                <ComboboxContent>
+                                <ComboboxContent anchor={diasFuncionamentoAnchor}>
                                     <ComboboxEmpty>
                                         Não contêm dias a ser informado
                                     </ComboboxEmpty>
