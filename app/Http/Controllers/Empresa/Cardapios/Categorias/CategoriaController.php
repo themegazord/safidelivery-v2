@@ -32,8 +32,8 @@ class CategoriaController extends Controller
     public function __construct(Request $request)
     {
         $this->empresa = Empresa::query()->where('cnpj', $request->route('cnpj'))->firstOrFail();
-        $this->cardapio = $this->empresa->cardapios->where('id', $request->route('cardapio_id'))->first();
-        $this->exportaDadosIfood = $this->empresa->configuracoes->where('configuracao', 'replicar_informacao_importacao')->first()->getAttribute('valor');
+        $this->cardapio = $this->empresa->cardapios()->where('id', $request->route('cardapio_id'))->first();
+        $this->exportaDadosIfood = $this->empresa->configuracoes()->where('configuracao', 'replicar_informacao_importacao')->first()->getAttribute('valor');
         if (!$this->cardapio) {
             abort(404);
         }

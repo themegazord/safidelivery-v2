@@ -149,11 +149,11 @@ class StoreItemAction
             }
     }
 
-    private function classificacaoLimpa(array $classificacoes): array
+    public function classificacaoLimpa(array $classificacoes): array
     {
-        return array_map(
+        return array_values(array_map(
             fn($classificacao) => $classificacao['value'],
             array_filter($classificacoes, fn($classificacao) => $classificacao['status'])
-        );
+        ));
     }
 }

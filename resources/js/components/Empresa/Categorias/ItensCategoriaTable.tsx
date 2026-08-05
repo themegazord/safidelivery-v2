@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import {
     Tooltip,
     TooltipContent,
@@ -66,10 +67,11 @@ interface ItensCategoriaTableProps {
     onCategoriaRemover: (categoriaId: number) => void;
     onItensAlterarStatus: (itemId: number) => void;
     onItensDuplicar: (itemId: number) => void;
-    onItensEditar: (itemId: number, categoriaId: number) => void;
+    onItensEditar: (itemId: number, categoriaId: number, status: boolean) => void;
     onItensRemover: (itemId: number) => void;
     onItensAtualizaCodPdv: (itemId: number, valor: string) => void;
     onItensAtualizaPreco: (itemId: number, valor: string) => void;
+    isSubmiting?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -87,10 +89,14 @@ function IconButtonComTooltip({
     icon,
     tooltip,
     onClick,
+    disabled,
+    variant
 }: {
     icon: React.ReactNode;
     tooltip: string;
     onClick: () => void;
+    disabled?: boolean;
+    variant: "default" | "outline" | "secondary" | "ghost" | "destructive" | "link" | null | undefined
 }) {
     return (
         <TooltipProvider>
@@ -99,10 +105,11 @@ function IconButtonComTooltip({
                     render={
                         <Button
                             type="button"
-                            variant="outline"
+                            variant={variant}
                             size="icon"
                             className="h-8 w-8"
                             onClick={onClick}
+                            disabled={disabled}
                         />
                     }
                 >
@@ -121,13 +128,15 @@ function AcoesItem({
     onItensDuplicar,
     onItensEditar,
     onItensRemover,
+    isSubmiting,
 }: {
     item: { id: number; trashed: boolean };
     categoriaId: number;
     onItensAlterarStatus: (itemId: number) => void;
     onItensDuplicar: (itemId: number) => void;
-    onItensEditar: (itemId: number, categoriaId: number) => void;
+    onItensEditar: (itemId: number, categoriaId: number, status: boolean) => void;
     onItensRemover: (itemId: number) => void;
+    isSubmiting?: boolean;
 }) {
     return (
         <div className="flex flex-col gap-2 md:flex-row md:justify-end md:gap-4">
@@ -141,21 +150,26 @@ function AcoesItem({
                 }
                 tooltip={item.trashed ? "Inativo" : "Ativo"}
                 onClick={() => onItensAlterarStatus(item.id)}
+                variant={'outline'}
             />
             <IconButtonComTooltip
                 icon={<Copy className="h-4 w-4" />}
                 tooltip="Duplicar item"
                 onClick={() => onItensDuplicar(item.id)}
+                variant={'outline'}
             />
             <IconButtonComTooltip
-                icon={<Pencil className="h-4 w-4" />}
+                icon={isSubmiting ? <Spinner className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
                 tooltip="Editar item"
-                onClick={() => onItensEditar(item.id, categoriaId)}
+                onClick={() => onItensEditar(item.id, categoriaId, true)}
+                disabled={isSubmiting}
+                variant={'outline'}
             />
             <IconButtonComTooltip
                 icon={<Trash2 className="h-4 w-4" />}
                 tooltip="Remover item"
                 onClick={() => onItensRemover(item.id)}
+                variant={'destructive'}
             />
         </div>
     );
@@ -197,6 +211,7 @@ type ItensTabelaComunsProps = Pick<
     | "onItensEditar"
     | "onItensRemover"
     | "onItensAtualizaCodPdv"
+    | "isSubmiting"
 >;
 
 function TabelaPizzas({
@@ -208,6 +223,7 @@ function TabelaPizzas({
     onItensEditar,
     onItensRemover,
     onItensAtualizaCodPdv,
+    isSubmiting,
 }: ItensTabelaComunsProps & {
     itens: ItemPizza[];
 }) {
@@ -279,6 +295,7 @@ function TabelaPizzas({
                                     onItensDuplicar={onItensDuplicar}
                                     onItensEditar={onItensEditar}
                                     onItensRemover={onItensRemover}
+                                    isSubmiting={isSubmiting}
                                 />
                             </TableCell>
                         </TableRow>
@@ -350,6 +367,7 @@ function TabelaItensNormais({
     onItensRemover,
     onItensAtualizaCodPdv,
     onItensAtualizaPreco,
+    isSubmiting,
 }: ItensTabelaComunsProps & {
     itens: ItemNormal[];
     onItensAtualizaPreco: ItensCategoriaTableProps["onItensAtualizaPreco"];
@@ -404,6 +422,7 @@ function TabelaItensNormais({
                                     onItensDuplicar={onItensDuplicar}
                                     onItensEditar={onItensEditar}
                                     onItensRemover={onItensRemover}
+                                    isSubmiting={isSubmiting}
                                 />
                             </TableCell>
                         </TableRow>
@@ -437,6 +456,7 @@ export function ItensCategoriaTable({
     onItensRemover,
     onItensAtualizaCodPdv,
     onItensAtualizaPreco,
+    isSubmiting,
 }: ItensCategoriaTableProps) {
     return (
         <div className="flex flex-col gap-2">
@@ -477,6 +497,7 @@ export function ItensCategoriaTable({
                     onItensEditar={onItensEditar}
                     onItensRemover={onItensRemover}
                     onItensAtualizaCodPdv={onItensAtualizaCodPdv}
+                    isSubmiting={isSubmiting}
                 />
             ) : (
                 <TabelaItensNormais
@@ -487,6 +508,7 @@ export function ItensCategoriaTable({
                     onItensDuplicar={onItensDuplicar}
                     onItensEditar={onItensEditar}
                     onItensRemover={onItensRemover}
+                    isSubmiting={isSubmiting}
                     onItensAtualizaCodPdv={onItensAtualizaCodPdv}
                     onItensAtualizaPreco={onItensAtualizaPreco}
                 />

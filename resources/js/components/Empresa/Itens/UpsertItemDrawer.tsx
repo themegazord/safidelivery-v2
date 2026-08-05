@@ -138,6 +138,31 @@ export const DIA_SEMANA = (value: number) =>
 
 // Funções
 
+// Normaliza o `classificacao` vindo do backend pro formato {value, status}[]
+// usado pelo drawer. Precisa lidar com três formatos possíveis:
+// - undefined (item novo): todas as opções com status false.
+// - string[] (formato salvo corretamente, ex: ["vegano","organico"]).
+// - objeto com chaves não-sequenciais (bug antigo: array_filter sem
+//   array_values fazia o PHP serializar como objeto JSON em vez de array).
+function normalizarClassificacao(classificacao: unknown): ClassificacaoStatus[] {
+  const todasOpcoes = [...CLASSIFICACOES_COMIDA, ...CLASSIFICACOES_BEBIDA, ...RESTRICOES_BEBIDA]
+
+  if (Array.isArray(classificacao) && classificacao.length > 0 && typeof classificacao[0] === 'object' && classificacao[0] !== null && 'value' in classificacao[0]) {
+    return classificacao as ClassificacaoStatus[]
+  }
+
+  const ativas: string[] = Array.isArray(classificacao)
+    ? (classificacao as string[])
+    : classificacao && typeof classificacao === 'object'
+      ? Object.values(classificacao as Record<string, string>)
+      : []
+
+  return todasOpcoes.map((opcao) => ({
+    value: opcao.id,
+    status: ativas.includes(opcao.id),
+  }))
+}
+
 function criarItemInicial(
   base?: Partial<TItem> | null
 ): TItem {
@@ -155,10 +180,7 @@ function criarItemInicial(
     porcentagem_desconto: base?.porcentagem_desconto,
     descricao: base?.descricao,
     eh_bebida: base?.eh_bebida,
-    classificacao: base?.classificacao ?? [...CLASSIFICACOES_COMIDA, ...CLASSIFICACOES_BEBIDA, ...RESTRICOES_BEBIDA].map((opcao) => ({
-      value: opcao.id,
-      status: false
-    })),
+    classificacao: normalizarClassificacao(base?.classificacao),
     imagem: base?.imagem,
     dias_funcionamento: base?.dias_funcionamento,
     peso: base?.peso,
@@ -232,7 +254,8 @@ function DrawerContentItemNormal({
   categorias,
   onSubmit,
   isSubmiting,
-  isEditing
+  isEditing,
+  open
 }: {
   item: TItem
   setItem: React.Dispatch<React.SetStateAction<TItem>>
@@ -242,6 +265,7 @@ function DrawerContentItemNormal({
   isEditing: boolean
   isSubmiting: boolean
   onSubmit: () => Promise<void>
+  open: boolean
 }) {
   type TTab = 'detalhes' | 'preco_estoque' | 'classificacao';
   const ITEM_NORMAL_TABS = [
@@ -267,6 +291,12 @@ function DrawerContentItemNormal({
   }
   const [tab, setTab] = useState<TTab>('detalhes')
   const [isUploadingImage, setIsUploadingImage] = useState<boolean>(false)
+
+  // Reseta pra aba inicial toda vez que o drawer é reaberto, senão fica
+  // preso na última aba usada no item anterior.
+  useEffect(() => {
+    if (open) setTab('detalhes')
+  }, [open])
 
   function irParaAbaComErro(errors?: Record<string, string[]>) {
     const primeiroCampoComErro = Object.keys(errors ?? {})[0]
@@ -854,6 +884,10 @@ export default function UpsertItemDrawer({
         return onSubmit(item)
     }
 
+    function onSubmitEdicao() {
+        return onSubmit(item)
+    }
+
     return (
         <Drawer open={open} onOpenChange={handleOpenChange} swipeDirection="right">
             {item.categoria_tipo === 'I' && !item.tipo && (
@@ -889,9 +923,10 @@ export default function UpsertItemDrawer({
                     cnpj={cnpj}
                     cardapio_id={cardapio_id}
                     categorias={categorias}
-                    onSubmit={!isEdicao ? onSubmitCadastro : () => Promise.resolve()}
+                    onSubmit={!isEdicao ? onSubmitCadastro : onSubmitEdicao}
                     isSubmiting={isSubmiting}
                     isEditing={isEdicao}
+                    open={open}
                 />
             )}
         </Drawer>

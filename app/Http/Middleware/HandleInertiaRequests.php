@@ -39,7 +39,7 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'cnpj' => $request->route('cnpj'),
             'auth' => [
-                'user' => $request->user()?->load('cliente.enderecos')
+                'user' => fn () => $request->user()?->load('cliente.enderecos')
             ]
         ];
     }

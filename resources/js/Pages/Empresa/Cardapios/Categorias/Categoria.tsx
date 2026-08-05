@@ -63,6 +63,7 @@ export default function Categoria() {
     const [loadingClonagemCategoria, setLoadingClonagemCategoria] = useState(false)
     const [loadingRemocaoCategoria, setLoadingRemocaoCategoria] = useState(false)
     const [isSubmiting, setIsSubmiting] = useState<boolean>(false)
+    const [carregandoItem, setCarregandoItem] = useState<boolean>(false)
     const [categoriasState, setCategoriasState] = useState<ICategoria[]>();
     const [categoria, setCategoria] = useState<
         (Partial<CategoriaFormData> & { id: number }) | undefined
@@ -193,6 +194,10 @@ export default function Categoria() {
         })
         setHandleDrawerUpsertItem(status)
     }
+
+    async function abreEdicaoItem(item_id: number, categoria_id: number, status: boolean) {
+        await consultaItem(categoria_id, item_id, () => setHandleDrawerUpsertItem(status))
+    }
     // Funções CRUD categoria
     async function cadastrarCategoria(categoriaDigitada: CategoriaFormData) {
         await axios.post(route('aplicacao.empresa.cardapios.categorias.store', {cnpj, cardapio_id}), categoriaDigitada)
@@ -267,6 +272,38 @@ export default function Categoria() {
         return axios.post(route('aplicacao.empresa.cardapios.categorias.item.store', {cnpj, cardapio_id, categoria_id: item.categoria_id}), item)
             .then((response) => {
                 toast.success('Item cadastrado com sucesso.')
+                if (item.categoria_id) {
+                    carregarItensDaCategoria(item.categoria_id)
+                }
+                router.reload({ only: ['categorias', 'categoriaStatus'] })
+                setHandleDrawerUpsertItem(false)
+            })
+            .catch((error) => {
+                toast.error(error.response?.data?.message ?? 'Erro inesperado, tente novamente.')
+                throw error
+            })
+            .finally(() => setIsSubmiting(false))
+    }
+
+    async function consultaItem(categoria_id: number, item_id: number, aoConcluir?: () => void) {
+        setCarregandoItem(true)
+        return axios.get(route('aplicacao.empresa.cardapios.categorias.item.show', {cnpj, cardapio_id, categoria_id, item_id}))
+            .then((response) => {
+                setItem(response.data.item)
+                setCarregandoItem(false)
+                aoConcluir?.()
+            })
+            .catch((error) => {
+                toast.error(error.response?.data?.message ?? 'Erro ao tentar consultar os dados do item, tente novamente.')
+                setCarregandoItem(false)
+            })
+    }
+
+    async function editaItem(item: TItem) {
+        setIsSubmiting(true)
+        return axios.put(route('aplicacao.empresa.cardapios.categorias.item.update', {cnpj, cardapio_id, categoria_id: item.categoria_id, item_id: item.id}), item)
+            .then((response) => {
+                toast.success(response.data.mensagem)
                 if (item.categoria_id) {
                     carregarItensDaCategoria(item.categoria_id)
                 }
@@ -405,10 +442,11 @@ export default function Categoria() {
                                                     onCategoriaRemover={abreRemocaoCategoria}
                                                     onItensAlterarStatus={() => {}}
                                                     onItensDuplicar={() => {}}
-                                                    onItensEditar={() => {}}
+                                                    onItensEditar={abreEdicaoItem}
                                                     onItensRemover={() => {}}
                                                     onItensAtualizaCodPdv={() => {}}
                                                     onItensAtualizaPreco={() => {}}
+                                                    isSubmiting={carregandoItem}
                                                 />
                                             )}
                                         </CollapsibleContent>
@@ -446,7 +484,7 @@ export default function Categoria() {
                 categorias={categorias}
                 onSubmit={(dados: TItem) => !item?.id
                     ? cadastraItem(dados)
-                    : Promise.resolve()
+                    : editaItem(dados)
                 }
                 isSubmiting={isSubmiting}
             />
