@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Context;
 use Symfony\Component\HttpFoundation\Response;
 
 class RedirecionarLoginEspecifico
@@ -16,6 +17,10 @@ class RedirecionarLoginEspecifico
      */
     public function handle(Request $request, Closure $next): Response
     {
+        if ($cnpj = $request->route('cnpj')) {
+            Context::add('cnpj', $cnpj);
+        }
+        
         if (!Auth::check()) {
             // Verificar o prefixo da rota para determinar o tipo de login
             $routeName = $request->route()->getName();

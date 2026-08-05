@@ -22,6 +22,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -74,8 +75,21 @@ class CardapioController extends Controller
 
             return response()->json(['cardapio' => $cardapio]);
         } catch (ModelNotFoundException $mnfe) {
+            // TODO: avaliar se esse erro deveria ser relançado em vez de apenas logado.
+            Log::warning('Cardápio não encontrado ao consultar', [
+                'cardapio_id' => $cardapio_id,
+                'empresa_id' => $this->empresa->getAttribute('id'),
+            ]);
+
             return response()->json(['mensagem' => 'Não foi possivel localizar esse cardápio.', Response::HTTP_NOT_FOUND]);
         } catch (Exception $e) {
+            // TODO: avaliar se esse erro deveria ser relançado em vez de apenas logado.
+            Log::error('Erro ao consultar cardápio', [
+                'cardapio_id' => $cardapio_id,
+                'empresa_id' => $this->empresa->getAttribute('id'),
+                'erro' => $e->getMessage(),
+            ]);
+
             return response()->json(['mensagem' => 'Algo de estranho aconteceu ao consultar esse cardápio, por favor, entre em contato com o suporte.', Response::HTTP_INTERNAL_SERVER_ERROR]);
         }
     }
@@ -90,8 +104,21 @@ class CardapioController extends Controller
             $cardapioAtualizado = $action->handle($dados, $cardapio_id, $this->empresa->getAttribute('id'));
             return redirect()->back();
         } catch (ModelNotFoundException $mnfe) {
+            // TODO: avaliar se esse erro deveria ser relançado em vez de apenas logado.
+            Log::warning('Cardápio não encontrado ao atualizar', [
+                'cardapio_id' => $cardapio_id,
+                'empresa_id' => $this->empresa->getAttribute('id'),
+            ]);
+
             return response()->json(['mensagem' => 'Não foi possivel encontrar o cardápio para atualização dos dados.'], Response::HTTP_NOT_FOUND);
         } catch (Exception $e) {
+            // TODO: avaliar se esse erro deveria ser relançado em vez de apenas logado.
+            Log::error('Erro ao atualizar cardápio', [
+                'cardapio_id' => $cardapio_id,
+                'empresa_id' => $this->empresa->getAttribute('id'),
+                'erro' => $e->getMessage(),
+            ]);
+
             return response()->json(['mensagem' => 'Não foi possivel atualizar este cardápio, por favor, entrar em contato com o suporte'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }

@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\ImagemTemporaria;
 use App\Traits\TrataMGCObjectStore;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class LimparImagensTemporariasCommand extends Command
@@ -32,6 +33,13 @@ class LimparImagensTemporariasCommand extends Command
         $imagem->delete();
         $removidas++;
       } catch (Throwable $e) {
+        // TODO: avaliar se esse erro deveria ser relançado em vez de apenas logado.
+        Log::error('Falha ao remover imagem temporária órfã do bucket', [
+          'imagem_id' => $imagem->id,
+          'url' => $imagem->url,
+          'erro' => $e->getMessage(),
+        ]);
+
         $this->error("Falha ao remover {$imagem->url}: {$e->getMessage()}");
       }
     }
