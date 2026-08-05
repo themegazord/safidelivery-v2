@@ -90,7 +90,7 @@ export default function FinalizarPedido() {
             })
             .catch((error) => {
                 if (error.response?.status === 422) {
-                    setErroEntrega(error.response.data.message)
+                    setErroEntrega(error.response?.data?.message ?? 'Erro inesperado, tente novamente.')
                     setDadosDistaciaRota(null)
                 }
             })

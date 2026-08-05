@@ -2,6 +2,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Attachment, AttachmentContent, AttachmentMedia, AttachmentTitle } from "@/components/ui/attachment";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Combobox, ComboboxChip, ComboboxChips, ComboboxChipsInput, ComboboxContent, ComboboxEmpty, ComboboxItem, ComboboxList, ComboboxValue, useComboboxAnchor } from "@/components/ui/combobox";
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -12,14 +13,15 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { H6 } from "@/components/utils/Heading";
 import { ICategoria } from "@/types/empresa/cardapios/types";
 import { usePage } from "@inertiajs/react";
 import axios from "axios";
-import { AlertCircle, Beer, ChevronDownIcon, CookingPot, ScanBarcode, User, Users, UsersRound } from "lucide-react";
-import { ReactNode, useEffect, useState } from "react";
+import { AlertCircle, AlertTriangle, Beer, CandyOff, ChevronDownIcon, Citrus, CookingPot, Leaf, LucideIcon, MilkOff, ScanBarcode, Snowflake, Sprout, User, Users, UsersRound, Wheat, Wine } from "lucide-react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 // Tipagens
@@ -28,11 +30,14 @@ interface IProps {
   onOpenChange: (value: boolean) => void,
   item?: TItem,
   categorias: ICategoria[]
+  onSubmit: (dados: TItem) => Promise<void>
+  isSubmiting: boolean
 }
 interface IItemBase {
+  id?: number
   categoria_id?: number
   categoria_tipo?: 'I' | 'P'
-  external_id?: number
+  external_id?: string
   tipo?: 'PRE' | 'BEB' | 'IND' | 'PIZ'
   nome?: string
   tipo_preco?: 'preco_combo' | 'preco_item' | 'fixo'
@@ -42,7 +47,7 @@ interface IItemBase {
   porcentagem_desconto?: number
   descricao?: string
   eh_bebida?: boolean
-  classificacao?: string[],
+  classificacao?: ClassificacaoStatus[],
   imagem?: string,
   dias_funcionamento?: (string | number)[]
 }
@@ -66,12 +71,41 @@ export type TItem = IItemBase & IItemNormal & IItemPizza
 
 export type TCategoria = {label: string, value: string}
 
+type ClassificacaoStatus = { value: string, status: boolean }
+
+interface ClassificacaoOption {
+  id: string
+  label: string
+  description: string
+  icon: LucideIcon
+}
+
+const CLASSIFICACOES_COMIDA: ClassificacaoOption[] = [
+    { id: 'vegetariano', label: 'Vegetariano', description: 'Sem carne de nenhum tipo', icon: Leaf },
+    { id: 'vegano', label: 'Vegano', description: 'Sem produtos de origem animal, como carne, ovo ou leite', icon: Sprout },
+    { id: 'organico', label: 'Orgânico', description: 'Cultivado sem agrotóxicos, segundo a lei 10.831', icon: Wheat },
+    { id: 'sem_acucar', label: 'Sem açúcar', description: 'Não contém nenhum tipo de açúcar (cristal, orgânico, mascavo etc.)', icon: CandyOff },
+    { id: 'zero_lactose', label: 'Zero lactose', description: 'Não contém lactose, ou seja, leite e seus derivados', icon: MilkOff },
+]
+
+const CLASSIFICACOES_BEBIDA: ClassificacaoOption[] = [
+    { id: 'bebida_gelada', label: 'Bebida Gelada', description: 'Da geladeira direto para o consumidor', icon: Snowflake },
+    { id: 'bebida_alcoolica', label: 'Bebida alcoólica', description: 'De 0,5% a 54% em volume, destilados, fermentados etc', icon: Wine },
+    { id: 'bebida_natural', label: 'Bebida natural', description: 'Preparados na hora com frutas frescas', icon: Citrus },
+]
+
+const RESTRICOES_BEBIDA: ClassificacaoOption[] = [
+    { id: 'bebida_zero_lactose', label: 'Zero Lactose', description: 'Não contém lactose, ou seja, leite e seus derivados', icon: MilkOff },
+    { id: 'bebida_diet_zero', label: 'Bebida diet', description: 'Sem adição de açúcares', icon: CandyOff },
+]
+
 // Remove uma imagem ainda não vinculada a um item salvo (best-effort: se
 // falhar aqui, a limpeza agendada no backend remove mais tarde).
-async function apagarImagemPendente(cnpj: string, cardapio_id: string, url: string) {
+async function apagarImagemPendente(cnpj: string, cardapio_id: string, categoria_id: string, url: string) {
   await axios.delete(route('aplicacao.empresa.cardapios.categorias.item.destroy-imagem', {
     cnpj,
     cardapio_id,
+    categoria_id
   }), { data: { url } }).catch(() => {})
 }
 
@@ -108,6 +142,7 @@ function criarItemInicial(
   base?: Partial<TItem> | null
 ): TItem {
   return {
+    id: base?.id,
     categoria_id: base?.categoria_id,
     categoria_tipo: base?.categoria_tipo,
     external_id: base?.external_id,
@@ -120,7 +155,10 @@ function criarItemInicial(
     porcentagem_desconto: base?.porcentagem_desconto,
     descricao: base?.descricao,
     eh_bebida: base?.eh_bebida,
-    classificacao: base?.classificacao,
+    classificacao: base?.classificacao ?? [...CLASSIFICACOES_COMIDA, ...CLASSIFICACOES_BEBIDA, ...RESTRICOES_BEBIDA].map((opcao) => ({
+      value: opcao.id,
+      status: false
+    })),
     imagem: base?.imagem,
     dias_funcionamento: base?.dias_funcionamento,
     peso: base?.peso,
@@ -131,7 +169,7 @@ function criarItemInicial(
 }
 
 function criarCategoriasIniciais(categorias: ICategoria[]): TCategoria[] {
-    return categorias.map(function (categoria) {
+    return categorias.filter(categoria => categoria.tipo === 'I').map(function (categoria) {
         return {label: categoria.nome, value: String(categoria.id)}
     })
 }
@@ -155,20 +193,55 @@ function handleInputsItem(
     }))
 }
 
+function ClassificacaoItem({
+    option,
+    checked,
+    onToggle,
+}: {
+    option: ClassificacaoOption
+    checked: boolean
+    onToggle: (checked: boolean) => void
+}) {
+    const Icon = option.icon
+
+    return (
+        <div className="flex items-center gap-4">
+            <Checkbox
+                id={option.id}
+                checked={checked}
+                onCheckedChange={(value) => onToggle(value === true)}
+            />
+            <label htmlFor={option.id} className="flex cursor-pointer items-center gap-4">
+                <Icon className="h-7.5 w-7.5" />
+                <div className="flex flex-col gap-1">
+                    <p className="text-lg">{option.label}</p>
+                    <p className="text-sm text-muted-foreground">{option.description}</p>
+                </div>
+            </label>
+        </div>
+    )
+}
+
 // DrawerContent ItemNormal
 
 function DrawerContentItemNormal({
-  setItem,
-  item,
+  setItem: setItemProp,
+  item: itemProp,
   cnpj,
   cardapio_id,
-  categorias
+  categorias,
+  onSubmit,
+  isSubmiting,
+  isEditing
 }: {
   item: TItem
   setItem: React.Dispatch<React.SetStateAction<TItem>>
   cnpj: string,
   cardapio_id: string
   categorias: TCategoria[]
+  isEditing: boolean
+  isSubmiting: boolean
+  onSubmit: () => Promise<void>
 }) {
   type TTab = 'detalhes' | 'preco_estoque' | 'classificacao';
   const ITEM_NORMAL_TABS = [
@@ -176,8 +249,30 @@ function DrawerContentItemNormal({
     {value: 'preco_estoque', label: 'Preço e Estoque'},
     {value: 'classificacao', label: 'Classificação'},
   ] as const
+  const CAMPO_PARA_ABA: Record<string, TTab> = {
+    categoria_id: 'detalhes',
+    nome: 'detalhes',
+    external_id: 'detalhes',
+    descricao: 'detalhes',
+    dias_funcionamento: 'detalhes',
+    qtde_pessoas: 'detalhes',
+    peso: 'detalhes',
+    gramagem: 'detalhes',
+    preco: 'preco_estoque',
+    desconto: 'preco_estoque',
+    valor_desconto: 'preco_estoque',
+    porcentagem_desconto: 'preco_estoque',
+    eh_bebida: 'classificacao',
+    classificacao: 'classificacao',
+  }
   const [tab, setTab] = useState<TTab>('detalhes')
   const [isUploadingImage, setIsUploadingImage] = useState<boolean>(false)
+
+  function irParaAbaComErro(errors?: Record<string, string[]>) {
+    const primeiroCampoComErro = Object.keys(errors ?? {})[0]
+    const aba = CAMPO_PARA_ABA[primeiroCampoComErro]
+    if (aba) setTab(aba)
+  }
   const diasFuncionamentoAnchor = useComboboxAnchor()
   const QTDE_PESSOAS_INFO: TQtdePessoasInfo[] = [
     {value: '0', label: 'Não se aplica', icon: null},
@@ -190,114 +285,126 @@ function DrawerContentItemNormal({
     {value: 'g', label: 'g'},
     {value: 'Kg', label: 'Kg'},
   ] as const
+    const toggleClassificacao = (value: string, status: boolean) => {
+        setItemProp((prev) => {
+            const jaExiste = prev.classificacao?.some((c) => c.value === value)
+            const classificacao = jaExiste
+                ? prev.classificacao!.map((c) => c.value === value ? { ...c, status } : c)
+                : [...(prev.classificacao ?? []), { value, status }]
+            return { ...prev, classificacao };
+        });
+    };
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const opcoes = useMemo(
+        () => (itemProp.eh_bebida ? CLASSIFICACOES_BEBIDA : CLASSIFICACOES_COMIDA),
+        [itemProp.eh_bebida]
+    );
+
+    const isChecked = (value: string) => itemProp.classificacao?.find((c) => c.value === value)?.status ?? false;
+
+    function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
     uploadImagem(file);
-  }
+    }
 
-  async function uploadImagem(file: File) {
-    setIsUploadingImage(true)
-    const imagemAnterior = item.imagem
-    const formData = new FormData();
-    formData.append('imagem', file);
-    await axios.post(route('aplicacao.empresa.cardapios.categorias.item.store-imagem', {
-      cnpj,
-      cardapio_id,
-    }), formData)
-      .then((response) => {
-        setItem(prev => ({
-          ...prev,
-          imagem: response.data.url
-        }))
-        // Troca de imagem: a anterior nunca foi vinculada a um item salvo, então some.
-        if (imagemAnterior) {
-          apagarImagemPendente(cnpj, cardapio_id, imagemAnterior)
+    async function uploadImagem(file: File) {
+        setIsUploadingImage(true)
+        const imagemAnterior = itemProp.imagem
+        const formData = new FormData();
+        formData.append('imagem', file);
+        await axios.post(route('aplicacao.empresa.cardapios.categorias.item.store-imagem', {
+            cnpj,
+            cardapio_id,
+            categoria_id: itemProp.categoria_id
+        }), formData)
+        .then((response) => {
+            setItemProp(prev => ({
+                ...prev,
+                imagem: response.data.url
+            }))
+            // Troca de imagem: a anterior nunca foi vinculada a um item salvo, então some.
+            if (imagemAnterior) {
+                apagarImagemPendente(cnpj, cardapio_id, String(itemProp.categoria_id), imagemAnterior)
+            }
+        })
+        .catch((error) => {
+            toast.error(error.response?.data?.message ?? 'Erro inesperado, tente novamente.')
+        })
+        .finally(() => setIsUploadingImage(false))
+    }
+
+    function calcularDescontoPorNovoPreco(novoPreco: number) {
+        const preco = itemProp.preco ?? 0;
+
+        if (preco === 0) {
+            toast.warning('Para calcular qualquer tipo de desconto, antes, adicione o preço unitário do item.');
+            return;
         }
-      })
-      .catch((error) => {
-        toast.error(error.response.data.message)
-      })
-      .finally(() => setIsUploadingImage(false))
-  }
 
-  function setTabCadastroItemPreparado(tab: TTab) {
-    setTab(tab)
-  }
+        if (Number.isNaN(novoPreco)) {
+            setItemProp(prev => ({
+                ...prev,
+                valor_desconto: undefined,
+                porcentagem_desconto: undefined
+            }));
+            return;
+        }
 
-function calcularDescontoPorNovoPreco(novoPreco: number) {
-    const preco = item.preco ?? 0;
+        if (novoPreco < 0) {
+            toast.warning('O novo preço do item deve ser maior ou igual a 0.');
+            return
+        }
 
-    if (preco === 0) {
-        toast.warning('Para calcular qualquer tipo de desconto, antes, adicione o preço unitário do item.');
-        return;
-    }
+        if (novoPreco > preco) {
+            toast.warning('O novo preço do item deve ser menor que o preço unitário cadastrado.')
+            return
+        }
 
-    if (Number.isNaN(novoPreco)) {
-        setItem(prev => ({
+        const porcentagemDesconto = ((preco - novoPreco) / preco) * 100;
+
+        setItemProp(prev => ({
             ...prev,
-            valor_desconto: undefined,
-            porcentagem_desconto: undefined
+            valor_desconto: novoPreco,
+            porcentagem_desconto: Number(porcentagemDesconto.toFixed(2))
         }));
-        return;
     }
 
-    if (novoPreco < 0) {
-        toast.warning('O novo preço do item deve ser maior ou igual a 0.');
-        return
-    }
+    function calcularDescontoPorPorcentagem(porcentagem: number) {
+        const preco = itemProp.preco ?? 0;
+        if (preco === 0) {
+            toast.warning('Para calcular qualquer tipo de desconto, antes, adicione o preço unitário do item.');
+            return;
+        }
 
-    if (novoPreco > preco) {
-        toast.warning('O novo preço do item deve ser menor que o preço unitário cadastrado.')
-        return
-    }
+        if (Number.isNaN(porcentagem)) {
+            setItemProp(prev => ({
+                ...prev,
+                valor_desconto: undefined,
+                porcentagem_desconto: undefined
+            }));
+            return;
+        }
 
-    const porcentagemDesconto = ((preco - novoPreco) / preco) * 100;
+        if (porcentagem < 0) {
+            toast.warning('A porcentagem deve ser maior ou igual a 0%.')
+            return
+        }
 
-    setItem(prev => ({
-        ...prev,
-        valor_desconto: novoPreco,
-        porcentagem_desconto: Number(porcentagemDesconto.toFixed(2))
-    }));
-}
+        if (porcentagem > 100) {
+            toast.warning('A porcentagem não pode ser maior que 100%.')
+            return
+        }
 
-function calcularDescontoPorPorcentagem(porcentagem: number) {
-    const preco = item.preco ?? 0;
+        const novoPreco = preco - (preco * porcentagem) / 100;
 
-    if (preco === 0) {
-        toast.warning('Para calcular qualquer tipo de desconto, antes, adicione o preço unitário do item.');
-        return;
-    }
-
-    if (Number.isNaN(porcentagem)) {
-        setItem(prev => ({
+        setItemProp(prev => ({
             ...prev,
-            valor_desconto: undefined,
-            porcentagem_desconto: undefined
+            porcentagem_desconto: porcentagem,
+            valor_desconto: Number(novoPreco.toFixed(2))
         }));
-        return;
     }
-
-    if (porcentagem < 0) {
-        toast.warning('A porcentagem deve ser maior ou igual a 0%.')
-        return
-    }
-
-    if (porcentagem > 100) {
-        toast.warning('A porcentagem não pode ser maior que 100%.')
-        return
-    }
-
-    const novoPreco = preco - (preco * porcentagem) / 100;
-
-    setItem(prev => ({
-        ...prev,
-        porcentagem_desconto: porcentagem,
-        valor_desconto: Number(novoPreco.toFixed(2))
-    }));
-}
 
   return (
     <DrawerContent className="w-full p-6 lg:w-[55vw]">
@@ -316,7 +423,7 @@ function calcularDescontoPorPorcentagem(porcentagem: number) {
                         {isUploadingImage ? (
                             <Spinner />
                         ) : (
-                            <img className="h-full w-full object-cover" src={item?.imagem ?? 'https://placehold.co/300'} alt="Imagem de item novo" />
+                            <img className="h-full w-full object-cover" src={itemProp?.imagem ?? 'https://placehold.co/300'} alt="Imagem de item novo" />
                         )}
                         </AttachmentMedia>
                     </Attachment>
@@ -335,8 +442,8 @@ function calcularDescontoPorPorcentagem(porcentagem: number) {
                                     id="categoria_id"
                                     name="categoria_id"
                                     items={categorias}
-                                    value={categorias.find(categoria => categoria.value === String(item.categoria_id))?.value}
-                                    onValueChange={(e) => handleInputsItem(setItem, e, 'categoria_id')}>
+                                    value={categorias.find(categoria => categoria.value === String(itemProp.categoria_id))?.value}
+                                    onValueChange={(e) => handleInputsItem(setItemProp, Number(e), 'categoria_id')}>
                                     <SelectTrigger className="w-full">
                                         <SelectValue />
                                     </SelectTrigger>
@@ -354,11 +461,11 @@ function calcularDescontoPorPorcentagem(porcentagem: number) {
                             </Field>
                             <Field>
                                 <FieldLabel htmlFor="nome">Nome do item</FieldLabel>
-                                <Input id="nome" name="nome" value={item.nome ?? ''} onBlur={(e) => handleInputsItem(setItem, e, 'external_id')}/>
+                                <Input key={itemProp.nome} id="nome" name="nome" defaultValue={itemProp.nome ?? ''} onBlur={(e) => handleInputsItem(setItemProp, e.target.value, 'nome')}/>
                             </Field>
                             <Field>
                                 <FieldLabel htmlFor="external_id">Código PDV.</FieldLabel>
-                                <Input id="external_id" name="external_id" value={item.external_id ?? ''} onBlur={(e) => handleInputsItem(setItem, e, 'external_id')}/>
+                                <Input key={itemProp.external_id} id="external_id" name="external_id" defaultValue={itemProp.external_id ?? ''} onBlur={(e) => handleInputsItem(setItemProp, e.target.value, 'external_id')}/>
                             </Field>
                         </FieldGroup>
                     </div>
@@ -366,12 +473,30 @@ function calcularDescontoPorPorcentagem(porcentagem: number) {
                 <FieldGroup>
                     <Field>
                         <FieldLabel>Descrição</FieldLabel>
-                        <Textarea rows={5} defaultValue={item.descricao ?? ''} onBlur={(e) => handleInputsItem(setItem, e, 'descricao')}/>
+                        <Textarea key={itemProp.descricao} rows={5} defaultValue={itemProp.descricao ?? ''} onBlur={(e) => handleInputsItem(setItemProp, e.target.value, 'descricao')}/>
                     </Field>
                     <Field>
-                        <FieldLabel htmlFor="dias_funcionamento">
-                            Dias de funcionamento
-                        </FieldLabel>
+                        <div className="flex items-center justify-between">
+                            <FieldLabel htmlFor="dias_funcionamento">
+                                Dias de funcionamento
+                            </FieldLabel>
+                            <div className="flex gap-3 text-xs">
+                                <button
+                                    type="button"
+                                    className="text-primary hover:underline"
+                                    onClick={() => handleInputsItem(setItemProp, DIAS_SEMANA, 'dias_funcionamento')}
+                                >
+                                    Selecionar todos
+                                </button>
+                                <button
+                                    type="button"
+                                    className="text-muted-foreground hover:underline"
+                                    onClick={() => handleInputsItem(setItemProp, [], 'dias_funcionamento')}
+                                >
+                                    Remover todos
+                                </button>
+                            </div>
+                        </div>
                         <Combobox
                             id="dias_funcionamento"
                             items={DIAS_SEMANA}
@@ -380,15 +505,15 @@ function calcularDescontoPorPorcentagem(porcentagem: number) {
                                 item.label
                             }
                             value={DIAS_SEMANA.filter((ds) =>
-                                item.dias_funcionamento?.includes(ds.value),
+                                itemProp.dias_funcionamento?.includes(ds.value),
                             )}
                             onValueChange={(itens: TDiaSemana[]) =>
-                                handleInputsItem(setItem, itens, 'dias_funcionamento')
+                                handleInputsItem(setItemProp, itens, 'dias_funcionamento')
                             }
                         >
                             <ComboboxChips ref={diasFuncionamentoAnchor}>
                                 <ComboboxValue>
-                                    {item.dias_funcionamento?.map((df) => (
+                                    {itemProp.dias_funcionamento?.map((df: string | number) => (
                                         <ComboboxChip key={df}>
                                             {DIA_SEMANA(Number(df))}
                                         </ComboboxChip>
@@ -416,14 +541,14 @@ function calcularDescontoPorPorcentagem(porcentagem: number) {
                             Selecione os dias que o cardápio vai funcionar
                         </p>
                     </Field>
-                    {item.tipo === 'PRE' && (
+                    {itemProp.tipo === 'PRE' && (
                         <>
                             <Alert>
                                 <AlertCircle />
                                 <AlertTitle>Empresário, atenção!</AlertTitle>
                                 <AlertDescription>Ajude seus clientes a entender o tamanho dos itens do seu cardápio.</AlertDescription>
                             </Alert>
-                            <RadioGroup value={String(item.qtde_pessoas ?? '')} onValueChange={(e) => handleInputsItem(setItem, Number(e), 'qtde_pessoas')}>
+                            <RadioGroup value={String(itemProp.qtde_pessoas ?? '')} onValueChange={(e) => handleInputsItem(setItemProp, Number(e), 'qtde_pessoas')}>
                                 <p className="text-lg font-bold md:text-xl">Pra qual tamanho de fome é esse item</p>
                                 <p className="text-base md:text-lg">Dê mais detalhes para que o cliente possa planejar a refeição.</p>
                                 <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -446,9 +571,9 @@ function calcularDescontoPorPorcentagem(porcentagem: number) {
                             <Field>
                                 <FieldLabel htmlFor="peso">Peso</FieldLabel>
                                 <InputGroup>
-                                    <InputGroupInput id="peso" name="peso" value={item.peso ?? ''} onBlur={(e) => handleInputsItem(setItem, e, 'peso')}/>
+                                    <InputGroupInput key={itemProp.peso} id="peso" name="peso" defaultValue={itemProp.peso ?? ''} onBlur={(e) => handleInputsItem(setItemProp, e.target.value, 'peso')}/>
                                     <InputGroupAddon align={'inline-end'}>
-                                        <Select value={item.gramagem ?? ''} onValueChange={(e) => handleInputsItem(setItem, e, 'gramagem')} items={GRAMAGEM_INFO}>
+                                        <Select value={itemProp.gramagem ?? ''} onValueChange={(e) => handleInputsItem(setItemProp, e, 'gramagem')} items={GRAMAGEM_INFO}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Informe a gramagem"/>
                                             </SelectTrigger>
@@ -467,7 +592,7 @@ function calcularDescontoPorPorcentagem(porcentagem: number) {
             </div>
         </TabsContent>
         <TabsContent value={'preco_estoque'} className="flex min-h-0 flex-col">
-            {!item.desconto ? (
+            {!itemProp.desconto ? (
                 <div className="flex flex-col gap-6">
                     <div className="flex flex-col items-start gap-4 md:flex-row md:items-end">
                         <div className="w-full">
@@ -478,9 +603,10 @@ function calcularDescontoPorPorcentagem(porcentagem: number) {
                                 <InputGroup>
                                     <InputGroupAddon align={'inline-start'}>R$</InputGroupAddon>
                                     <InputGroupInput
+                                        key={itemProp.preco}
                                         id="preco"
-                                        value={item.preco ?? ''}
-                                        onChange={(e) => handleInputsItem(setItem, Number(e.currentTarget.value), 'preco')}
+                                        defaultValue={itemProp.preco ?? ''}
+                                        onBlur={(e) => handleInputsItem(setItemProp, Number(e.target.value), 'preco')}
                                     />
                                 </InputGroup>
                             </Field>
@@ -488,7 +614,7 @@ function calcularDescontoPorPorcentagem(porcentagem: number) {
 
                         <Button
                             variant="outline"
-                            onClick={() => handleInputsItem(setItem, true, 'desconto')}
+                            onClick={() => handleInputsItem(setItemProp, true, 'desconto')}
                         >
                             Aplicar desconto
                         </Button>
@@ -500,7 +626,7 @@ function calcularDescontoPorPorcentagem(porcentagem: number) {
                         <p className="text-lg font-bold md:text-xl">Desconto direto no item</p>
                         <Button
                             type="button"
-                            onClick={() => handleInputsItem(setItem, false, 'desconto')}
+                            onClick={() => handleInputsItem(setItemProp, false, 'desconto')}
                             variant={'destructive'}
                         >
                             Remover desconto
@@ -518,7 +644,7 @@ function calcularDescontoPorPorcentagem(porcentagem: number) {
                                     disabled
                                     readOnly
                                     id="preco"
-                                    value={item.preco ?? ''}
+                                    value={itemProp.preco ?? ''}
                                 />
                             </InputGroup>
                         </Field>
@@ -527,9 +653,10 @@ function calcularDescontoPorPorcentagem(porcentagem: number) {
                             <InputGroup>
                                 <InputGroupAddon align={'inline-start'}>R$</InputGroupAddon>
                                 <InputGroupInput
+                                    key={itemProp.valor_desconto}
                                     id="valor_desconto"
-                                    value={item.valor_desconto ?? ''}
-                                    onChange={(e) => calcularDescontoPorNovoPreco(Number(e.currentTarget.value))}
+                                    defaultValue={itemProp.valor_desconto ?? ''}
+                                    onBlur={(e) => calcularDescontoPorNovoPreco(Number(e.target.value))}
                                 />
                             </InputGroup>
                         </Field>
@@ -537,9 +664,10 @@ function calcularDescontoPorPorcentagem(porcentagem: number) {
                             <FieldLabel htmlFor="porcentagem-desconto">Desconto em %</FieldLabel>
                             <InputGroup>
                                 <InputGroupInput
+                                    key={itemProp.porcentagem_desconto}
                                     id="porcentagem-desconto"
-                                    value={item.porcentagem_desconto ?? ''}
-                                    onChange={(e) => calcularDescontoPorPorcentagem(Number(e.currentTarget.value))}
+                                    defaultValue={itemProp.porcentagem_desconto ?? ''}
+                                    onBlur={(e) => calcularDescontoPorPorcentagem(Number(e.target.value))}
                                 />
                                 <InputGroupAddon align={'inline-end'}>%</InputGroupAddon>
                             </InputGroup>
@@ -548,15 +676,118 @@ function calcularDescontoPorPorcentagem(porcentagem: number) {
                 </div>
             )}
         </TabsContent>
-        <TabsContent value={'classificacao'}></TabsContent>
+        <TabsContent value={'classificacao'} className="flex min-h-0 flex-col">
+            <div className="flex flex-col gap-4">
+                {!itemProp.eh_bebida ? (
+                    <>
+                        <p className="text-xl">Restrições alimentares:</p>
+                        <p className="text-sm md:text-base">
+                            Indique se seu item é adequado a restrições alimentares diversas para atrair a atenção de clientes.
+                        </p>
+
+                        <Alert className="my-4 text-sm md:text-base">
+                            <AlertTriangle className="h-4 w-4" />
+                            <AlertDescription>
+                                <strong>Lembre-se que você é responsável por todas as informações sobre os itens.</strong>
+                            </AlertDescription>
+                        </Alert>
+
+                        <div className="mb-4 flex h-auto flex-col items-center justify-between gap-4 rounded-lg border-4 border-solid border-primary px-4 md:h-24 md:flex-row">
+                            <p className="text-base md:text-lg">Este item é uma bebida?</p>
+                            <Switch
+                                checked={itemProp.eh_bebida}
+                                onCheckedChange={(checked) => setItemProp((prev) => ({ ...prev, eh_bebida: checked }))}
+                            />
+                        </div>
+
+                        <div className="flex flex-col gap-6">
+                            {opcoes.map((option) => (
+                                <ClassificacaoItem
+                                    key={option.id}
+                                    option={option}
+                                    checked={isChecked(option.id)}
+                                    onToggle={(status) => toggleClassificacao(option.id, status)}
+                                />
+                            ))}
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        <p className="text-xl">Classificação da bebida:</p>
+                        <p className="text-sm md:text-base">
+                            Indique se sua bebida é adequada a restrições alimentares diversas para atrair a atenção de clientes.
+                        </p>
+
+                        <div className="my-4 flex h-auto flex-col items-center justify-between gap-4 rounded-lg border-4 border-solid border-primary px-4 md:h-24 md:flex-row">
+                            <p className="text-base md:text-lg">Este item é uma bebida?</p>
+                            <Switch
+                                checked={itemProp.eh_bebida}
+                                onCheckedChange={(checked) => setItemProp((prev) => ({ ...prev, eh_bebida: checked }))}
+                            />
+                        </div>
+
+                        <div className="flex flex-col gap-6">
+                            {CLASSIFICACOES_BEBIDA.map((option) => (
+                                <ClassificacaoItem
+                                    key={option.id}
+                                    option={option}
+                                    checked={isChecked(option.id)}
+                                    onToggle={(status) => toggleClassificacao(option.id, status)}
+                                />
+                            ))}
+                        </div>
+
+                        <p className="mt-4 text-xl">Restrições:</p>
+                        <p className="mb-4 text-sm md:text-base">
+                            Indique se sua bebida possui algum ingrediente que seja uma restrição alimentar.
+                        </p>
+
+                        <div className="flex flex-col gap-6">
+                            {RESTRICOES_BEBIDA.map((option) => (
+                                <ClassificacaoItem
+                                    key={option.id}
+                                    option={option}
+                                    checked={isChecked(option.id)}
+                                    onToggle={(status) => toggleClassificacao(option.id, status)}
+                                />
+                            ))}
+                        </div>
+                    </>
+                )}
+            </div>
+        </TabsContent>
       </Tabs>
         <DrawerFooter className="flex flex-row-reverse">
-          <Button onClick={() => {
+          <Button disabled={isSubmiting} onClick={() => {
             if (tab === 'detalhes') setTab('preco_estoque')
             if (tab === 'preco_estoque') setTab('classificacao')
-            if (tab === 'classificacao') () => {}
-          }}>Continuar</Button>
-          <DrawerClose render={<Button variant={'destructive'} />}>Cancelar</DrawerClose>
+            if (tab === 'classificacao') {
+                onSubmit().catch((error) => irParaAbaComErro(error?.response?.data?.errors))
+            }
+          }}>
+            {
+                tab === 'classificacao'
+                ? (
+                    <>
+                        {!isEditing ? (
+                            <>{isSubmiting ? (
+                                <><Spinner /> Cadastrando...</>
+                            ) : (
+                                'Cadastrar'
+                            )}</>
+                        ) : (
+                            <>{isSubmiting ? (
+                                <><Spinner /> Salvando...</>
+                            ) : (
+                                'Salvar'
+                            )}</>
+                        )}
+                    </>
+                )
+                : (<>Continuar</>)
+            }
+          </Button>
+          <DrawerClose render={<Button variant={'destructive'} /> } disabled={isSubmiting}>Cancelar</DrawerClose>
         </DrawerFooter>
     </DrawerContent>
   )
@@ -567,91 +798,102 @@ export default function UpsertItemDrawer({
   open,
   onOpenChange,
   item: itemProp,
-  categorias: categoriaProp
+  categorias: categoriaProp,
+  onSubmit,
+  isSubmiting
 }: IProps) {
-  // Constantes
-  const [item, setItem] = useState<TItem>(() => criarItemInicial(itemProp))
-  const [categorias, setCategorias] = useState<TCategoria[]>(() => criarCategoriasIniciais(categoriaProp))
-  const {cnpj, cardapio_id} = usePage<{
-    cnpj: string,
-    cardapio_id: string,
-  }>().props
+    // Constantes
+    const isEdicao = itemProp?.id !== undefined
+    const [item, setItem] = useState<TItem>(() => criarItemInicial(itemProp))
+    const [categorias, setCategorias] = useState<TCategoria[]>(() => criarCategoriasIniciais(categoriaProp))
+    const {cnpj, cardapio_id} = usePage<{
+        cnpj: string,
+        cardapio_id: string,
+    }>().props
 
   // Recarrega/reseta o estado toda vez que o drawer é aberto
-  useEffect(() => {
-    if (open) {
-      setItem(criarItemInicial(itemProp))
-      setCategorias(criarCategoriasIniciais(categoriaProp))
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open])
+    useEffect(() => {
+        if (!open) return
+        setItem(criarItemInicial(itemProp))
+        setCategorias(criarCategoriasIniciais(categoriaProp))
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [open])
+
 
   // Fechou sem finalizar o cadastro (Esc, clique fora, swipe, botão Cancelar):
   // a imagem enviada ainda não está vinculada a nenhum item, então remove.
-  function handleOpenChange(value: boolean) {
-    if (!value && item.imagem) {
-      apagarImagemPendente(cnpj, cardapio_id, item.imagem)
+    function handleOpenChange(value: boolean) {
+        if (!value && item.imagem) {
+        apagarImagemPendente(cnpj, cardapio_id, String(item.categoria_id), item.imagem)
+        }
+        onOpenChange(value)
     }
-    onOpenChange(value)
-  }
 
-  const SELECT_ITEM_TYPE_BUTTON: TBotoesSelecionarTipoItem[] = [
-  {
-    tipo: 'PRE',
-    title: 'Preparado',
-    description: 'Itens produzidos pela sua loja, como marmitas, bolos e lanches.',
-    icon: <CookingPot className="size-10"/>
-  },
-  {
-    tipo: 'BEB',
-    title: 'Bebida Industrializada',
-    description: 'Bebidas como: Refrigerantes, cervejas, energéticos e outros.',
-    icon: <Beer className="size-10"/>
-  },
-  {
-    tipo: 'IND',
-    title: 'Industrializado',
-    description: 'Itens industrializados, como salgadinhos e doces embalados.',
-    icon: <ScanBarcode className="size-10"/>
-  },
-]
-  return (
-    <Drawer open={open} onOpenChange={handleOpenChange} swipeDirection="right">
-      {item.categoria_tipo === 'I' && !item.tipo && (
-        <DrawerContent className="w-full p-6 lg:w-[55vw]">
-          <DrawerHeader>
-            <DrawerTitle>Adicionar item</DrawerTitle>
-            <DrawerDescription>Selecione o tipo de item que você deseja adicionar ao cardápio:</DrawerDescription>
-          </DrawerHeader>
-          <div className="flex flex-col gap-4 mt-4">
-            {SELECT_ITEM_TYPE_BUTTON.map((b, bIdx) => (
-              <Button
-                variant={"outline"}
-                type="button" key={bIdx}
-                className="flex h-24 w-full flex-nowrap justify-start gap-4 p-4"
-                onClick={() => setItem(prev => ({
-                  ...prev,
-                  tipo: b.tipo
-                }))}>
-                  {b.icon}
-                  <div className="flex flex-col items-start gap-2">
-                    <H6 className="font-bold">{b.title}</H6>
-                    <p className="w-full text-start text-base">{b.description}</p>
-                  </div>
-              </Button>
-            ))}
-          </div>
-        </DrawerContent>
-      )}
-      {['PRE', 'IND', 'BEB'].includes(item.tipo!) && (
-        <DrawerContentItemNormal
-          item={item}
-          setItem={setItem}
-          cnpj={cnpj}
-          cardapio_id={cardapio_id}
-          categorias={categorias}
-        />
-      )}
-    </Drawer>
-  )
+    const SELECT_ITEM_TYPE_BUTTON: TBotoesSelecionarTipoItem[] = [
+        {
+            tipo: 'PRE',
+            title: 'Preparado',
+            description: 'Itens produzidos pela sua loja, como marmitas, bolos e lanches.',
+            icon: <CookingPot className="size-10"/>
+        },
+        {
+            tipo: 'BEB',
+            title: 'Bebida Industrializada',
+            description: 'Bebidas como: Refrigerantes, cervejas, energéticos e outros.',
+            icon: <Beer className="size-10"/>
+        },
+        {
+            tipo: 'IND',
+            title: 'Industrializado',
+            description: 'Itens industrializados, como salgadinhos e doces embalados.',
+            icon: <ScanBarcode className="size-10"/>
+        },
+    ]
+
+    function onSubmitCadastro() {
+        return onSubmit(item)
+    }
+
+    return (
+        <Drawer open={open} onOpenChange={handleOpenChange} swipeDirection="right">
+            {item.categoria_tipo === 'I' && !item.tipo && (
+                <DrawerContent className="w-full p-6 lg:w-[55vw]">
+                    <DrawerHeader>
+                    <DrawerTitle>Adicionar item</DrawerTitle>
+                    <DrawerDescription>Selecione o tipo de item que você deseja adicionar ao cardápio:</DrawerDescription>
+                    </DrawerHeader>
+                    <div className="flex flex-col gap-4 mt-4">
+                    {SELECT_ITEM_TYPE_BUTTON.map((b, bIdx) => (
+                        <Button
+                        variant={"outline"}
+                        type="button" key={bIdx}
+                        className="flex h-24 w-full flex-nowrap justify-start gap-4 p-4"
+                        onClick={() => setItem(prev => ({
+                            ...prev,
+                            tipo: b.tipo
+                        }))}>
+                            {b.icon}
+                            <div className="flex flex-col items-start gap-2">
+                            <H6 className="font-bold">{b.title}</H6>
+                            <p className="w-full text-start text-base">{b.description}</p>
+                            </div>
+                        </Button>
+                    ))}
+                    </div>
+                </DrawerContent>
+            )}
+            {['PRE', 'IND', 'BEB'].includes(item.tipo!) && (
+                <DrawerContentItemNormal
+                    item={item}
+                    setItem={setItem}
+                    cnpj={cnpj}
+                    cardapio_id={cardapio_id}
+                    categorias={categorias}
+                    onSubmit={!isEdicao ? onSubmitCadastro : () => Promise.resolve()}
+                    isSubmiting={isSubmiting}
+                    isEditing={isEdicao}
+                />
+            )}
+        </Drawer>
+    )
 }

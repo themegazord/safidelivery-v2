@@ -4,13 +4,35 @@ namespace App\Http\Controllers\Empresa\Cardapios\Categorias\Itens;
 
 use App\Actions\Itens\DestroyImagemItemAction;
 use App\Actions\Itens\StoreImagemItemAction;
+use App\Actions\Itens\StoreItemAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Cardapios\Categorias\Itens\DestroyImagemItemRequest;
 use App\Http\Requests\Cardapios\Categorias\Itens\StoreImagemItemRequest;
+use App\Http\Requests\Cardapios\Categorias\Itens\StoreItemRequest;
+use App\Models\Cardapio;
+use App\Models\Categoria;
+use App\Models\Empresa;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class ItemController extends Controller
 {
+    public Empresa $empresa;
+    public Cardapio $cardapio;
+    public Categoria $categoria;
+    public bool $exportaDadosIfood;
+
+
+    public function __construct(Request $request)
+    {
+        $this->empresa = Empresa::query()->where('cnpj', $request->route('cnpj'))->firstOrFail();
+        $this->cardapio = $this->empresa->cardapios->where('id', $request->route('cardapio_id'))->first();
+        $this->categoria = Categoria::query()->where('cardapio_id', $this->cardapio->getAttribute('id'))->where('id', $request->route('categoria_id'))->first();
+        $this->exportaDadosIfood = $this->empresa->configuracoes->where('configuracao', 'replicar_informacao_importacao')->first()->getAttribute('valor');
+        if (!$this->cardapio) {
+            abort(404);
+        }
+    }
     /**
      * Display a listing of the resource.
      */
@@ -22,12 +44,14 @@ class ItemController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreItemRequest $request, string $cnpj, string $cardapio_id, string $categoria_id, StoreItemAction $action): RedirectResponse
     {
-        //
+        $dados = $request->validated();
+        $action->handle($dados, $this->cardapio->getAttribute('id'), $this->categoria, $this->exportaDadosIfood, $this->empresa);
+        return redirect()->back();
     }
 
-    public function storeImage(StoreImagemItemRequest $request, string $cnpj, string $cardapio_id, StoreImagemItemAction $action)
+    public function storeImage(StoreImagemItemRequest $request, string $cnpj, string $cardapio_id, string $categoria_id, StoreImagemItemAction $action)
     {
         $request->validated(); // só dispara a validação, sem precisar guardar o retorno
         $imagem = $request->file('imagem');
@@ -35,7 +59,7 @@ class ItemController extends Controller
         return response()->json(['url' => $url]);
     }
 
-    public function destroyImage(DestroyImagemItemRequest $request, string $cnpj, string $cardapio_id, DestroyImagemItemAction $action)
+    public function destroyImage(DestroyImagemItemRequest $request, string $cnpj, string $cardapio_id, string $categoria_id, DestroyImagemItemAction $action)
     {
         $action->handle($request->validated('url'));
         return response()->json(['message' => 'Imagem removida com sucesso.']);

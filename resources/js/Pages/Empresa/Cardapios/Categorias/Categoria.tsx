@@ -62,6 +62,7 @@ export default function Categoria() {
     const [handleDialogRemocaoCategoria, setHandleDialogRemocaoCategoria] = useState(false)
     const [loadingClonagemCategoria, setLoadingClonagemCategoria] = useState(false)
     const [loadingRemocaoCategoria, setLoadingRemocaoCategoria] = useState(false)
+    const [isSubmiting, setIsSubmiting] = useState<boolean>(false)
     const [categoriasState, setCategoriasState] = useState<ICategoria[]>();
     const [categoria, setCategoria] = useState<
         (Partial<CategoriaFormData> & { id: number }) | undefined
@@ -117,23 +118,27 @@ export default function Categoria() {
         setCategoriasState(categorias);
     }, [categorias]);
 
+    async function carregarItensDaCategoria(categoriaId: number) {
+        setLoadingCategoria(categoriaId);
+        await axios
+            .get(
+                route(
+                    "aplicacao.empresa.cardapios.categorias.itens.itens_por_categoria",
+                    { cnpj, cardapio_id, categoria_id: categoriaId },
+                ),
+            )
+            .then((response) => {
+                setItensPorCategoria((prev) => ({
+                    ...prev,
+                    [categoriaId]: response.data,
+                }));
+            })
+            .finally(() => setLoadingCategoria(null));
+    }
+
     const handleOpenChange = async (categoriaId: number, open: boolean) => {
         if (open && !itensPorCategoria[categoriaId]) {
-            setLoadingCategoria(categoriaId);
-            await axios
-                .get(
-                    route(
-                        "aplicacao.empresa.cardapios.categorias.itens.itens_por_categoria",
-                        { cnpj, cardapio_id, categoria_id: categoriaId },
-                    ),
-                )
-                .then((response) => {
-                    setItensPorCategoria((prev) => ({
-                        ...prev,
-                        [categoriaId]: response.data,
-                    }));
-                    setLoadingCategoria(null);
-                });
+            await carregarItensDaCategoria(categoriaId);
         }
     };
 
@@ -154,7 +159,7 @@ export default function Categoria() {
             )
             .catch((error) =>
                 toast.error(
-                    error.response.data.message ??
+                    error.response?.data?.message ??
                         "Erro ao ordenar as categorias",
                 ),
             );
@@ -197,7 +202,7 @@ export default function Categoria() {
                 router.reload({ only: ['categorias', 'categoriaStatus'] })
             })
             .catch((error) => {
-                toast.error(error.response.data.message)
+                toast.error(error.response?.data?.message ?? 'Erro inesperado, tente novamente.')
             })
     }
 
@@ -211,7 +216,7 @@ export default function Categoria() {
                 router.reload({ only: ['categorias', 'categoriaStatus'] })
             })
             .catch((error) => {
-                toast.error(error.response.data.message)
+                toast.error(error.response?.data?.message ?? 'Erro inesperado, tente novamente.')
             })
     }
 
@@ -225,7 +230,7 @@ export default function Categoria() {
                 router.reload({ only: ['categorias', 'categoriaStatus'] })
             })
             .catch((error) => {
-                toast.error(error.response.data.message)
+                toast.error(error.response?.data?.message ?? 'Erro inesperado, tente novamente.')
             })
             .finally(() => setLoadingClonagemCategoria(false))
     }
@@ -240,7 +245,7 @@ export default function Categoria() {
                 router.reload({ only: ['categorias', 'categoriaStatus'] })
             })
             .catch((error) => {
-                toast.error(error.response.data.message)
+                toast.error(error.response?.data?.message ?? 'Erro inesperado, tente novamente.')
             })
             .finally(() => setLoadingRemocaoCategoria(false))
     }
@@ -253,8 +258,26 @@ export default function Categoria() {
                 setCategoria(response.data.categoria)
             })
             .catch((error) => {
-                toast.error(error.response.data.message)
+                toast.error(error.response?.data?.message ?? 'Erro inesperado, tente novamente.')
             })
+    }
+
+    function cadastraItem(item: TItem) {
+        setIsSubmiting(true)
+        return axios.post(route('aplicacao.empresa.cardapios.categorias.item.store', {cnpj, cardapio_id, categoria_id: item.categoria_id}), item)
+            .then((response) => {
+                toast.success('Item cadastrado com sucesso.')
+                if (item.categoria_id) {
+                    carregarItensDaCategoria(item.categoria_id)
+                }
+                router.reload({ only: ['categorias', 'categoriaStatus'] })
+                setHandleDrawerUpsertItem(false)
+            })
+            .catch((error) => {
+                toast.error(error.response?.data?.message ?? 'Erro inesperado, tente novamente.')
+                throw error
+            })
+            .finally(() => setIsSubmiting(false))
     }
 
     return (
@@ -421,6 +444,11 @@ export default function Categoria() {
                 open={handleDrawerUpsertItem}
                 onOpenChange={setHandleDrawerUpsertItem}
                 categorias={categorias}
+                onSubmit={(dados: TItem) => !item?.id
+                    ? cadastraItem(dados)
+                    : Promise.resolve()
+                }
+                isSubmiting={isSubmiting}
             />
             <ConfirmarClonagemCategoriaDialog
                 open={handleDialogClonagemCategoria}

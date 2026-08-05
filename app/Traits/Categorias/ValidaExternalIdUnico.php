@@ -213,4 +213,70 @@ trait ValidaExternalIdUnico
 
         return null;
     }
+
+    private function validarExternalIdItem(?string $externalId, string $nomeItem, int $cardapioId): ?string
+    {
+        if (empty($externalId)) {
+            return null;
+        }
+
+        $tipoNomes = [
+            'PIZ' => 'sabor de pizza',
+            'PRE' => 'item preparado',
+            'BEB' => 'bebida',
+            'IND' => 'item industrializado',
+        ];
+
+        // Verifica se já existe outro item com este external_id
+        $itemExistente = Item::where('external_id', $externalId)
+            ->whereHas('categoria', function ($query) use ($cardapioId) {
+                $query->where('cardapio_id', $cardapioId);
+            })
+            ->first();
+
+        if (! is_null($itemExistente)) {
+            $tipoExistente = $tipoNomes[$itemExistente->tipo] ?? 'item';
+
+            return "Código PDV [{$externalId}] informado no item [{$nomeItem}] já está sendo usado no {$tipoExistente} [{$itemExistente->nome}]";
+        }
+
+        // Verifica se já existe nas tabelas de categorias
+        $existeEmTamanho = CategoriaTamanho::where('external_id', $externalId)
+            ->whereHas('categoria', function ($query) use ($cardapioId) {
+                $query->where('cardapio_id', $cardapioId);
+            })
+            ->first();
+        if (! is_null($existeEmTamanho)) {
+            return "Código PDV [{$externalId}] informado no item [{$nomeItem}] já está sendo usado no tamanho [{$existeEmTamanho->nome}]";
+        }
+
+        $existeEmMassa = CategoriaMassa::where('external_id', $externalId)
+            ->whereHas('categoria', function ($query) use ($cardapioId) {
+                $query->where('cardapio_id', $cardapioId);
+            })
+            ->first();
+        if (! is_null($existeEmMassa)) {
+            return "Código PDV [{$externalId}] informado no item [{$nomeItem}] já está sendo usado na massa [{$existeEmMassa->nome}]";
+        }
+
+        $existeEmBorda = CategoriaBorda::where('external_id', $externalId)
+            ->whereHas('categoria', function ($query) use ($cardapioId) {
+                $query->where('cardapio_id', $cardapioId);
+            })
+            ->first();
+        if (! is_null($existeEmBorda)) {
+            return "Código PDV [{$externalId}] informado no item [{$nomeItem}] já está sendo usado na borda [{$existeEmBorda->nome}]";
+        }
+
+        $existeEmComplemento = Complemento::where('external_id', $externalId)
+            ->whereHas('grupos.item.categoria', function ($query) use ($cardapioId) {
+                $query->where('cardapio_id', $cardapioId);
+            })
+            ->first();
+        if (! is_null($existeEmComplemento)) {
+            return "Código PDV [{$externalId}] informado no item [{$nomeItem}] já está sendo usado no complemento [{$existeEmComplemento->nome}]";
+        }
+
+        return null;
+    }
 }
