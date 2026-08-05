@@ -25,6 +25,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class FinalizarPedidoController extends Controller
@@ -199,6 +200,13 @@ class FinalizarPedidoController extends Controller
                 $dadosValidados['frete'] ?? null,
             );
         } catch (\Exception $e) {
+            // TODO: avaliar se esse erro deveria ser relançado em vez de apenas logado.
+            Log::error('Erro ao validar cupom do pedido', [
+                'empresa_id' => $empresa->getAttribute('id'),
+                'cupom' => $dadosValidados['cupom'],
+                'erro' => $e->getMessage(),
+            ]);
+
             return response()->json(['mensagem' => $e->getMessage()], $e->getCode() ?: JsonResponse::HTTP_UNPROCESSABLE_ENTITY);
         }
 
@@ -272,6 +280,12 @@ class FinalizarPedidoController extends Controller
                 'mensagem'  => 'Pedido realizado com sucesso!',
             ]);
         } catch (\Exception $e) {
+            // TODO: avaliar se esse erro deveria ser relançado em vez de apenas logado.
+            Log::error('Erro ao finalizar pedido', [
+                'empresa_id' => $empresa->id,
+                'erro' => $e->getMessage(),
+            ]);
+
             return response()->json(['mensagem' => $e->getMessage()], JsonResponse::HTTP_UNPROCESSABLE_ENTITY);
         }
     }
