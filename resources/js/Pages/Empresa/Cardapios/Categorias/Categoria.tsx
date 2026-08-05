@@ -262,7 +262,7 @@ export default function Categoria() {
             })
     }
 
-    function cadastraItem(item: TItem) {
+    async function cadastraItem(item: TItem) {
         setIsSubmiting(true)
         return axios.post(route('aplicacao.empresa.cardapios.categorias.item.store', {cnpj, cardapio_id, categoria_id: item.categoria_id}), item)
             .then((response) => {
