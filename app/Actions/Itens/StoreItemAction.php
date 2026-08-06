@@ -4,6 +4,7 @@ namespace App\Actions\Itens;
 
 use App\Models\Categoria;
 use App\Models\Empresa;
+use App\Models\ImagemTemporaria;
 use App\Models\ImportacaoItemIfood;
 use App\Models\Item;
 use App\Models\ItemPreco;
@@ -142,6 +143,12 @@ class StoreItemAction
                         $api = app(ApiExternalIfood::class);
 
                         $api->upsertItem($empresa, $itemCriado);
+                    }
+
+                    // Imagem agora está vinculada a um item salvo: deixa de ser candidata
+                    // à limpeza automática de imagens órfãs (itens:limpar-imagens-temporarias).
+                    if (! empty($item['imagem'])) {
+                        ImagemTemporaria::query()->where('url', $item['imagem'])->delete();
                     }
                 });
             } catch (\Exception $e) {

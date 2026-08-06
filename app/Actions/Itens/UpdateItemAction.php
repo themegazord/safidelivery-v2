@@ -4,6 +4,7 @@ namespace App\Actions\Itens;
 
 use App\Models\Categoria;
 use App\Models\Empresa;
+use App\Models\ImagemTemporaria;
 use App\Models\ItemPreco;
 use App\Services\IFOOD\ApiExternalIfood;
 use App\Traits\Categorias\ValidaExternalIdUnico;
@@ -77,6 +78,12 @@ class UpdateItemAction {
                     $api = app(ApiExternalIfood::class);
 
                     $api->upsertItem($empresa, $itemEditado);
+                }
+
+                // Imagem agora está vinculada a um item salvo: deixa de ser candidata
+                // à limpeza automática de imagens órfãs (itens:limpar-imagens-temporarias).
+                if (! empty($itemEdicao['imagem'])) {
+                    ImagemTemporaria::query()->where('url', $itemEdicao['imagem'])->delete();
                 }
             });
         } catch (\Exception $e) {
