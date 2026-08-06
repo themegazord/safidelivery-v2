@@ -12,6 +12,7 @@ use App\Http\Requests\Cardapios\Categorias\Itens\DestroyImagemItemRequest;
 use App\Http\Requests\Cardapios\Categorias\Itens\StoreImagemItemRequest;
 use App\Http\Requests\Cardapios\Categorias\Itens\StoreItemRequest;
 use App\Http\Requests\Cardapios\Categorias\Itens\UpdateItemRequest;
+use App\Http\Resources\ItemResource;
 use App\Models\Cardapio;
 use App\Models\Categoria;
 use App\Models\Empresa;
@@ -75,7 +76,7 @@ class ItemController extends Controller
     public function show(string $cnpj, string $cardapio_id, string $categoria_id, string $item_id, ShowItemAction $action): JsonResponse
     {
         $item = $action->handle($this->categoria->getAttribute('id'), $item_id);
-        return response()->json(['item' => $item]);
+        return response()->json(['item' => new ItemResource($item)]);
     }
 
     /**

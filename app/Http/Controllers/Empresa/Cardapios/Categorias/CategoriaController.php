@@ -11,6 +11,7 @@ use App\Actions\Categorias\StoreCategoriaAction;
 use App\Actions\Categorias\UpdateCategoriaAction;
 use App\Actions\Itens\IndexItemPorCategoriaAction;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\CategoriaResource;
 use App\Http\Requests\Cardapios\Categorias\ReordenarCategoriaRequest;
 use App\Http\Requests\Cardapios\Categorias\StoreCategoriaRequest;
 use App\Http\Requests\Cardapios\Categorias\UpdateCategoriaRequest;
@@ -77,7 +78,7 @@ class CategoriaController extends Controller
     public function show(string $cnpj, string $cardapio_id, string $categoria_id, ShowCategoriaAction $action): JsonResponse
     {
         $categoria = $action->handle($this->cardapio->getAttribute('id'), $categoria_id);
-        return response()->json(['categoria' => $categoria]);
+        return response()->json(['categoria' => new CategoriaResource($categoria)]);
     }
 
     /**
