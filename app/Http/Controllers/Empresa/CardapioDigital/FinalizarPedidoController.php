@@ -13,6 +13,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Endereco\CadastroEnderecoRequest;
 use App\Http\Requests\FinalizarPedido\FinalizarPedidoRequest;
 use App\Http\Requests\FinalizarPedido\ValidacaoCupomRequest;
+use App\Http\Resources\EnderecoResource;
 use App\Models\Empresa;
 use App\Models\FidelidadeProgresso;
 use App\Models\FormaPagamento;
@@ -181,7 +182,7 @@ class FinalizarPedidoController extends Controller
 
         return response()->json([
             'mensagem' => 'Endereço cadastrado com sucesso.',
-            'endereco' => $enderecoCadastrado,
+            'endereco' => new EnderecoResource($enderecoCadastrado),
         ], Response::HTTP_CREATED);
     }
 

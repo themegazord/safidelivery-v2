@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Autenticacao;
 
 use App\Http\Requests\Autenticacao\LoginClienteRequest;
+use App\Http\Resources\ClienteResource;
 use App\Models\Empresa;
 use App\Services\Autenticacao\LoginClienteService;
 use App\Traits\ResolveComandaAtual;
@@ -21,7 +22,7 @@ class LoginClienteController
     {
         $cliente = $this->service->consultaDadosCliente($request->input('telefone'));
 
-        return response()->json(['cliente' => $cliente]);
+        return response()->json(['cliente' => $cliente ? new ClienteResource($cliente) : null]);
     }
 
     public function autenticaCliente(LoginClienteRequest $request): RedirectResponse

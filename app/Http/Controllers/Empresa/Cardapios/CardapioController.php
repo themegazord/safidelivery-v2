@@ -10,6 +10,7 @@ use App\Actions\Cardapios\ShowCardapioAction;
 use App\Actions\Cardapios\StoreCardapioAction;
 use App\Actions\Cardapios\UpdateCardapioAction;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\CardapioResource;
 use App\Http\Requests\Cardapios\CloneCardapioRequest;
 use App\Http\Requests\Cardapios\ImportIFOODRequest;
 use App\Http\Requests\Cardapios\StoreCardapioRequest;
@@ -73,7 +74,7 @@ class CardapioController extends Controller
         try {
             $cardapio = $action->handle($cardapio_id, $this->empresa->getAttribute('id'));
 
-            return response()->json(['cardapio' => $cardapio]);
+            return response()->json(['cardapio' => new CardapioResource($cardapio)]);
         } catch (ModelNotFoundException $mnfe) {
             // TODO: avaliar se esse erro deveria ser relançado em vez de apenas logado.
             Log::warning('Cardápio não encontrado ao consultar', [

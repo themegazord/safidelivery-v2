@@ -2,6 +2,9 @@
 
 namespace App\Services\Empresa\CardapioDigital;
 
+use App\Http\Resources\CardapioDigital\ComboPedidoResource;
+use App\Http\Resources\CardapioDigital\ItemPedidoResource;
+use App\Http\Resources\CardapioDigital\TamanhoPizzaPedidoResource;
 use App\Models\CategoriaTamanho;
 use App\Models\Combo;
 use App\Models\Configuracao;
@@ -59,22 +62,7 @@ class CardapioService
             ->find($item_id, ['id', 'nome', 'preco', 'desconto', 'valor_desconto', 'descricao', 'imagem', 'tipo', 'categoria_id']);
 
         return [
-            'item' => [
-                ...$item->only(['id', 'nome', 'preco', 'desconto', 'valor_desconto', 'descricao', 'imagem', 'tipo']),
-                'categoria' => $item->categoria->only(['id', 'nome']),
-                'preco_unitario' => (bool) $item->getAttribute('desconto') ? $item->getAttribute('valor_desconto') : $item->getAttribute('preco'),
-                'quantidade' => 1,
-                'observacao' => "",
-                'total' => (bool) $item->getAttribute('desconto') ? $item->getAttribute('valor_desconto') : $item->getAttribute('preco'),
-                'grupo_complemento' => $item->grupo_complemento->map(fn($grupo) => [
-                    ...$grupo->only(['id', 'item_id', 'nome', 'obrigatoriedade', 'qtd_minima', 'qtd_maxima']),
-                    'bloqueado' => false,
-                    'complementos' => $grupo->complementos->map(fn($complemento) => [
-                        ...$complemento->only(['id', 'grupo_id', 'nome', 'descricao', 'preco', 'status']),
-                        'quantidade' => 0,
-                    ])->values()->toArray(),
-                ])->values()->toArray(),
-            ],
+            'item' => new ItemPedidoResource($item),
         ];
     }
 
@@ -89,66 +77,7 @@ class CardapioService
         }
 
         return [
-            'tamanho' => [
-                ...$categoriaTamanho->only([
-                    'id',
-                    'categoria_id',
-                    'nome',
-                    'qtde_pedacos',
-                    'qtde_sabores'
-                ]),
-                'menorValorTamanho' => $menorValorTamanho,
-                'quantidade_sabores_selecionadas' => 0,
-                'quantidade_sabor' => $qtdeSabor,
-                'quantidade' => 1,
-                'observacao' => "",
-                'total' => 0,
-                'categoria' => [
-                    'id' => $categoriaTamanho->getAttribute('categoria_id'),
-                    'nome' => $categoriaTamanho->categoria->getAttribute('nome')
-                ],
-                'massas' => [
-                    ...$categoriaTamanho->categoria->massas->map(fn($m) => $m->only([
-                        'id',
-                        'categoria_id',
-                        'nome',
-                        'preco'
-                    ]))
-                ],
-                'massaSelecionada' => null,
-                'bordas' => [
-                    ...$categoriaTamanho->categoria->bordas->map(fn($b) => $b->only([
-                        'id',
-                        'categoria_id',
-                        'nome',
-                        'preco'
-                    ]))
-                ],
-                'bordaSelecionada' => null,
-                'sabores' => $categoriaTamanho->precosPorTamanho->map(function ($sabor) use ($qtdeSabor) {
-                    if ($sabor->item !== null && \in_array(now()->dayOfWeek, array_map('intval', $sabor->dias_funcionamento ?? []))) {
-                        return [
-                            ...$sabor->only('id'),
-                            'item_id' => $sabor->item->id,
-                            'nome' => match ($qtdeSabor) {
-                                1 => $sabor->item->nome,
-                                2 => '1/2 ' . $sabor->item->nome,
-                                3 => '1/3 ' . $sabor->item->nome,
-                                4 => '1/4 ' . $sabor->item->nome
-                            },
-                            'preco' => match ($qtdeSabor) {
-                                1 => $sabor->preco,
-                                2 => ($sabor->preco) / 2,
-                                3 => ($sabor->preco) / 3,
-                                4 => ($sabor->preco) / 4,
-                            },
-                            ...$sabor->item->only(['imagem', 'descricao', 'classificacao']),
-                            'quantidade' => 0
-                        ];
-                    }
-                    return null;
-                })->filter()->values(),
-            ]
+            'tamanho' => new TamanhoPizzaPedidoResource($categoriaTamanho, $qtdeSabor, $menorValorTamanho),
         ];
     }
 
@@ -165,55 +94,7 @@ class CardapioService
             'categoria'
         ])->find($combo_id);
 
-        return [
-            'id' => $combo->getAttribute('id'),
-            'nome' => $combo->getAttribute('nome'),
-            'descricao' => $combo->getAttribute('descricao'),
-            'imagem' => $combo->getAttribute('imagem'),
-            'tipo_preco' => $combo->getAttribute('tipo_preco'),
-            'tipo' => 'CON',
-            'preco_fixo' => (float) ($combo->meta?->getAttribute('preco_combo') ?? $combo->getAttribute('preco') ?? 0),
-            'quantidade' => 1,
-            'categoria' => $combo->categoria->only(['id', 'nome']),
-            'preco_unitario' => $combo->getAttribute('tipo_preco') === 'preco_combo' ? (float) ($combo->meta?->getAttribute('preco_combo') ?? $combo->getAttribute('preco') ?? 0) : 0.0,
-            'grupos' => $combo->grupos->map(fn(\App\Models\ComboGrupo $grupo) => [
-                'id' => $grupo->getAttribute('id'),
-                'nome' => $grupo->getAttribute('nome'),
-                'obrigatorio' => (bool) ($grupo->configuracao['obrigatorio'] ?? true),
-                'qtd_minima'  => (int) ($grupo->configuracao['qtd_minima'] ?? 1),
-                'qtd_maxima'  => (int) ($grupo->configuracao['qtd_maxima'] ?? $grupo->getAttribute('qtd_maxima')),
-                'quantidade_selecionada' => 0,
-                'bloqueado' => false,
-                'itens' => $grupo->entradas->map(fn(\App\Models\ComboEntrada $entrada) => [
-                    'referencia_id' => $entrada->getAttribute('referencia_id'),
-                    'nome' => $entrada->getAttribute('nome_snapshot'),
-                    'preco' => (float) $entrada->getAttribute('preco_snapshot'),
-                    'quantidade' => 0
-                ])
-            ]),
-            'grupos_complemento' => $combo->entradas
-                ->filter(fn(\App\Models\ComboEntrada $entrada) => $entrada->grupoComplemento !== null)
-                ->groupBy(fn(\App\Models\ComboEntrada $entrada) => $entrada->grupoComplemento->getAttribute('id'))
-                ->map(fn(\Illuminate\Support\Collection $entradas) => [
-                    'id'                   => $entradas->first()->grupoComplemento->getAttribute('id'),
-                    'nome'                 => $entradas->first()->grupoComplemento->getAttribute('nome'),
-                    'obrigatorio'          => (bool) $entradas->first()->grupoComplemento->getAttribute('obrigatoriedade'),
-                    'qtd_minima'           => (int) $entradas->first()->grupoComplemento->getAttribute('qtd_minima'),
-                    'qtd_maxima'           => (int) $entradas->first()->grupoComplemento->getAttribute('qtd_maxima'),
-                    'quantidade_selecionada' => 0,
-                    'bloqueado'            => false,
-                    'complementos'         => $entradas->mapWithKeys(fn(\App\Models\ComboEntrada $entrada) => [
-                        $entrada->getAttribute('referencia_id') => [
-                            'referencia_id' => $entrada->getAttribute('referencia_id'),
-                            'nome'          => $entrada->getAttribute('nome_snapshot'),
-                            'preco'         => (float) $entrada->getAttribute('preco_snapshot'),
-                            'quantidade'    => 0,
-                        ],
-                    ]),
-                ]),
-            'observacao' => '',
-            'total' => (float) ($combo->meta?->getAttribute('preco_combo') ?? $combo->getAttribute('preco') ?? 0)
-        ];
+        return (new ComboPedidoResource($combo))->resolve();
     }
 
     public function validaRecebePedidos(string $tipo_funcionamento, int $empresa_id): bool
