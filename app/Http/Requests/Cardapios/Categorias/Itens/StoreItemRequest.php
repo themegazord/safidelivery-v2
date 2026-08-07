@@ -27,7 +27,7 @@ class StoreItemRequest extends FormRequest
             'tipo' => ['required'],
             'external_id' => ['nullable'],
             'categoria_id' => ['nullable', 'integer'],
-            'preco' => ['required_if:tipo,PRE,BEB,IND', 'numeric'],
+            'preco' => ['nullable', 'required_if:tipo,PRE,BEB,IND', 'numeric'],
             'desconto' => ['nullable', 'boolean'],
             'valor_desconto' => ['nullable', 'numeric'],
             'porcentagem_desconto' => ['nullable', 'numeric'],

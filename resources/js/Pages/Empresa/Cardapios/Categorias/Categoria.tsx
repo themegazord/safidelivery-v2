@@ -32,12 +32,32 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LayoutAutenticado from "@/Layouts/LayoutsAutenticado";
-import { ICategoria, ICategoriaStatus } from "@/types/empresa/cardapios/types";
+import { ICategoria, ICategoriaStatus, ICategoriaTamanho } from "@/types/empresa/cardapios/types";
 import { router, usePage } from "@inertiajs/react";
 import axios from "axios";
 import { ArrowUpDown, ChevronDown, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+
+// Garante um card por tamanho da categoria, mesmo que o tamanho nunca tenha
+// sido marcado como ativo (e por isso não tenha ItemPreco salvo no backend).
+function mesclarPrecosComTamanhos(
+    tamanhos: ICategoriaTamanho[],
+    precosExistentes?: TItem["precos"],
+): TItem["precos"] {
+    return tamanhos.map((tamanho) => {
+        const precoExistente = precosExistentes?.find(
+            (preco) => preco.tamanho_id === tamanho.id,
+        )
+        return precoExistente ?? {
+            tamanho_id: tamanho.id,
+            tamanho: tamanho.nome,
+            status: false,
+            preco: undefined,
+            dias_funcionamento: [],
+        }
+    })
+}
 
 export default function Categoria() {
     const { categorias, cnpj, cardapio_id, categoriaStatus } = usePage<{
@@ -177,7 +197,7 @@ export default function Categoria() {
     }
 
     async function abreEdicaoCategoria(categoria_id: number) {
-        setCategoriaAtual(categoria_id)
+        await setCategoriaAtual(categoria_id)
         setHandleDrawerUpsertCategoria(true)
     }
 
@@ -188,9 +208,14 @@ export default function Categoria() {
     // Funções de manipulação do drawer item
     function abreCadastroItem(categoria_id: number, status: boolean) {
         const categoriaSelecionada = categoriasState?.find((c) => c.id === categoria_id)
+        const categoriaTipo = categoriaSelecionada?.tipo as 'I' | 'P'
         setItem({
             categoria_id,
-            categoria_tipo: categoriaSelecionada?.tipo as 'I' | 'P',
+            categoria_tipo: categoriaTipo,
+            ...(categoriaTipo === 'P' ? {
+                tipo: 'PIZ' as const,
+                precos: mesclarPrecosComTamanhos(categoriaSelecionada?.tamanhos ?? []),
+            } : {}),
         })
         setHandleDrawerUpsertItem(status)
     }
@@ -289,7 +314,12 @@ export default function Categoria() {
         setCarregandoItem(true)
         return axios.get(route('aplicacao.empresa.cardapios.categorias.item.show', {cnpj, cardapio_id, categoria_id, item_id}))
             .then((response) => {
-                setItem(response.data.item)
+                const itemConsultado: Partial<TItem> & {id?: number} = response.data.item
+                const categoriaSelecionada = categoriasState?.find((c) => c.id === categoria_id)
+                if (itemConsultado.tipo === 'PIZ' && categoriaSelecionada) {
+                    itemConsultado.precos = mesclarPrecosComTamanhos(categoriaSelecionada.tamanhos, itemConsultado.precos)
+                }
+                setItem(itemConsultado)
                 setCarregandoItem(false)
                 aoConcluir?.()
             })

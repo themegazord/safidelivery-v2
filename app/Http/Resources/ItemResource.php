@@ -17,6 +17,13 @@ class ItemResource extends JsonResource
             'nome' => $this->nome,
             'tipo_preco' => $this->tipo_preco,
             'preco' => $this->preco,
+            'precos' => $this->whenLoaded('precosItemPizza', fn () => $this->precosItemPizza->map(fn ($preco) => [
+                'tamanho_id' => $preco->tamanho_id,
+                'tamanho' => $preco->tamanho?->nome,
+                'status' => $preco->status,
+                'preco' => $preco->preco,
+                'dias_funcionamento' => $preco->dias_funcionamento,
+            ])),
             'desconto' => $this->desconto,
             'valor_desconto' => $this->valor_desconto,
             'porcentagem_desconto' => $this->porcentagem_desconto,

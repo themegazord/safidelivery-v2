@@ -2,6 +2,7 @@
 
 namespace App\Actions\Itens;
 
+use App\Models\Item;
 use App\Models\ImagemTemporaria;
 use App\Traits\TrataMGCObjectStore;
 use Exception;
@@ -11,12 +12,16 @@ class DestroyImagemItemAction {
   use TrataMGCObjectStore;
 
   public function handle(string $url): void {
-    $registro = ImagemTemporaria::query()->where('url', $url)->first();
-
-    // Já vinculada a um item salvo: não é uma imagem pendente, não remove.
-    if ($registro && $registro->item_id !== null) {
+    // Já em uso por um item salvo (mesmo soft-deletado): nunca remove.
+    // Não dá pra confiar só no registro de ImagemTemporaria aqui, porque
+    // StoreItemAction/UpdateItemAction apagam esse registro assim que o
+    // item é salvo com a imagem — ou seja, uma imagem já vinculada pode
+    // não ter mais registro nenhum em ImagemTemporaria.
+    if (Item::withTrashed()->where('imagem', $url)->exists()) {
       return;
     }
+
+    $registro = ImagemTemporaria::query()->where('url', $url)->first();
 
     try {
       $this->removeImagem(env('MGC_BUCKET'), $url);

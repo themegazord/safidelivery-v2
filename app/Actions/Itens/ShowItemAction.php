@@ -10,7 +10,11 @@ use Symfony\Component\HttpFoundation\Response;
 class ShowItemAction {
     public function handle(int $categoria_id, int $item_id): Item {
         try {
-            return Item::withTrashed()->where('categoria_id', $categoria_id)->where('id', $item_id)->firstOrFail();
+            return Item::withTrashed()
+                ->with('precosItemPizza.tamanho')
+                ->where('categoria_id', $categoria_id)
+                ->where('id', $item_id)
+                ->firstOrFail();
         } catch (ModelNotFoundException $mnfe) {
             throw new ModelNotFoundException('Item não encontrado', $mnfe->getCode(), $mnfe);
         } catch (Exception $e) {

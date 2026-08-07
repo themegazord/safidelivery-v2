@@ -20,7 +20,7 @@ import { H6 } from "@/components/utils/Heading";
 import { ICategoria } from "@/types/empresa/cardapios/types";
 import { usePage } from "@inertiajs/react";
 import axios from "axios";
-import { AlertCircle, AlertTriangle, Beer, CandyOff, ChevronDownIcon, Citrus, CookingPot, Leaf, LucideIcon, MilkOff, ScanBarcode, Snowflake, Sprout, User, Users, UsersRound, Wheat, Wine } from "lucide-react";
+import { AlertCircle, AlertTriangle, Beer, CandyOff, ChevronDownIcon, Citrus, CookingPot, Leaf, LucideIcon, MilkOff, Pizza, ScanBarcode, Snowflake, Sprout, User, Users, UsersRound, Wheat, Wine } from "lucide-react";
 import { ReactNode, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -190,8 +190,8 @@ function criarItemInicial(
   }
 }
 
-function criarCategoriasIniciais(categorias: ICategoria[]): TCategoria[] {
-    return categorias.filter(categoria => categoria.tipo === 'I').map(function (categoria) {
+function criarCategoriasIniciais(categorias: ICategoria[], categoria_tipo: 'I' | 'P'): TCategoria[] {
+    return categorias.filter(categoria => categoria.tipo === categoria_tipo).map(function (categoria) {
         return {label: categoria.nome, value: String(categoria.id)}
     })
 }
@@ -244,11 +244,108 @@ function ClassificacaoItem({
     )
 }
 
+function PizzaPrecoCard({
+    preco,
+    onChange,
+}: {
+    preco: TPrecoPizza
+    onChange: (patch: Partial<TPrecoPizza>) => void
+}) {
+    const diasFuncionamentoAnchor = useComboboxAnchor()
+
+    return (
+        <Card className="w-full">
+            <CardContent className="flex flex-col gap-4">
+                <div className="flex items-center gap-4">
+                    <Pizza className="shrink-0" />
+                    <Field orientation={'horizontal'} className="w-fit shrink-0 gap-2">
+                        <Checkbox
+                            id={`preco-status-${preco.tamanho_id}`}
+                            name={`preco-status-${preco.tamanho_id}`}
+                            checked={preco.status ?? false}
+                            onCheckedChange={(value) => onChange({ status: value === true })}
+                        />
+                        <FieldLabel htmlFor={`preco-status-${preco.tamanho_id}`}>{preco.tamanho}</FieldLabel>
+                    </Field>
+                    <Field className="w-full max-w-56">
+                        <InputGroup>
+                            <InputGroupAddon align={'inline-start'}>R$</InputGroupAddon>
+                            <InputGroupInput
+                                key={preco.preco}
+                                type="number"
+                                min={0}
+                                step="0.01"
+                                defaultValue={preco.preco ?? ''}
+                                onBlur={(e) => onChange({ preco: Number(e.target.value) })}
+                            />
+                        </InputGroup>
+                    </Field>
+                </div>
+                <Field className="w-full">
+                    <div className="flex items-center justify-between">
+                        <FieldLabel htmlFor={`dias-funcionamento-${preco.tamanho_id}`}>
+                            Dias de funcionamento
+                        </FieldLabel>
+                        <div className="flex gap-3 text-xs">
+                            <button
+                                type="button"
+                                className="text-primary hover:underline"
+                                onClick={() => onChange({ dias_funcionamento: DIAS_SEMANA.map((dia) => dia.value) })}
+                            >
+                                Selecionar todos
+                            </button>
+                            <button
+                                type="button"
+                                className="text-muted-foreground hover:underline"
+                                onClick={() => onChange({ dias_funcionamento: [] })}
+                            >
+                                Remover todos
+                            </button>
+                        </div>
+                    </div>
+                    <Combobox
+                        id={`dias-funcionamento-${preco.tamanho_id}`}
+                        items={DIAS_SEMANA}
+                        multiple
+                        itemToStringValue={(item: TDiaSemana) => item.label}
+                        value={DIAS_SEMANA.filter((ds) => preco.dias_funcionamento?.includes(ds.value))}
+                        onValueChange={(itens: TDiaSemana[]) =>
+                            onChange({ dias_funcionamento: itens.map((dia) => dia.value) })
+                        }
+                    >
+                        <ComboboxChips ref={diasFuncionamentoAnchor}>
+                            <ComboboxValue>
+                                {preco.dias_funcionamento?.map((df) => (
+                                    <ComboboxChip key={df}>{DIA_SEMANA(Number(df))}</ComboboxChip>
+                                ))}
+                                <ComboboxChipsInput />
+                            </ComboboxValue>
+                        </ComboboxChips>
+                        <ComboboxContent anchor={diasFuncionamentoAnchor}>
+                            <ComboboxEmpty>
+                                Não contêm dias a ser informado
+                            </ComboboxEmpty>
+                            <ComboboxList>
+                                {(item: TDiaSemana) => (
+                                    <ComboboxItem key={item.value} value={item}>
+                                        {item.label}
+                                    </ComboboxItem>
+                                )}
+                            </ComboboxList>
+                        </ComboboxContent>
+                    </Combobox>
+                </Field>
+            </CardContent>
+        </Card>
+    )
+}
+
 // DrawerContent ItemNormal
 
 function DrawerContentItemNormal({
   setItem: setItemProp,
   item: itemProp,
+  imagemOriginal,
   cnpj,
   cardapio_id,
   categorias,
@@ -259,6 +356,7 @@ function DrawerContentItemNormal({
 }: {
   item: TItem
   setItem: React.Dispatch<React.SetStateAction<TItem>>
+  imagemOriginal?: string
   cnpj: string,
   cardapio_id: string
   categorias: TCategoria[]
@@ -315,6 +413,13 @@ function DrawerContentItemNormal({
     {value: 'g', label: 'g'},
     {value: 'Kg', label: 'Kg'},
   ] as const
+    function atualizarPrecoPizza(index: number, patch: Partial<TPrecoPizza>) {
+        setItemProp((prev) => ({
+            ...prev,
+            precos: prev.precos?.map((preco, i) => (i === index ? { ...preco, ...patch } : preco))
+        }))
+    }
+
     const toggleClassificacao = (value: string, status: boolean) => {
         setItemProp((prev) => {
             const jaExiste = prev.classificacao?.some((c) => c.value === value)
@@ -354,8 +459,10 @@ function DrawerContentItemNormal({
                 ...prev,
                 imagem: response.data.url
             }))
-            // Troca de imagem: a anterior nunca foi vinculada a um item salvo, então some.
-            if (imagemAnterior) {
+            // Só apaga a imagem anterior se ela mesma era uma troca ainda não
+            // salva. A imagem original do item (já persistida) nunca é apagada
+            // aqui — só depois que a edição for salva com sucesso.
+            if (imagemAnterior && imagemAnterior !== imagemOriginal) {
                 apagarImagemPendente(cnpj, cardapio_id, String(itemProp.categoria_id), imagemAnterior)
             }
         })
@@ -445,265 +552,288 @@ function DrawerContentItemNormal({
         ))}
         </TabsList>
         <TabsContent value={'detalhes'} className="flex min-h-0 flex-col">
-            <div className="flex-1 scroll-fade overflow-y-auto p-4">
-                <div className="mb-4 flex flex-col gap-4 sm:flex-row">
-                    <label className="cursor-pointer">
-                    <Attachment state={isUploadingImage ? 'uploading' : 'idle'} orientation={'vertical'} className="size-75">
-                        <AttachmentMedia variant={'image'}>
-                        {isUploadingImage ? (
-                            <Spinner />
-                        ) : (
-                            <img className="h-full w-full object-cover" src={itemProp?.imagem ?? 'https://placehold.co/300'} alt="Imagem de item novo" />
-                        )}
-                        </AttachmentMedia>
-                    </Attachment>
-                    <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleFileChange}
-                    />
-                    </label>
-                    <div className="w-full">
-                        <FieldGroup>
-                            <Field>
-                                <FieldLabel htmlFor="categoria_id">Categoria</FieldLabel>
-                                <Select
-                                    id="categoria_id"
-                                    name="categoria_id"
-                                    items={categorias}
-                                    value={categorias.find(categoria => categoria.value === String(itemProp.categoria_id))?.value}
-                                    onValueChange={(e) => handleInputsItem(setItemProp, Number(e), 'categoria_id')}>
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectGroup>
-                                            <SelectLabel>Categorias</SelectLabel>
-                                            {categorias.map((categoria) => (
-                                                <SelectItem key={categoria.value} value={categoria.value}>
-                                                    {categoria.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectGroup>
-                                    </SelectContent>
-                                </Select>
-                            </Field>
-                            <Field>
-                                <FieldLabel htmlFor="nome">Nome do item</FieldLabel>
-                                <Input key={itemProp.nome} id="nome" name="nome" defaultValue={itemProp.nome ?? ''} onBlur={(e) => handleInputsItem(setItemProp, e.target.value, 'nome')}/>
-                            </Field>
-                            <Field>
-                                <FieldLabel htmlFor="external_id">Código PDV.</FieldLabel>
-                                <Input key={itemProp.external_id} id="external_id" name="external_id" defaultValue={itemProp.external_id ?? ''} onBlur={(e) => handleInputsItem(setItemProp, e.target.value, 'external_id')}/>
-                            </Field>
-                        </FieldGroup>
-                    </div>
-                </div>
-                <FieldGroup>
-                    <Field>
-                        <FieldLabel>Descrição</FieldLabel>
-                        <Textarea key={itemProp.descricao} rows={5} defaultValue={itemProp.descricao ?? ''} onBlur={(e) => handleInputsItem(setItemProp, e.target.value, 'descricao')}/>
-                    </Field>
-                    <Field>
-                        <div className="flex items-center justify-between">
-                            <FieldLabel htmlFor="dias_funcionamento">
-                                Dias de funcionamento
-                            </FieldLabel>
-                            <div className="flex gap-3 text-xs">
-                                <button
-                                    type="button"
-                                    className="text-primary hover:underline"
-                                    onClick={() => handleInputsItem(setItemProp, DIAS_SEMANA, 'dias_funcionamento')}
-                                >
-                                    Selecionar todos
-                                </button>
-                                <button
-                                    type="button"
-                                    className="text-muted-foreground hover:underline"
-                                    onClick={() => handleInputsItem(setItemProp, [], 'dias_funcionamento')}
-                                >
-                                    Remover todos
-                                </button>
-                            </div>
-                        </div>
-                        <Combobox
-                            id="dias_funcionamento"
-                            items={DIAS_SEMANA}
-                            multiple
-                            itemToStringValue={(item: TDiaSemana) =>
-                                item.label
-                            }
-                            value={DIAS_SEMANA.filter((ds) =>
-                                itemProp.dias_funcionamento?.includes(ds.value),
-                            )}
-                            onValueChange={(itens: TDiaSemana[]) =>
-                                handleInputsItem(setItemProp, itens, 'dias_funcionamento')
-                            }
-                        >
-                            <ComboboxChips ref={diasFuncionamentoAnchor}>
-                                <ComboboxValue>
-                                    {itemProp.dias_funcionamento?.map((df: string | number) => (
-                                        <ComboboxChip key={df}>
-                                            {DIA_SEMANA(Number(df))}
-                                        </ComboboxChip>
-                                    ))}
-                                    <ComboboxChipsInput />
-                                </ComboboxValue>
-                            </ComboboxChips>
-                            <ComboboxContent anchor={diasFuncionamentoAnchor}>
-                                <ComboboxEmpty>
-                                    Não contêm dias a ser informado
-                                </ComboboxEmpty>
-                                <ComboboxList>
-                                    {(item: TDiaSemana) => (
-                                        <ComboboxItem
-                                            key={item.value}
-                                            value={item}
-                                        >
-                                            {item.label}
-                                        </ComboboxItem>
-                                    )}
-                                </ComboboxList>
-                            </ComboboxContent>
-                        </Combobox>
-                        <p className="text-muted-foreground text-xs">
-                            Selecione os dias que o cardápio vai funcionar
-                        </p>
-                    </Field>
-                    {itemProp.tipo === 'PRE' && (
-                        <>
-                            <Alert>
-                                <AlertCircle />
-                                <AlertTitle>Empresário, atenção!</AlertTitle>
-                                <AlertDescription>Ajude seus clientes a entender o tamanho dos itens do seu cardápio.</AlertDescription>
-                            </Alert>
-                            <RadioGroup value={String(itemProp.qtde_pessoas ?? '')} onValueChange={(e) => handleInputsItem(setItemProp, Number(e), 'qtde_pessoas')}>
-                                <p className="text-lg font-bold md:text-xl">Pra qual tamanho de fome é esse item</p>
-                                <p className="text-base md:text-lg">Dê mais detalhes para que o cliente possa planejar a refeição.</p>
-                                <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                                    {QTDE_PESSOAS_INFO.map((qtde, qtdeIdx) => (
-                                        <Card key={qtdeIdx}>
-                                            <CardContent>
-                                                <Label
-                                                    htmlFor={qtde.value}
-                                                    className="flex flex-col items-center justify-center gap-2 cursor-pointer"
-                                                >
-                                                    <RadioGroupItem value={qtde.value} id={qtde.value} />
-                                                    {qtde.icon}
-                                                    {qtde.label}
-                                                </Label>
-                                            </CardContent>
-                                        </Card>
-                                    ))}
-                                </div>
-                            </RadioGroup>
-                            <Field>
-                                <FieldLabel htmlFor="peso">Peso</FieldLabel>
-                                <InputGroup>
-                                    <InputGroupInput key={itemProp.peso} id="peso" name="peso" defaultValue={itemProp.peso ?? ''} onBlur={(e) => handleInputsItem(setItemProp, e.target.value, 'peso')}/>
-                                    <InputGroupAddon align={'inline-end'}>
-                                        <Select value={itemProp.gramagem ?? ''} onValueChange={(e) => handleInputsItem(setItemProp, e, 'gramagem')} items={GRAMAGEM_INFO}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Informe a gramagem"/>
-                                            </SelectTrigger>
-                                            <SelectContent align="end" sideOffset={8} alignOffset={-4}>
-                                                {GRAMAGEM_INFO.map(gramagem => (
-                                                    <SelectItem key={gramagem.value} value={gramagem.value}>{gramagem.label}</SelectItem>
+                <div className="flex-1 scroll-fade overflow-y-auto p-4">
+                    <FieldGroup>
+                        <div className="w-full">
+                            <FieldGroup>
+                                <Field>
+                                    <FieldLabel htmlFor="categoria_id">Categoria</FieldLabel>
+                                    <Select
+                                        id="categoria_id"
+                                        name="categoria_id"
+                                        items={categorias}
+                                        value={categorias.find(categoria => categoria.value === String(itemProp.categoria_id))?.value}
+                                        onValueChange={(e) => handleInputsItem(setItemProp, Number(e), 'categoria_id')}>
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectGroup>
+                                                <SelectLabel>Categorias</SelectLabel>
+                                                {categorias.map((categoria) => (
+                                                    <SelectItem key={categoria.value} value={categoria.value}>
+                                                        {categoria.label}
+                                                    </SelectItem>
                                                 ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </InputGroupAddon>
-                                </InputGroup>
+                                            </SelectGroup>
+                                        </SelectContent>
+                                    </Select>
+                                </Field>
+                                <FieldGroup className="flex flex-col sm:grid sm:grid-cols-5 gap-4 w-full">
+                                    <Field className="w-full sm:col-span-4">
+                                        <FieldLabel htmlFor="nome">Nome do item</FieldLabel>
+                                        <Input key={itemProp.nome} id="nome" name="nome" defaultValue={itemProp.nome ?? ''} onBlur={(e) => handleInputsItem(setItemProp, e.target.value, 'nome')}/>
+                                    </Field>
+                                    <Field className="w-full sm:col-span-1">
+                                        <FieldLabel htmlFor="external_id">Código PDV.</FieldLabel>
+                                        <Input key={itemProp.external_id} id="external_id" name="external_id" defaultValue={itemProp.external_id ?? ''} onBlur={(e) => handleInputsItem(setItemProp, e.target.value, 'external_id')}/>
+                                    </Field>
+                                </FieldGroup>
+                            </FieldGroup>
+                        </div>
+                        <FieldGroup>
+                            <div className="flex gap-4">
+                                <label className="cursor-pointer">
+                                    <Attachment state={isUploadingImage ? 'uploading' : 'idle'} orientation={'vertical'} className="size-52">
+                                        <AttachmentMedia variant={'image'}>
+                                            {isUploadingImage ? (
+                                                <Spinner />
+                                            ) : (
+                                                <img className="h-full w-full object-cover" src={itemProp?.imagem ?? 'https://placehold.co/300'} alt="Imagem de item novo" />
+                                            )}
+                                        </AttachmentMedia>
+                                    </Attachment>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={handleFileChange}
+                                    />
+                                </label>
+                                <Field className="flex flex-1 flex-col">
+                                    <FieldLabel>Descrição</FieldLabel>
+                                    <Textarea
+                                        key={itemProp.descricao}
+                                        defaultValue={itemProp.descricao ?? ''}
+                                        onBlur={(e) => handleInputsItem(setItemProp, e.target.value, 'descricao')}
+                                        className="flex-1 resize-none"
+                                    />
+                                </Field>
+                            </div>
+                            <Field>
+                                <div className="flex items-center justify-between">
+                                    <FieldLabel htmlFor="dias_funcionamento">
+                                        Dias de funcionamento
+                                    </FieldLabel>
+                                    <div className="flex gap-3 text-xs">
+                                        <button
+                                            type="button"
+                                            className="text-primary hover:underline"
+                                            onClick={() => handleInputsItem(setItemProp, DIAS_SEMANA, 'dias_funcionamento')}
+                                        >
+                                            Selecionar todos
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="text-muted-foreground hover:underline"
+                                            onClick={() => handleInputsItem(setItemProp, [], 'dias_funcionamento')}
+                                        >
+                                            Remover todos
+                                        </button>
+                                    </div>
+                                </div>
+                                <Combobox
+                                    id="dias_funcionamento"
+                                    items={DIAS_SEMANA}
+                                    multiple
+                                    itemToStringValue={(item: TDiaSemana) =>
+                                        item.label
+                                    }
+                                    value={DIAS_SEMANA.filter((ds) =>
+                                        itemProp.dias_funcionamento?.includes(ds.value),
+                                    )}
+                                    onValueChange={(itens: TDiaSemana[]) =>
+                                        handleInputsItem(setItemProp, itens, 'dias_funcionamento')
+                                    }
+                                >
+                                    <ComboboxChips ref={diasFuncionamentoAnchor}>
+                                        <ComboboxValue>
+                                            {itemProp.dias_funcionamento?.map((df: string | number) => (
+                                                <ComboboxChip key={df}>
+                                                    {DIA_SEMANA(Number(df))}
+                                                </ComboboxChip>
+                                            ))}
+                                            <ComboboxChipsInput />
+                                        </ComboboxValue>
+                                    </ComboboxChips>
+                                    <ComboboxContent anchor={diasFuncionamentoAnchor}>
+                                        <ComboboxEmpty>
+                                            Não contêm dias a ser informado
+                                        </ComboboxEmpty>
+                                        <ComboboxList>
+                                            {(item: TDiaSemana) => (
+                                                <ComboboxItem
+                                                    key={item.value}
+                                                    value={item}
+                                                >
+                                                    {item.label}
+                                                </ComboboxItem>
+                                            )}
+                                        </ComboboxList>
+                                    </ComboboxContent>
+                                </Combobox>
+                                <p className="text-muted-foreground text-xs">
+                                    Selecione os dias que o cardápio vai funcionar
+                                </p>
                             </Field>
-                        </>
-                    )}
-                </FieldGroup>
-            </div>
+                            {itemProp.tipo === 'PRE' && (
+                                <>
+                                    <Alert>
+                                        <AlertCircle />
+                                        <AlertTitle>Empresário, atenção!</AlertTitle>
+                                        <AlertDescription>Ajude seus clientes a entender o tamanho dos itens do seu cardápio.</AlertDescription>
+                                    </Alert>
+                                    <RadioGroup value={String(itemProp.qtde_pessoas ?? '')} onValueChange={(e) => handleInputsItem(setItemProp, Number(e), 'qtde_pessoas')}>
+                                        <p className="text-lg font-bold md:text-xl">Pra qual tamanho de fome é esse item</p>
+                                        <p className="text-base md:text-lg">Dê mais detalhes para que o cliente possa planejar a refeição.</p>
+                                        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                                            {QTDE_PESSOAS_INFO.map((qtde, qtdeIdx) => (
+                                                <Card key={qtdeIdx}>
+                                                    <CardContent>
+                                                        <Label
+                                                            htmlFor={qtde.value}
+                                                            className="flex flex-col items-center justify-center gap-2 cursor-pointer"
+                                                        >
+                                                            <RadioGroupItem value={qtde.value} id={qtde.value} />
+                                                            {qtde.icon}
+                                                            {qtde.label}
+                                                        </Label>
+                                                    </CardContent>
+                                                </Card>
+                                            ))}
+                                        </div>
+                                    </RadioGroup>
+                                    <Field>
+                                        <FieldLabel htmlFor="peso">Peso</FieldLabel>
+                                        <InputGroup>
+                                            <InputGroupInput key={itemProp.peso} id="peso" name="peso" defaultValue={itemProp.peso ?? ''} onBlur={(e) => handleInputsItem(setItemProp, e.target.value, 'peso')}/>
+                                            <InputGroupAddon align={'inline-end'}>
+                                                <Select value={itemProp.gramagem ?? ''} onValueChange={(e) => handleInputsItem(setItemProp, e, 'gramagem')} items={GRAMAGEM_INFO}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Informe a gramagem"/>
+                                                    </SelectTrigger>
+                                                    <SelectContent align="end" sideOffset={8} alignOffset={-4}>
+                                                        {GRAMAGEM_INFO.map(gramagem => (
+                                                            <SelectItem key={gramagem.value} value={gramagem.value}>{gramagem.label}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </InputGroupAddon>
+                                        </InputGroup>
+                                    </Field>
+                                </>
+                            )}
+                        </FieldGroup>
+                    </FieldGroup>
+                </div>
         </TabsContent>
         <TabsContent value={'preco_estoque'} className="flex min-h-0 flex-col">
-            {!itemProp.desconto ? (
-                <div className="flex flex-col gap-6">
-                    <div className="flex flex-col items-start gap-4 md:flex-row md:items-end">
-                        <div className="w-full">
-                            <Field>
-                                <FieldLabel htmlFor="preco">
-                                    Preço
-                                </FieldLabel>
-                                <InputGroup>
-                                    <InputGroupAddon align={'inline-start'}>R$</InputGroupAddon>
-                                    <InputGroupInput
-                                        key={itemProp.preco}
-                                        id="preco"
-                                        defaultValue={itemProp.preco ?? ''}
-                                        onBlur={(e) => handleInputsItem(setItemProp, Number(e.target.value), 'preco')}
-                                    />
-                                </InputGroup>
-                            </Field>
-                        </div>
-
-                        <Button
-                            variant="outline"
-                            onClick={() => handleInputsItem(setItemProp, true, 'desconto')}
-                        >
-                            Aplicar desconto
-                        </Button>
-                    </div>
+            {itemProp.tipo === 'PIZ' ? (
+                <div className="flex flex-col gap-4">
+                    {itemProp.precos?.map((preco, precoIdx) => (
+                        <PizzaPrecoCard
+                            key={preco.tamanho_id ?? precoIdx}
+                            preco={preco}
+                            onChange={(patch) => atualizarPrecoPizza(precoIdx, patch)}
+                        />
+                    ))}
                 </div>
             ) : (
-                <div className="flex flex-col gap-6">
-                    <div className="flex gap-2">
-                        <p className="text-lg font-bold md:text-xl">Desconto direto no item</p>
-                        <Button
-                            type="button"
-                            onClick={() => handleInputsItem(setItemProp, false, 'desconto')}
-                            variant={'destructive'}
-                        >
-                            Remover desconto
-                        </Button>
-                    </div>
+                <>
+                    {!itemProp.desconto ? (
+                        <div className="flex flex-col gap-6">
+                            <div className="flex flex-col items-start gap-4 md:flex-row md:items-end">
+                                <div className="w-full">
+                                    <Field>
+                                        <FieldLabel htmlFor="preco">
+                                            Preço
+                                        </FieldLabel>
+                                        <InputGroup>
+                                            <InputGroupAddon align={'inline-start'}>R$</InputGroupAddon>
+                                            <InputGroupInput
+                                                key={itemProp.preco}
+                                                id="preco"
+                                                defaultValue={itemProp.preco ?? ''}
+                                                onBlur={(e) => handleInputsItem(setItemProp, Number(e.target.value), 'preco')}
+                                            />
+                                        </InputGroup>
+                                    </Field>
+                                </div>
 
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                        <Field>
-                            <FieldLabel htmlFor="preco">
-                                Preço
-                            </FieldLabel>
-                            <InputGroup>
-                                <InputGroupAddon align={'inline-start'}>R$</InputGroupAddon>
-                                <InputGroupInput
-                                    disabled
-                                    readOnly
-                                    id="preco"
-                                    value={itemProp.preco ?? ''}
-                                />
-                            </InputGroup>
-                        </Field>
-                        <Field>
-                            <FieldLabel htmlFor="valor_desconto">Novo preço</FieldLabel>
-                            <InputGroup>
-                                <InputGroupAddon align={'inline-start'}>R$</InputGroupAddon>
-                                <InputGroupInput
-                                    key={itemProp.valor_desconto}
-                                    id="valor_desconto"
-                                    defaultValue={itemProp.valor_desconto ?? ''}
-                                    onBlur={(e) => calcularDescontoPorNovoPreco(Number(e.target.value))}
-                                />
-                            </InputGroup>
-                        </Field>
-                        <Field>
-                            <FieldLabel htmlFor="porcentagem-desconto">Desconto em %</FieldLabel>
-                            <InputGroup>
-                                <InputGroupInput
-                                    key={itemProp.porcentagem_desconto}
-                                    id="porcentagem-desconto"
-                                    defaultValue={itemProp.porcentagem_desconto ?? ''}
-                                    onBlur={(e) => calcularDescontoPorPorcentagem(Number(e.target.value))}
-                                />
-                                <InputGroupAddon align={'inline-end'}>%</InputGroupAddon>
-                            </InputGroup>
-                        </Field>
-                    </div>
-                </div>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => handleInputsItem(setItemProp, true, 'desconto')}
+                                >
+                                    Aplicar desconto
+                                </Button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col gap-6">
+                            <div className="flex gap-2">
+                                <p className="text-lg font-bold md:text-xl">Desconto direto no item</p>
+                                <Button
+                                    type="button"
+                                    onClick={() => handleInputsItem(setItemProp, false, 'desconto')}
+                                    variant={'destructive'}
+                                >
+                                    Remover desconto
+                                </Button>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                                <Field>
+                                    <FieldLabel htmlFor="preco">
+                                        Preço
+                                    </FieldLabel>
+                                    <InputGroup>
+                                        <InputGroupAddon align={'inline-start'}>R$</InputGroupAddon>
+                                        <InputGroupInput
+                                            disabled
+                                            readOnly
+                                            id="preco"
+                                            value={itemProp.preco ?? ''}
+                                        />
+                                    </InputGroup>
+                                </Field>
+                                <Field>
+                                    <FieldLabel htmlFor="valor_desconto">Novo preço</FieldLabel>
+                                    <InputGroup>
+                                        <InputGroupAddon align={'inline-start'}>R$</InputGroupAddon>
+                                        <InputGroupInput
+                                            key={itemProp.valor_desconto}
+                                            id="valor_desconto"
+                                            defaultValue={itemProp.valor_desconto ?? ''}
+                                            onBlur={(e) => calcularDescontoPorNovoPreco(Number(e.target.value))}
+                                        />
+                                    </InputGroup>
+                                </Field>
+                                <Field>
+                                    <FieldLabel htmlFor="porcentagem-desconto">Desconto em %</FieldLabel>
+                                    <InputGroup>
+                                        <InputGroupInput
+                                            key={itemProp.porcentagem_desconto}
+                                            id="porcentagem-desconto"
+                                            defaultValue={itemProp.porcentagem_desconto ?? ''}
+                                            onBlur={(e) => calcularDescontoPorPorcentagem(Number(e.target.value))}
+                                        />
+                                        <InputGroupAddon align={'inline-end'}>%</InputGroupAddon>
+                                    </InputGroup>
+                                </Field>
+                            </div>
+                        </div>
+                    )}
+                </>
             )}
         </TabsContent>
         <TabsContent value={'classificacao'} className="flex min-h-0 flex-col">
@@ -722,13 +852,15 @@ function DrawerContentItemNormal({
                             </AlertDescription>
                         </Alert>
 
-                        <div className="mb-4 flex h-auto flex-col items-center justify-between gap-4 rounded-lg border-4 border-solid border-primary px-4 md:h-24 md:flex-row">
-                            <p className="text-base md:text-lg">Este item é uma bebida?</p>
-                            <Switch
-                                checked={itemProp.eh_bebida}
-                                onCheckedChange={(checked) => setItemProp((prev) => ({ ...prev, eh_bebida: checked }))}
-                            />
-                        </div>
+                        {itemProp.tipo !== 'PIZ' && (
+                            <div className="mb-4 flex h-auto flex-col items-center justify-between gap-4 rounded-lg border-4 border-solid border-primary px-4 md:h-24 md:flex-row">
+                                <p className="text-base md:text-lg">Este item é uma bebida?</p>
+                                <Switch
+                                    checked={itemProp.eh_bebida}
+                                    onCheckedChange={(checked) => setItemProp((prev) => ({ ...prev, eh_bebida: checked }))}
+                                />
+                            </div>
+                        )}
 
                         <div className="flex flex-col gap-6">
                             {opcoes.map((option) => (
@@ -835,7 +967,8 @@ export default function UpsertItemDrawer({
     // Constantes
     const isEdicao = itemProp?.id !== undefined
     const [item, setItem] = useState<TItem>(() => criarItemInicial(itemProp))
-    const [categorias, setCategorias] = useState<TCategoria[]>(() => criarCategoriasIniciais(categoriaProp))
+    const [imagemOriginal, setImagemOriginal] = useState<string | undefined>(() => itemProp?.imagem)
+    const [categorias, setCategorias] = useState<TCategoria[]>(() => itemProp?.tipo === 'PIZ' ? criarCategoriasIniciais(categoriaProp, 'P') : criarCategoriasIniciais(categoriaProp, 'I'))
     const {cnpj, cardapio_id} = usePage<{
         cnpj: string,
         cardapio_id: string,
@@ -845,15 +978,18 @@ export default function UpsertItemDrawer({
     useEffect(() => {
         if (!open) return
         setItem(criarItemInicial(itemProp))
-        setCategorias(criarCategoriasIniciais(categoriaProp))
+        setImagemOriginal(itemProp?.imagem)
+        setCategorias(itemProp?.tipo === 'PIZ' ? criarCategoriasIniciais(categoriaProp, 'P') : criarCategoriasIniciais(categoriaProp, 'I'))
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open])
 
 
   // Fechou sem finalizar o cadastro (Esc, clique fora, swipe, botão Cancelar):
-  // a imagem enviada ainda não está vinculada a nenhum item, então remove.
+  // só apaga a imagem se ela for diferente da original do item — a imagem
+  // já persistida nunca é removida por aqui, senão edições canceladas
+  // quebram a imagem do item.
     function handleOpenChange(value: boolean) {
-        if (!value && item.imagem) {
+        if (!value && item.imagem && item.imagem !== imagemOriginal) {
         apagarImagemPendente(cnpj, cardapio_id, String(item.categoria_id), item.imagem)
         }
         onOpenChange(value)
@@ -916,10 +1052,11 @@ export default function UpsertItemDrawer({
                     </div>
                 </DrawerContent>
             )}
-            {['PRE', 'IND', 'BEB'].includes(item.tipo!) && (
+            {['PRE', 'IND', 'BEB', 'PIZ'].includes(item.tipo!) && (
                 <DrawerContentItemNormal
                     item={item}
                     setItem={setItem}
+                    imagemOriginal={imagemOriginal}
                     cnpj={cnpj}
                     cardapio_id={cardapio_id}
                     categorias={categorias}

@@ -62,15 +62,17 @@ class UpdateItemAction {
 
                 if ($itemAtual->tipo === 'PIZ') {
                     foreach ($itemEdicao['precos'] ?? [] as $preco) {
-                        $itemPreco = ItemPreco::find($preco['id'] ?? null);
-                        if (! $itemPreco) {
+                        if (empty($preco['tamanho_id'])) {
                             continue;
                         }
-                        $itemPreco->update([
-                            'status' => $preco['status'] ?? false,
-                            'preco' => $preco['preco'] ?? null,
-                            'dias_funcionamento' => $preco['dias_funcionamento'] ?? [],
-                        ]);
+                        ItemPreco::updateOrCreate(
+                            ['item_id' => $itemAtual->id, 'tamanho_id' => $preco['tamanho_id']],
+                            [
+                                'status' => $preco['status'] ?? false,
+                                'preco' => $preco['preco'] ?? null,
+                                'dias_funcionamento' => $preco['dias_funcionamento'] ?? [],
+                            ]
+                        );
                     }
                 }
 
