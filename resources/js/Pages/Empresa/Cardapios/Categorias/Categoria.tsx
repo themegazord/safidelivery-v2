@@ -1,5 +1,6 @@
 import ConfirmarClonagemCategoriaDialog from "@/components/Empresa/Categorias/ConfirmarClonagemCategoriaDialog";
 import ConfirmarRemocaoCategoriaDialog from "@/components/Empresa/Categorias/ConfirmarRemocaoCategoriaDialog";
+import ConfirmarClonagemItemDialog from "@/components/Empresa/Itens/ConfirmarClonagemItemDialog";
 import GerenciarOrdenacaoDialog from "@/components/Empresa/Categorias/GerenciarOrdenacaoDialog";
 import ItensCategoriaTable, {
     ItemNormal,
@@ -80,8 +81,10 @@ export default function Categoria() {
     const [handleDrawerUpsertItem, setHandleDrawerUpsertItem] = useState(false)
     const [handleDialogClonagemCategoria, setHandleDialogClonagemCategoria] = useState(false)
     const [handleDialogRemocaoCategoria, setHandleDialogRemocaoCategoria] = useState(false)
+    const [handleDialogClonagemItem, setHandleDialogClonagemItem] = useState(false)
     const [loadingClonagemCategoria, setLoadingClonagemCategoria] = useState(false)
     const [loadingRemocaoCategoria, setLoadingRemocaoCategoria] = useState(false)
+    const [loadingClonagemItem, setLoadingClonagemItem] = useState(false)
     const [isSubmiting, setIsSubmiting] = useState<boolean>(false)
     const [carregandoItem, setCarregandoItem] = useState<boolean>(false)
     const [categoriasState, setCategoriasState] = useState<ICategoria[]>();
@@ -89,6 +92,7 @@ export default function Categoria() {
         (Partial<CategoriaFormData> & { id: number }) | undefined
     >()
     const [item, setItem] = useState<(Partial<TItem> & {id?: number}) | undefined>()
+    const [itemParaClonar, setItemParaClonar] = useState<{ id: number; categoria_id: number; nome?: string } | undefined>()
     const TABS_INFO = [
         { value: "categorias", label: "Categorias" },
         { value: "produtos", label: "Produtos" },
@@ -223,6 +227,12 @@ export default function Categoria() {
     async function abreEdicaoItem(item_id: number, categoria_id: number, status: boolean) {
         await consultaItem(categoria_id, item_id, () => setHandleDrawerUpsertItem(status))
     }
+
+    function abreDialogConfirmacaoClonagemItem(item_id: number, categoria_id: number) {
+        const itemEncontrado = itensPorCategoria[categoria_id]?.find((i) => i.id === item_id)
+        setItemParaClonar({ id: item_id, categoria_id, nome: (itemEncontrado as ItemNormal | ItemPizza | undefined)?.nome })
+        setHandleDialogClonagemItem(true)
+    }
     // Funções CRUD categoria
     async function cadastrarCategoria(categoriaDigitada: CategoriaFormData) {
         await axios.post(route('aplicacao.empresa.cardapios.categorias.store', {cnpj, cardapio_id}), categoriaDigitada)
@@ -263,6 +273,25 @@ export default function Categoria() {
                 toast.error(error.response?.data?.message ?? 'Erro inesperado, tente novamente.')
             })
             .finally(() => setLoadingClonagemCategoria(false))
+    }
+
+    async function clonarItem() {
+        if (!itemParaClonar) return
+        setLoadingClonagemItem(true)
+        await axios.post(route('aplicacao.empresa.cardapios.categorias.item.clone', {cnpj, cardapio_id, categoria_id: itemParaClonar.categoria_id, item_id: itemParaClonar.id}))
+            .then((response) => {
+                toast.success(response.data.mensagem ?? 'Item clonado com sucesso')
+                setHandleDialogClonagemItem(false)
+                carregarItensDaCategoria(itemParaClonar.categoria_id)
+                router.reload({ only: ['categorias', 'categoriaStatus'] })
+            })
+            .catch((error) => {
+                toast.error(error.response?.data?.message ?? 'Erro inesperado, tente novamente.')
+            })
+            .finally(() => {
+                setLoadingClonagemItem(false)
+                setItemParaClonar(undefined)
+            })
     }
 
     async function removerCategoria() {
@@ -471,7 +500,7 @@ export default function Categoria() {
                                                     onCategoriaEditar={abreEdicaoCategoria}
                                                     onCategoriaRemover={abreRemocaoCategoria}
                                                     onItensAlterarStatus={() => {}}
-                                                    onItensDuplicar={() => {}}
+                                                    onItensDuplicar={abreDialogConfirmacaoClonagemItem}
                                                     onItensEditar={abreEdicaoItem}
                                                     onItensRemover={() => {}}
                                                     onItensAtualizaCodPdv={() => {}}
@@ -531,6 +560,13 @@ export default function Categoria() {
                 categoria={categoria}
                 loading={loadingRemocaoCategoria}
                 onSubmit={removerCategoria}
+            />
+            <ConfirmarClonagemItemDialog
+                open={handleDialogClonagemItem}
+                onOpenChange={setHandleDialogClonagemItem}
+                item={itemParaClonar}
+                loading={loadingClonagemItem}
+                onSubmit={clonarItem}
             />
         </LayoutAutenticado>
     );

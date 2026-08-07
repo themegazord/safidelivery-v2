@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Empresa\Cardapios\Categorias\Itens;
 
+use App\Actions\Itens\CloneItemAction;
 use App\Actions\Itens\ShowItemAction;
 use App\Actions\Itens\DestroyImagemItemAction;
 use App\Actions\Itens\StoreImagemItemAction;
@@ -87,6 +88,11 @@ class ItemController extends Controller
         $dados = $request->validated();
         $action->handle($dados, $this->cardapio->getAttribute('id'), $this->categoria, $this->exportaDadosIfood, $this->empresa, $item_id);
         return response()->json(['mensagem' => 'Item editado com sucesso']);
+    }
+
+    public function clone(string $cnpj, string $cardapio_id, string $categoria_id, string $item_id, CloneItemAction $action) {
+        $action->handle($item_id, $this->exportaDadosIfood, $this->empresa, $this->categoria);
+        return response()->json(['mensagem' => 'Item clonado com sucesso']);
     }
 
     /**

@@ -99,11 +99,12 @@ Route::group([], function () {
                 Route::post('/reordenar', [CategoriaController::class, 'reordenar'])->name('aplicacao.empresa.cardapios.categorias.reordenar');
                 Route::get('/{categoria_id}/itens', [CategoriaController::class, 'itensPorCategoria'])->name('aplicacao.empresa.cardapios.categorias.itens.itens_por_categoria');
                 Route::prefix('{categoria_id}/itens')->group(function () {
-                    Route::get('/{item_id}', [ItemController::class, 'show'])->name('aplicacao.empresa.cardapios.categorias.item.show');
-                    Route::put('/{item_id}', [ItemController::class, 'update'])->name('aplicacao.empresa.cardapios.categorias.item.update');
                     Route::post('/', [ItemController::class, 'store'])->name('aplicacao.empresa.cardapios.categorias.item.store');
                     Route::post('storeImage', [ItemController::class, 'storeImage'])->name('aplicacao.empresa.cardapios.categorias.item.store-imagem');
                     Route::delete('destroyImage', [ItemController::class, 'destroyImage'])->name('aplicacao.empresa.cardapios.categorias.item.destroy-imagem');
+                    Route::get('/{item_id}', [ItemController::class, 'show'])->name('aplicacao.empresa.cardapios.categorias.item.show');
+                    Route::put('/{item_id}', [ItemController::class, 'update'])->name('aplicacao.empresa.cardapios.categorias.item.update');
+                    Route::post('/{item_id}', [ItemController::class, 'clone'])->name('aplicacao.empresa.cardapios.categorias.item.clone');
                 });
             });
         });

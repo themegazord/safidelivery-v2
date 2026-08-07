@@ -66,7 +66,7 @@ interface ItensCategoriaTableProps {
     onCategoriaEditar: (categoriaId: number) => void;
     onCategoriaRemover: (categoriaId: number) => void;
     onItensAlterarStatus: (itemId: number) => void;
-    onItensDuplicar: (itemId: number) => void;
+    onItensDuplicar: (itemId: number, categoriaId: number) => void;
     onItensEditar: (itemId: number, categoriaId: number, status: boolean) => void;
     onItensRemover: (itemId: number) => void;
     onItensAtualizaCodPdv: (itemId: number, valor: string) => void;
@@ -133,7 +133,7 @@ function AcoesItem({
     item: { id: number; trashed: boolean };
     categoriaId: number;
     onItensAlterarStatus: (itemId: number) => void;
-    onItensDuplicar: (itemId: number) => void;
+    onItensDuplicar: (itemId: number, categoriaId: number) => void;
     onItensEditar: (itemId: number, categoriaId: number, status: boolean) => void;
     onItensRemover: (itemId: number) => void;
     isSubmiting?: boolean;
@@ -155,7 +155,7 @@ function AcoesItem({
             <IconButtonComTooltip
                 icon={<Copy className="h-4 w-4" />}
                 tooltip="Duplicar item"
-                onClick={() => onItensDuplicar(item.id)}
+                onClick={() => onItensDuplicar(item.id, categoriaId)}
                 variant={'outline'}
             />
             <IconButtonComTooltip
