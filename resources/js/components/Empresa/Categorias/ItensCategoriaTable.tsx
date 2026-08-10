@@ -16,7 +16,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Eye, EyeOff, Copy, Pencil, Trash2, Plus, EllipsisVertical, SquarePen, Trash } from "lucide-react";
+import { Eye, EyeClosed, Copy, Pencil, Trash2, Plus, EllipsisVertical, SquarePen, Trash } from "lucide-react";
 import { ICategoriaStatus } from "@/types/empresa/cardapios/types";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -65,7 +65,7 @@ interface ItensCategoriaTableProps {
     onCategoriaDuplicar: (categoriaId: number) => void;
     onCategoriaEditar: (categoriaId: number) => void;
     onCategoriaRemover: (categoriaId: number) => void;
-    onItensAlterarStatus: (itemId: number) => void;
+    onItensAlterarStatus: (itemId: number, categoriaId: number) => void;
     onItensDuplicar: (itemId: number, categoriaId: number) => void;
     onItensEditar: (itemId: number, categoriaId: number, status: boolean) => void;
     onItensRemover: (itemId: number, categoriaId: number) => void;
@@ -132,7 +132,7 @@ function AcoesItem({
 }: {
     item: { id: number; trashed: boolean };
     categoriaId: number;
-    onItensAlterarStatus: (itemId: number) => void;
+    onItensAlterarStatus: (itemId: number, categoriaId: number) => void;
     onItensDuplicar: (itemId: number, categoriaId: number) => void;
     onItensEditar: (itemId: number, categoriaId: number, status: boolean) => void;
     onItensRemover: (itemId: number, categoriaId: number) => void;
@@ -143,13 +143,13 @@ function AcoesItem({
             <IconButtonComTooltip
                 icon={
                     item.trashed ? (
-                        <EyeOff className="h-4 w-4" />
+                        <EyeClosed className="h-4 w-4" />
                     ) : (
                         <Eye className="h-4 w-4" />
                     )
                 }
                 tooltip={item.trashed ? "Inativo" : "Ativo"}
-                onClick={() => onItensAlterarStatus(item.id)}
+                onClick={() => onItensAlterarStatus(item.id, categoriaId)}
                 variant={'outline'}
             />
             <IconButtonComTooltip

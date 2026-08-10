@@ -105,6 +105,7 @@ Route::group([], function () {
                     Route::get('/{item_id}', [ItemController::class, 'show'])->name('aplicacao.empresa.cardapios.categorias.item.show');
                     Route::put('/{item_id}', [ItemController::class, 'update'])->name('aplicacao.empresa.cardapios.categorias.item.update');
                     Route::post('/{item_id}', [ItemController::class, 'clone'])->name('aplicacao.empresa.cardapios.categorias.item.clone');
+                    Route::patch('/{item_id}/status', [ItemController::class, 'status'])->name('aplicacao.empresa.cardapios.categorias.item.status');
                     Route::delete('/{item_id}', [ItemController::class, 'destroy'])->name('aplicacao.empresa.cardapios.categorias.item.destroy');
                 });
             });

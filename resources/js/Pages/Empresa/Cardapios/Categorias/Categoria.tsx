@@ -304,6 +304,18 @@ export default function Categoria() {
             })
     }
 
+    async function alterarStatusItem(item_id: number, categoria_id: number) {
+        await axios.patch(route('aplicacao.empresa.cardapios.categorias.item.status', {cnpj, cardapio_id, categoria_id, item_id}))
+            .then((response) => {
+                toast.success(response.data.mensagem)
+                carregarItensDaCategoria(categoria_id)
+                router.reload({ only: ['categorias', 'categoriaStatus'] })
+            })
+            .catch((error) => {
+                toast.error(error.response?.data?.message ?? 'Erro inesperado, tente novamente.')
+            })
+    }
+
     async function removerItem() {
         if (!itemParaRemover) return
         setLoadingRemocaoItem(true)
@@ -528,7 +540,7 @@ export default function Categoria() {
                                                     onCategoriaDuplicar={abreDialogConfirmacaoClonagemCategoria}
                                                     onCategoriaEditar={abreEdicaoCategoria}
                                                     onCategoriaRemover={abreRemocaoCategoria}
-                                                    onItensAlterarStatus={() => {}}
+                                                    onItensAlterarStatus={alterarStatusItem}
                                                     onItensDuplicar={abreDialogConfirmacaoClonagemItem}
                                                     onItensEditar={abreEdicaoItem}
                                                     onItensRemover={abreDialogConfirmacaoRemocaoItem}

@@ -8,6 +8,7 @@ use App\Actions\Itens\DestroyImagemItemAction;
 use App\Actions\Itens\DestroyItemAction;
 use App\Actions\Itens\StoreImagemItemAction;
 use App\Actions\Itens\StoreItemAction;
+use App\Actions\Itens\ToggleStatusItemAction;
 use App\Actions\Itens\UpdateItemAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Cardapios\Categorias\Itens\DestroyImagemItemRequest;
@@ -94,6 +95,11 @@ class ItemController extends Controller
     public function clone(string $cnpj, string $cardapio_id, string $categoria_id, string $item_id, CloneItemAction $action) {
         $action->handle($item_id, $this->exportaDadosIfood, $this->empresa, $this->categoria);
         return response()->json(['mensagem' => 'Item clonado com sucesso']);
+    }
+
+    public function status(string $cnpj, string $cardapio_id, string $categoria_id, string $item_id, ToggleStatusItemAction $action) {
+        $status = $action->handle($item_id, $this->categoria->getAttribute('id'), $this->exportaDadosIfood, $this->empresa);
+        return response()->json(['mensagem' => 'Item ' . ($status ? 'inativado' : 'ativado') . ' com sucesso']);
     }
 
     /**
