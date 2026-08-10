@@ -12,7 +12,7 @@ class IndexCategoriaAction
   {
     return $cardapio->categorias()
       ->with(['tamanhos', 'massas', 'bordas'])
-      ->withCount('itens')
+      ->withCount(['itens' => fn ($query) => $query->withTrashed()])
       ->orderBy('ordem', 'asc')
       ->withTrashed()
       ->get();
