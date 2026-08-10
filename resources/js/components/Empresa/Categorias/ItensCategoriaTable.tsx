@@ -57,6 +57,7 @@ interface ItensCategoriaTableProps {
     categoriaId: number;
     categoriasStatus: ICategoriaStatus[]
     status?: boolean,
+    loadingStatusCategoria?: boolean,
     itens: ItemPizza[] | ItemNormal[];
     atualizacaoEmMassa?: AtualizacaoEmMassa;
     setStatusCategoria: (categoriaId: number, status: boolean) => void;
@@ -443,6 +444,7 @@ export function ItensCategoriaTable({
     categoriasStatus,
     setStatusCategoria,
     status,
+    loadingStatusCategoria,
     itens,
     atualizacaoEmMassa = null,
     onCriarCombo,
@@ -462,7 +464,11 @@ export function ItensCategoriaTable({
         <div className="flex flex-col gap-2">
             <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 w-full">
                 <Field orientation={"horizontal"}>
-                    <Checkbox checked={status} onCheckedChange={(checked) => setStatusCategoria(categoriaId, checked as boolean)} />
+                    {loadingStatusCategoria ? (
+                        <Spinner className="h-4 w-4" />
+                    ) : (
+                        <Checkbox checked={status} onCheckedChange={(checked) => setStatusCategoria(categoriaId, checked as boolean)} />
+                    )}
                     <FieldLabel>Inativo?</FieldLabel>
                 </Field>
                 <div className="flex flex-row gap-4">

@@ -74,6 +74,9 @@ export default function Categoria() {
     const [loadingCategoria, setLoadingCategoria] = useState<number | null>(
         null,
     );
+    const [loadingStatusCategoria, setLoadingStatusCategoria] = useState<number | null>(
+        null,
+    );
     const [
         handleDialogGerenciarOrdernacao,
         setHandleDialogGerenciarOrdernacao,
@@ -336,6 +339,7 @@ export default function Categoria() {
     }
 
     async function alterarStatusCategoria(categoria_id: number) {
+        setLoadingStatusCategoria(categoria_id)
         await axios.patch(route('aplicacao.empresa.cardapios.categorias.status', {cnpj, cardapio_id, categoria_id}))
             .then((response) => {
                 toast.success(response.data.mensagem)
@@ -344,6 +348,7 @@ export default function Categoria() {
             .catch((error) => {
                 toast.error(error.response?.data?.message ?? 'Erro inesperado, tente novamente.')
             })
+            .finally(() => setLoadingStatusCategoria(null))
     }
 
     async function removerCategoria() {
@@ -549,6 +554,9 @@ export default function Categoria() {
                                                         categoriaStatus.find(
                                                             (cs) => cs.id === categoria.id,
                                                         )?.inativo
+                                                    }
+                                                    loadingStatusCategoria={
+                                                        loadingStatusCategoria === categoria.id
                                                     }
                                                     setStatusCategoria={alterarStatusCategoria}
                                                     onCriarCombo={() => {}}
