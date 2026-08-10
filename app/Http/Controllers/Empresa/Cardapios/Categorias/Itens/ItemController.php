@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Empresa\Cardapios\Categorias\Itens;
 use App\Actions\Itens\CloneItemAction;
 use App\Actions\Itens\ShowItemAction;
 use App\Actions\Itens\DestroyImagemItemAction;
+use App\Actions\Itens\DestroyItemAction;
 use App\Actions\Itens\StoreImagemItemAction;
 use App\Actions\Itens\StoreItemAction;
 use App\Actions\Itens\UpdateItemAction;
@@ -98,8 +99,9 @@ class ItemController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(string $cnpj, string $cardapio_id, string $categoria_id, string $item_id, DestroyItemAction $action)
     {
-        //
+        $action->handle($item_id, $this->categoria->getAttribute('id'));
+        return response()->json(['mensagem' => 'Item removido com sucesso']);
     }
 }
