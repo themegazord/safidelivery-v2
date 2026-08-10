@@ -96,6 +96,7 @@ Route::group([], function () {
                 Route::put('/{categoria_id}', [CategoriaController::class, 'update'])->name('aplicacao.empresa.cardapios.categorias.update');
                 Route::post('/{categoria_id}', [CategoriaController::class, 'clone'])->name('aplicacao.empresa.cardapios.categorias.clone');
                 Route::delete('/{categoria_id}', [CategoriaController::class, 'destroy'])->name('aplicacao.empresa.cardapios.categorias.delete');
+                Route::patch('/{categoria_id}', [CategoriaController::class, 'status'])->name('aplicacao.empresa.cardapios.categorias.status');
                 Route::post('/reordenar', [CategoriaController::class, 'reordenar'])->name('aplicacao.empresa.cardapios.categorias.reordenar');
                 Route::get('/{categoria_id}/itens', [CategoriaController::class, 'itensPorCategoria'])->name('aplicacao.empresa.cardapios.categorias.itens.itens_por_categoria');
                 Route::prefix('{categoria_id}/itens')->group(function () {

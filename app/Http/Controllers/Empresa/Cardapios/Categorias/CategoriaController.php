@@ -8,6 +8,7 @@ use App\Actions\Categorias\IndexCategoriaAction;
 use App\Actions\Categorias\ReordenarCategoriaAction;
 use App\Actions\Categorias\ShowCategoriaAction;
 use App\Actions\Categorias\StoreCategoriaAction;
+use App\Actions\Categorias\ToggleStatusCategoriaAction;
 use App\Actions\Categorias\UpdateCategoriaAction;
 use App\Actions\Itens\IndexItemPorCategoriaAction;
 use App\Http\Controllers\Controller;
@@ -103,5 +104,10 @@ class CategoriaController extends Controller
     {
         $action->handle($categoria_id, $cardapio_id);
         return response()->json(['mensagem' => 'Categoria removida com sucesso.']);
+    }
+
+    public function status(string $cnpj, string $cardapio_id, string $categoria_id, ToggleStatusCategoriaAction $action): JsonResponse {
+        $status = $action->handle($this->cardapio->getAttribute('id'), $categoria_id);
+        return response()->json(['mensagem' => 'Categoria' . ($status ? ' inativada '  : ' ativada ') . 'com sucesso.']);
     }
 }
