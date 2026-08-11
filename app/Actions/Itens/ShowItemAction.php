@@ -11,7 +11,7 @@ class ShowItemAction {
     public function handle(int $categoria_id, int $item_id): Item {
         try {
             return Item::withTrashed()
-                ->with('precosItemPizza.tamanho')
+                ->with(['precosItemPizza.tamanho', 'grupo_complemento.complementos'])
                 ->where('categoria_id', $categoria_id)
                 ->where('id', $item_id)
                 ->firstOrFail();

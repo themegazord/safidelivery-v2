@@ -1,7 +1,7 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Attachment, AttachmentContent, AttachmentMedia, AttachmentTitle } from "@/components/ui/attachment";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Combobox, ComboboxChip, ComboboxChips, ComboboxChipsInput, ComboboxContent, ComboboxEmpty, ComboboxItem, ComboboxList, ComboboxValue, useComboboxAnchor } from "@/components/ui/combobox";
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
@@ -16,13 +16,16 @@ import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { H6 } from "@/components/utils/Heading";
+import { Badge } from "@/components/ui/badge";
+import { H5, H6 } from "@/components/utils/Heading";
 import { ICategoria } from "@/types/empresa/cardapios/types";
 import { usePage } from "@inertiajs/react";
 import axios from "axios";
-import { AlertCircle, AlertTriangle, Beer, CandyOff, ChevronDownIcon, Citrus, CookingPot, Leaf, LucideIcon, MilkOff, Pizza, ScanBarcode, Snowflake, Sprout, User, Users, UsersRound, Wheat, Wine } from "lucide-react";
+import { AlertCircle, AlertTriangle, Beer, CandyOff, ChevronDownIcon, Citrus, CookingPot, Copy, Leaf, Loader, LucideIcon, MilkOff, Pizza, Plus, ScanBarcode, Snowflake, Sprout, User, Users, UsersRound, Wheat, Wine } from "lucide-react";
 import { ReactNode, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { converteReal } from "@/utils/utils";
+import { Separator } from "@base-ui/react";
 
 // Tipagens
 interface IProps {
@@ -32,6 +35,7 @@ interface IProps {
   categorias: ICategoria[]
   onSubmit: (dados: TItem) => Promise<void>
   isSubmiting: boolean
+  onOpenDrawerGrupoComplemento: (value: boolean) => void
 }
 interface IItemBase {
   id?: number
@@ -49,15 +53,34 @@ interface IItemBase {
   eh_bebida?: boolean
   classificacao?: ClassificacaoStatus[],
   imagem?: string,
-  dias_funcionamento?: (string | number)[]
+  dias_funcionamento?: (string | number)[],
 }
 interface IItemNormal {
   peso?: string | number,
   gramagem?: string,
-  qtde_pessoas?: number
+  qtde_pessoas?: number,
+  grupo_complementos?: TGrupoComplemento[]
 }
 interface IItemPizza {
   precos?: TPrecoPizza[]
+}
+type TGrupoComplemento = {
+    id?: number,
+    item_id?: number,
+    nome?: string,
+    obrigatoriedade?: boolean,
+    qtd_minima?: number,
+    qtd_maxima?: number,
+    complementos?: TComplementos[]
+}
+type TComplementos = {
+    id?: number,
+    external_id?: number,
+    grupo_id?: number,
+    nome?: string,
+    descricao?: string,
+    preco?: number,
+    status?: boolean
 }
 type TPrecoPizza = {
   tamanho_id?: number
@@ -70,6 +93,7 @@ type TPrecoPizza = {
 export type TItem = IItemBase & IItemNormal & IItemPizza
 
 export type TCategoria = {label: string, value: string}
+export type TItemParaCopiaGrupoComplemento = {label: string, value: string}
 
 type ClassificacaoStatus = { value: string, status: boolean }
 
@@ -187,6 +211,7 @@ function criarItemInicial(
     gramagem: base?.gramagem,
     qtde_pessoas: base?.qtde_pessoas,
     precos: base?.precos,
+    grupo_complementos: base?.grupo_complementos,
   }
 }
 
@@ -352,7 +377,8 @@ function DrawerContentItemNormal({
   onSubmit,
   isSubmiting,
   isEditing,
-  open
+  open,
+  onOpenDrawerGrupoComplemento
 }: {
   item: TItem
   setItem: React.Dispatch<React.SetStateAction<TItem>>
@@ -364,11 +390,13 @@ function DrawerContentItemNormal({
   isSubmiting: boolean
   onSubmit: () => Promise<void>
   open: boolean
+  onOpenDrawerGrupoComplemento: (value: boolean) => void
 }) {
-  type TTab = 'detalhes' | 'preco_estoque' | 'classificacao';
+  type TTab = 'detalhes' | 'preco_estoque' | 'classificacao' | 'complementos';
   const ITEM_NORMAL_TABS = [
     {value: 'detalhes', label: 'Detalhes'},
     {value: 'preco_estoque', label: 'Preço e Estoque'},
+    {value: 'complementos', label: 'Complementos'},
     {value: 'classificacao', label: 'Classificação'},
   ] as const
   const CAMPO_PARA_ABA: Record<string, TTab> = {
@@ -389,6 +417,12 @@ function DrawerContentItemNormal({
   }
   const [tab, setTab] = useState<TTab>('detalhes')
   const [isUploadingImage, setIsUploadingImage] = useState<boolean>(false)
+  const [handleCopiaComplemento, setHandleCopiaComplemento] = useState<boolean>(false)
+  const [handleCategoriaParaCopiaGrupoComplemento, setHandleCategoriaParaCopiaGrupoComplemento] = useState<number | undefined>(undefined)
+  const [handleItemParaCopiaGrupoComplemento, setHandleItemParaCopiaGrupoComplemento] = useState<number | undefined>(undefined)
+  const [itensCategoriaSelecionadaParaCopiaGrupoComplemento, setItensCategoriaSelecionadaParaCopiaGrupoComplemento] = useState<TItemParaCopiaGrupoComplemento[]>([])
+  const [loadingItensPorCategoria, setLoadingItensPorCategoria] = useState<boolean>(false)
+  const [loadingCopiaGrupoComplemento, setLoadingCopiaGrupoComplemento] = useState<boolean>(false)
 
   // Reseta pra aba inicial toda vez que o drawer é reaberto, senão fica
   // preso na última aba usada no item anterior.
@@ -543,11 +577,53 @@ function DrawerContentItemNormal({
         }));
     }
 
+    function resetCopiaGrupoComplemento() {
+        setHandleCategoriaParaCopiaGrupoComplemento(undefined)
+        setHandleItemParaCopiaGrupoComplemento(undefined)
+        setHandleCopiaComplemento(false)
+    }
+
+    async function consultaItensDeCategoria(categoria_id: number) {
+        setLoadingItensPorCategoria(true)
+        await axios.get(route('aplicacao.empresa.cardapios.categorias.itens.itens_por_categoria', {cnpj, cardapio_id, categoria_id}))
+            .then((response) => {
+                setItensCategoriaSelecionadaParaCopiaGrupoComplemento(response.data.map(function (item: TItem) {
+                    return {value: String(item.id), label: item.nome ?? ''}
+                }))
+            })
+            .finally(() => setLoadingItensPorCategoria(false))
+    }
+
+    async function copiaGrupoComplemento() {
+        setLoadingCopiaGrupoComplemento(true)
+        await axios.post(route('aplicacao.empresa.cardapios.categorias.item.copiaGrupoComplementos', {cnpj, cardapio_id, categoria_id: itemProp.categoria_id, item_id: itemProp.id}), {
+            categoria_id: handleCategoriaParaCopiaGrupoComplemento,
+            item_id: handleItemParaCopiaGrupoComplemento
+        })
+            .then(async (response) => {
+                toast.success(response.data.mensagem)
+                const itemAtualizado = await axios.get(route('aplicacao.empresa.cardapios.categorias.item.show', {cnpj, cardapio_id, categoria_id: itemProp.categoria_id, item_id: itemProp.id}))
+                setItemProp(prev => ({ ...prev, grupo_complementos: itemAtualizado.data.item.grupo_complementos }))
+            })
+            .catch((error) => {
+                toast.error(error.response?.data?.message ?? 'Erro inesperado, tente novamente.')
+            })
+            .finally(() => {
+                resetCopiaGrupoComplemento()
+                setLoadingCopiaGrupoComplemento(false)
+            })
+    }
+
+    useEffect(() => {
+        if (handleCategoriaParaCopiaGrupoComplemento === undefined) return
+        consultaItensDeCategoria(handleCategoriaParaCopiaGrupoComplemento)
+    }, [handleCategoriaParaCopiaGrupoComplemento])
+
   return (
     <DrawerContent className="w-full p-6 lg:w-[55vw]">
       <Tabs defaultValue={'detalhes'} value={tab} onValueChange={(v) => setTab(v as TTab)} className="min-h-0 flex-1">
         <TabsList className='w-full'>
-          {ITEM_NORMAL_TABS.map((int, intIdx) => (
+          {ITEM_NORMAL_TABS.filter(int => (isEditing && itemProp.categoria_tipo === 'I') || int.value !== 'complementos').map((int, intIdx) => (
           <TabsTrigger key={intIdx} value={int.value}>{int.label}</TabsTrigger>
         ))}
         </TabsList>
@@ -836,6 +912,136 @@ function DrawerContentItemNormal({
                 </>
             )}
         </TabsContent>
+        {isEditing && itemProp.categoria_tipo === 'I' && (
+            <TabsContent value={'complementos'} className='flex min-h-0 flex-col gap-4'>
+                <div className="flex flex-col">
+                    <H5>Complementos</H5>
+                    <H6>Seu item tem complementos pra ficar ainda mais gostoso? Indique aqui.</H6>
+                </div>
+                {(itemProp.grupo_complementos?.length ?? 0) > 0 && (
+                    <Card className="m-4">
+                        <CardHeader>
+                            <CardTitle>Grupos de complementos que compõem esse item</CardTitle>
+                        </CardHeader>
+                        <CardContent className="flex flex-col gap-4">
+                            {itemProp.grupo_complementos?.map((grupo) => {
+                                const contagemComplementos = grupo.complementos?.length ?? 0
+                                return  (
+                                    <Card key={grupo.id}>
+                                        <CardHeader>
+                                            <CardTitle>{grupo.nome}</CardTitle>
+                                            <CardDescription>{`${contagemComplementos} ${contagemComplementos == 1 ? 'opção' : 'opções'}`}</CardDescription>
+                                            <CardAction>
+                                                <Badge variant={grupo.obrigatoriedade ? 'default' : 'secondary'}>
+                                                    {grupo.obrigatoriedade ? 'Ativo' : 'Inativo'}
+                                                </Badge>
+                                            </CardAction>
+                                        </CardHeader>
+                                        <CardContent>
+                                                {(grupo.complementos ?? []).map(complemento => (
+                                                    <div className="flex justify-between px-4" key={complemento.id}>
+                                                        <p>{complemento.nome}</p>
+                                                        <p><b>R$ {converteReal(complemento.preco)}</b></p>
+                                                    </div>
+                                                ))}
+                                        </CardContent>
+                                    </Card>
+                                )
+                            })}
+
+
+                        </CardContent>
+                    </Card>
+                )}
+
+                <div className="flex flex-col gap-4 sm:flex-row">
+                    <Button variant={'outline'} onClick={() => onOpenDrawerGrupoComplemento(true)}>
+                        {<Plus />}
+                        Adicionar um complemento
+                    </Button>
+                    <Button variant={'outline'} onClick={() => setHandleCopiaComplemento(true)}>
+                        {<Copy />}
+                        Copiar complemento de outro item
+                    </Button>
+                </div>
+
+                {handleCopiaComplemento && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Copiar grupo existente</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <FieldGroup>
+                                <Field>
+                                    <FieldLabel htmlFor="categorias_copia_grupo_complementos">Categorias:</FieldLabel>
+                                    <Select
+                                        defaultValue={handleCategoriaParaCopiaGrupoComplemento}
+                                        onValueChange={(e) => setHandleCategoriaParaCopiaGrupoComplemento(e ?? undefined)}
+                                        name="categorias_copia_grupo_complementos"
+                                        id="categorias_copia_grupo_complementos"
+                                        items={categorias}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Selecione uma categoria..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectGroup>
+                                                {categorias.map(categoria => (
+                                                    <SelectItem key={categoria.value} value={categoria.value}>{categoria.label}</SelectItem>
+                                                ))}
+                                            </SelectGroup>
+                                        </SelectContent>
+                                    </Select>
+                                </Field>
+                                {loadingItensPorCategoria ? (
+                                    <div className="flex w-full mx-auto">
+                                        <p className="inline-flex gap-2"><Spinner />Carregando itens...</p>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {handleCategoriaParaCopiaGrupoComplemento && (
+                                            <Field>
+                                                <FieldLabel htmlFor="item_copia_grupo_complementos">Selecione o item para copiar o grupo de complementos</FieldLabel>
+                                                <Select
+                                                    name="item_copia_grupo_complementos"
+                                                    id="item_copia_grupo_complementos"
+                                                    items={itensCategoriaSelecionadaParaCopiaGrupoComplemento}
+                                                    value={itensCategoriaSelecionadaParaCopiaGrupoComplemento.find(item => item.value === String(handleItemParaCopiaGrupoComplemento))?.value}
+                                                    defaultValue={undefined}
+                                                    onValueChange={(e) => setHandleItemParaCopiaGrupoComplemento(e ? Number(e) : undefined)}
+                                                >
+                                                    <SelectTrigger className="w-full">
+                                                        <SelectValue placeholder="Selecione um item..." />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectGroup>
+                                                            {itensCategoriaSelecionadaParaCopiaGrupoComplemento.map((item) => (
+                                                                <SelectItem key={item.value} value={item.value}>
+                                                                    {item.label}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectGroup>
+                                                    </SelectContent>
+                                                </Select>
+                                            </Field>
+                                        )}
+                                    </>
+                                )}
+                            </FieldGroup>
+                        </CardContent>
+                        <CardFooter className="justify-end gap-2">
+                            <Button variant={'destructive'} onClick={() => resetCopiaGrupoComplemento()}>
+                                Cancelar
+                            </Button>
+                            <Button onClick={() => copiaGrupoComplemento()} disabled={loadingCopiaGrupoComplemento}>
+                                {loadingCopiaGrupoComplemento ? <Spinner /> : <Copy /> }
+                                Copiar
+                            </Button>
+                        </CardFooter>
+                    </Card>
+                )}
+            </TabsContent>
+        )}
         <TabsContent value={'classificacao'} className="flex min-h-0 flex-col">
             <div className="flex flex-col gap-4">
                 {!itemProp.eh_bebida ? (
@@ -922,7 +1128,7 @@ function DrawerContentItemNormal({
         <DrawerFooter className="flex flex-row-reverse">
           <Button disabled={isSubmiting} onClick={() => {
             if (tab === 'detalhes') setTab('preco_estoque')
-            if (tab === 'preco_estoque') setTab('classificacao')
+            if (tab === 'preco_estoque') setTab(isEditing && itemProp.categoria_tipo === 'I' ? 'complementos' : 'classificacao')
             if (tab === 'classificacao') {
                 onSubmit().catch((error) => irParaAbaComErro(error?.response?.data?.errors))
             }
@@ -962,7 +1168,8 @@ export default function UpsertItemDrawer({
   item: itemProp,
   categorias: categoriaProp,
   onSubmit,
-  isSubmiting
+  isSubmiting,
+  onOpenDrawerGrupoComplemento
 }: IProps) {
     // Constantes
     const isEdicao = itemProp?.id !== undefined
@@ -1064,6 +1271,7 @@ export default function UpsertItemDrawer({
                     isSubmiting={isSubmiting}
                     isEditing={isEdicao}
                     open={open}
+                    onOpenDrawerGrupoComplemento={onOpenDrawerGrupoComplemento}
                 />
             )}
         </Drawer>

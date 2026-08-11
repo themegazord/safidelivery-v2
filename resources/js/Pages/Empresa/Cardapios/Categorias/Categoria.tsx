@@ -40,6 +40,7 @@ import axios from "axios";
 import { ArrowUpDown, ChevronDown, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import UpsertComplementoDrawer from "@/components/Empresa/Itens/GrupoComplementos/Complementos/UpsertComplementoDrawer";
 
 // Garante um card por tamanho da categoria, mesmo que o tamanho nunca tenha
 // sido marcado como ativo (e por isso não tenha ItemPreco salvo no backend).
@@ -83,6 +84,7 @@ export default function Categoria() {
     ] = useState(false);
     const [handleDrawerUpsertCategoria, setHandleDrawerUpsertCategoria] = useState(false)
     const [handleDrawerUpsertItem, setHandleDrawerUpsertItem] = useState(false)
+    const [handleDrawerUpsertComplemento, setHandleDrawerUpsertComplemento] = useState(false)
     const [handleDialogClonagemCategoria, setHandleDialogClonagemCategoria] = useState(false)
     const [handleDialogRemocaoCategoria, setHandleDialogRemocaoCategoria] = useState(false)
     const [handleDialogClonagemItem, setHandleDialogClonagemItem] = useState(false)
@@ -402,6 +404,7 @@ export default function Categoria() {
             .then((response) => {
                 const itemConsultado: Partial<TItem> & {id?: number} = response.data.item
                 const categoriaSelecionada = categoriasState?.find((c) => c.id === categoria_id)
+                itemConsultado.categoria_tipo = categoriaSelecionada?.tipo as 'I' | 'P'
                 if (itemConsultado.tipo === 'PIZ' && categoriaSelecionada) {
                     itemConsultado.precos = mesclarPrecosComTamanhos(categoriaSelecionada.tamanhos, itemConsultado.precos)
                 }
@@ -611,6 +614,11 @@ export default function Categoria() {
                     : editaItem(dados)
                 }
                 isSubmiting={isSubmiting}
+                onOpenDrawerGrupoComplemento={setHandleDrawerUpsertComplemento}
+            />
+            <UpsertComplementoDrawer
+                open={handleDrawerUpsertComplemento}
+                setOpen={setHandleDrawerUpsertComplemento}
             />
             <ConfirmarClonagemCategoriaDialog
                 open={handleDialogClonagemCategoria}

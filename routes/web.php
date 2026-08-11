@@ -6,6 +6,7 @@ use App\Http\Controllers\Empresa\CardapioDigital\CardapioController;
 use App\Http\Controllers\Empresa\CardapioDigital\FinalizarPedidoController;
 use App\Http\Controllers\Empresa\Cardapios\CardapioController as EmpresaCardapioController;
 use App\Http\Controllers\Empresa\Cardapios\Categorias\CategoriaController;
+use App\Http\Controllers\Empresa\Cardapios\Categorias\Itens\GrupoComplemento\GrupoComplementoController;
 use App\Http\Controllers\Empresa\Cardapios\Categorias\Itens\ItemController;
 use App\Http\Controllers\Empresa\Cashback\CashbackConfigController;
 use App\Http\Controllers\Empresa\ConfigEmpresa\ConfiguracoesController;
@@ -108,6 +109,9 @@ Route::group([], function () {
                     Route::post('/{item_id}', [ItemController::class, 'clone'])->name('aplicacao.empresa.cardapios.categorias.item.clone');
                     Route::patch('/{item_id}/status', [ItemController::class, 'status'])->name('aplicacao.empresa.cardapios.categorias.item.status');
                     Route::delete('/{item_id}', [ItemController::class, 'destroy'])->name('aplicacao.empresa.cardapios.categorias.item.destroy');
+                    Route::prefix('{item_id}/grupo_complementos')->group(function () {
+                        Route::post('copiaGrupoComplementos', [GrupoComplementoController::class, 'copiaGrupoComplementos'])->name('aplicacao.empresa.cardapios.categorias.item.copiaGrupoComplementos');
+                    });
                 });
             });
         });

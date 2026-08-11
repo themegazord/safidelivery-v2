@@ -24,6 +24,23 @@ class ItemResource extends JsonResource
                 'preco' => $preco->preco,
                 'dias_funcionamento' => $preco->dias_funcionamento,
             ])),
+            'grupo_complementos' => $this->whenLoaded('grupo_complemento', fn () => $this->grupo_complemento->map(fn ($grupo) => [
+                'id' => $grupo->id,
+                'item_id' => $grupo->item_id,
+                'nome' => $grupo->nome,
+                'obrigatoriedade' => $grupo->obrigatoriedade,
+                'qtd_minima' => $grupo->qtd_minima,
+                'qtd_maxima' => $grupo->qtd_maxima,
+                'complementos' => $grupo->complementos->map(fn ($complemento) => [
+                    'id' => $complemento->id,
+                    'external_id' => $complemento->external_id,
+                    'grupo_id' => $complemento->grupo_id,
+                    'nome' => $complemento->nome,
+                    'descricao' => $complemento->descricao,
+                    'preco' => $complemento->preco,
+                    'status' => $complemento->status
+                ])
+            ])),
             'desconto' => $this->desconto,
             'valor_desconto' => $this->valor_desconto,
             'porcentagem_desconto' => $this->porcentagem_desconto,
