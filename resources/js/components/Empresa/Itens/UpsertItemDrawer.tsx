@@ -36,6 +36,7 @@ interface IProps {
   onSubmit: (dados: TItem) => Promise<void>
   isSubmiting: boolean
   onOpenDrawerGrupoComplemento: (value: boolean) => void
+  grupoComplementoAtualizadoEm?: number
 }
 interface IItemBase {
   id?: number
@@ -933,7 +934,7 @@ function DrawerContentItemNormal({
                                             <CardDescription>{`${contagemComplementos} ${contagemComplementos == 1 ? 'opção' : 'opções'}`}</CardDescription>
                                             <CardAction>
                                                 <Badge variant={grupo.obrigatoriedade ? 'default' : 'secondary'}>
-                                                    {grupo.obrigatoriedade ? 'Ativo' : 'Inativo'}
+                                                    {grupo.obrigatoriedade ? 'Obrigatório' : 'Opcional'}
                                                 </Badge>
                                             </CardAction>
                                         </CardHeader>
@@ -1169,7 +1170,8 @@ export default function UpsertItemDrawer({
   categorias: categoriaProp,
   onSubmit,
   isSubmiting,
-  onOpenDrawerGrupoComplemento
+  onOpenDrawerGrupoComplemento,
+  grupoComplementoAtualizadoEm
 }: IProps) {
     // Constantes
     const isEdicao = itemProp?.id !== undefined
@@ -1189,6 +1191,17 @@ export default function UpsertItemDrawer({
         setCategorias(itemProp?.tipo === 'PIZ' ? criarCategoriasIniciais(categoriaProp, 'P') : criarCategoriasIniciais(categoriaProp, 'I'))
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open])
+
+  // Grupo de complemento cadastrado no drawer filho (aberto por cima deste):
+  // busca o item de novo pra refletir o grupo recém-criado na aba de complementos.
+    useEffect(() => {
+        if (!grupoComplementoAtualizadoEm || !item.id || !item.categoria_id) return
+        axios.get(route('aplicacao.empresa.cardapios.categorias.item.show', {cnpj, cardapio_id, categoria_id: item.categoria_id, item_id: item.id}))
+            .then((response) => {
+                setItem(prev => ({ ...prev, grupo_complementos: response.data.item.grupo_complementos }))
+            })
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [grupoComplementoAtualizadoEm])
 
 
   // Fechou sem finalizar o cadastro (Esc, clique fora, swipe, botão Cancelar):

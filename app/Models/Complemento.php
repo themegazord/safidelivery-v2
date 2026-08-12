@@ -15,6 +15,7 @@ class Complemento extends Model
   protected $fillable = [
     'external_id',
     'grupo_id',
+    'imagem',
     'nome',
     'descricao',
     'preco',

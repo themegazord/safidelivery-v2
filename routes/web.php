@@ -110,7 +110,9 @@ Route::group([], function () {
                     Route::patch('/{item_id}/status', [ItemController::class, 'status'])->name('aplicacao.empresa.cardapios.categorias.item.status');
                     Route::delete('/{item_id}', [ItemController::class, 'destroy'])->name('aplicacao.empresa.cardapios.categorias.item.destroy');
                     Route::prefix('{item_id}/grupo_complementos')->group(function () {
+                        Route::post('/', [GrupoComplementoController::class, 'store'])->name('aplicacao.empresa.cardapios.categorias.item.storeGrupoComplemento');
                         Route::post('copiaGrupoComplementos', [GrupoComplementoController::class, 'copiaGrupoComplementos'])->name('aplicacao.empresa.cardapios.categorias.item.copiaGrupoComplementos');
+                        Route::get('buscaComplementosParaCopia', [GrupoComplementoController::class, 'buscaComplementosParaCopia'])->name('aplicacao.empresa.cardapios.categorias.item.buscaComplementosParaCopia');
                     });
                 });
             });

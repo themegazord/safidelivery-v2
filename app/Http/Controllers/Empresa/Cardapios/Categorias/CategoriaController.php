@@ -17,6 +17,7 @@ use App\Http\Requests\Cardapios\Categorias\ReordenarCategoriaRequest;
 use App\Http\Requests\Cardapios\Categorias\StoreCategoriaRequest;
 use App\Http\Requests\Cardapios\Categorias\UpdateCategoriaRequest;
 use App\Models\Cardapio;
+use App\Models\Configuracao;
 use App\Models\Empresa;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -35,7 +36,9 @@ class CategoriaController extends Controller
     {
         $this->empresa = Empresa::query()->where('cnpj', $request->route('cnpj'))->firstOrFail();
         $this->cardapio = $this->empresa->cardapios()->where('id', $request->route('cardapio_id'))->first();
-        $this->exportaDadosIfood = $this->empresa->configuracoes()->where('configuracao', 'replicar_informacao_importacao')->first()->getAttribute('valor');
+        /** @var Configuracao|null $configuracaoExportaDadosIfood */
+        $configuracaoExportaDadosIfood = $this->empresa->configuracoes()->where('configuracao', 'replicar_informacao_importacao')->first();
+        $this->exportaDadosIfood = (bool) $configuracaoExportaDadosIfood?->getAttribute('valor');
         if (!$this->cardapio) {
             abort(404);
         }

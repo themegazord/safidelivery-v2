@@ -346,4 +346,141 @@ trait ValidaExternalIdUnico
 
         return null;
     }
+
+    /**
+     * Valida se o external_id de complementos não conflita com outras entidades
+     * Nota: NÃO valida duplicatas entre complementos, pois ao copiar grupos isso é esperado
+     *
+     * @param  array  $complementos  Array de complementos
+     * @param  int  $cardapioId  ID do cardápio
+     *
+     * @throws \Exception Se encontrar conflito de external_id com outras entidades
+     */
+    private function validarExternalIdComplementos(array $complementos, int $cardapioId): ?string
+    {
+        $tipoNomes = [
+            'PIZ' => 'sabor de pizza',
+            'PRE' => 'item preparado',
+            'BEB' => 'bebida',
+            'IND' => 'item industrializado',
+        ];
+
+        foreach ($complementos as $index => $complemento) {
+            if (empty($complemento['external_id'])) {
+                continue;
+            }
+
+            // 1. Verifica se já existe na tabela Item dentro do mesmo cardápio
+            $possivelItem = Item::where('external_id', $complemento['external_id'])
+                ->whereHas('categoria', function ($query) use ($cardapioId) {
+                    $query->where('cardapio_id', $cardapioId);
+                })
+                ->first();
+
+            if (! is_null($possivelItem)) {
+                $tipoExistente = $tipoNomes[$possivelItem->tipo] ?? 'item';
+
+                return "Código PDV [{$complemento['external_id']}] informado no complemento [{$complemento['nome']}] já está sendo usado no {$tipoExistente} [{$possivelItem->nome}]";
+            }
+
+            // 2. Verifica se já existe nas tabelas de categorias do mesmo cardápio
+            $existeEmTamanho = CategoriaTamanho::where('external_id', $complemento['external_id'])
+                ->whereHas('categoria', function ($query) use ($cardapioId) {
+                    $query->where('cardapio_id', $cardapioId);
+                })
+                ->first();
+            if (! is_null($existeEmTamanho)) {
+                return "Código PDV [{$complemento['external_id']}] informado no complemento [{$complemento['nome']}] já está sendo usado no tamanho [{$existeEmTamanho->nome}]";
+            }
+
+            $existeEmMassa = CategoriaMassa::where('external_id', $complemento['external_id'])
+                ->whereHas('categoria', function ($query) use ($cardapioId) {
+                    $query->where('cardapio_id', $cardapioId);
+                })
+                ->first();
+            if (! is_null($existeEmMassa)) {
+                return "Código PDV [{$complemento['external_id']}] informado no complemento [{$complemento['nome']}] já está sendo usado na massa [{$existeEmMassa->nome}]";
+            }
+
+            $existeEmBorda = CategoriaBorda::where('external_id', $complemento['external_id'])
+                ->whereHas('categoria', function ($query) use ($cardapioId) {
+                    $query->where('cardapio_id', $cardapioId);
+                })
+                ->first();
+            if (! is_null($existeEmBorda)) {
+                return "Código PDV [{$complemento['external_id']}] informado no complemento [{$complemento['nome']}] já está sendo usado na borda [{$existeEmBorda->nome}]";
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Valida se o external_id de complementos não conflita com outras entidades na edição
+     * Nota: NÃO valida duplicatas entre complementos, pois ao copiar grupos isso é esperado
+     *
+     * @param  array  $complementos  Array de complementos
+     * @param  int  $grupoId  ID do grupo sendo editado (não utilizado, mantido para compatibilidade)
+     * @param  int  $cardapioId  ID do cardápio
+     *
+     * @throws \Exception Se encontrar conflito de external_id com outras entidades
+     */
+    private function validarExternalIdComplementosParaEdicao(array $complementos, int $grupoId, int $cardapioId): ?string
+    {
+        $tipoNomes = [
+            'PIZ' => 'sabor de pizza',
+            'PRE' => 'item preparado',
+            'BEB' => 'bebida',
+            'IND' => 'item industrializado',
+        ];
+
+        foreach ($complementos as $index => $complemento) {
+            if (empty($complemento['external_id'])) {
+                continue;
+            }
+
+            // 1. Verifica se já existe na tabela Item dentro do mesmo cardápio
+            $possivelItem = Item::where('external_id', $complemento['external_id'])
+                ->whereHas('categoria', function ($query) use ($cardapioId) {
+                    $query->where('cardapio_id', $cardapioId);
+                })
+                ->first();
+
+            if (! is_null($possivelItem)) {
+                $tipoExistente = $tipoNomes[$possivelItem->tipo] ?? 'item';
+
+                return "Código PDV [{$complemento['external_id']}] informado no complemento [{$complemento['nome']}] já está sendo usado no {$tipoExistente} [{$possivelItem->nome}]";
+            }
+
+            // 2. Verifica se já existe nas tabelas de categorias do mesmo cardápio
+            $existeEmTamanho = CategoriaTamanho::where('external_id', $complemento['external_id'])
+                ->whereHas('categoria', function ($query) use ($cardapioId) {
+                    $query->where('cardapio_id', $cardapioId);
+                })
+                ->first();
+            if (! is_null($existeEmTamanho)) {
+                return "Código PDV [{$complemento['external_id']}] informado no complemento [{$complemento['nome']}] já está sendo usado no tamanho [{$existeEmTamanho->nome}]";
+            }
+
+            $existeEmMassa = CategoriaMassa::where('external_id', $complemento['external_id'])
+                ->whereHas('categoria', function ($query) use ($cardapioId) {
+                    $query->where('cardapio_id', $cardapioId);
+                })
+                ->first();
+            if (! is_null($existeEmMassa)) {
+                return "Código PDV [{$complemento['external_id']}] informado no complemento [{$complemento['nome']}] já está sendo usado na massa [{$existeEmMassa->nome}]";
+            }
+
+            $existeEmBorda = CategoriaBorda::where('external_id', $complemento['external_id'])
+                ->whereHas('categoria', function ($query) use ($cardapioId) {
+                    $query->where('cardapio_id', $cardapioId);
+                })
+                ->first();
+            if (! is_null($existeEmBorda)) {
+                return "Código PDV [{$complemento['external_id']}] informado no complemento [{$complemento['nome']}] já está sendo usado na borda [{$existeEmBorda->nome}]";
+            }
+        }
+
+        return null;
+    }
 }

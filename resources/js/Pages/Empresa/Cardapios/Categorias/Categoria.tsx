@@ -100,6 +100,7 @@ export default function Categoria() {
         (Partial<CategoriaFormData> & { id: number }) | undefined
     >()
     const [item, setItem] = useState<(Partial<TItem> & {id?: number}) | undefined>()
+    const [grupoComplementoAtualizadoEm, setGrupoComplementoAtualizadoEm] = useState(0)
     const [itemParaClonar, setItemParaClonar] = useState<{ id: number; categoria_id: number; nome?: string } | undefined>()
     const [itemParaRemover, setItemParaRemover] = useState<{ id: number; categoria_id: number; nome?: string } | undefined>()
     const TABS_INFO = [
@@ -615,10 +616,14 @@ export default function Categoria() {
                 }
                 isSubmiting={isSubmiting}
                 onOpenDrawerGrupoComplemento={setHandleDrawerUpsertComplemento}
+                grupoComplementoAtualizadoEm={grupoComplementoAtualizadoEm}
             />
             <UpsertComplementoDrawer
                 open={handleDrawerUpsertComplemento}
                 setOpen={setHandleDrawerUpsertComplemento}
+                categoria_id={item?.categoria_id}
+                item_id={item?.id}
+                onSalvar={() => setGrupoComplementoAtualizadoEm((v) => v + 1)}
             />
             <ConfirmarClonagemCategoriaDialog
                 open={handleDialogClonagemCategoria}
