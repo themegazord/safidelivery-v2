@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Link, Salad, CircleQuestionMark, ShoppingBag, Utensils, X, Minus, GripVertical, Images, Trash2 } from "lucide-react";
+import { Plus, Link, Salad, CircleQuestionMark, ShoppingBag, Utensils, X, Minus, GripVertical, Images, Trash2, Trash } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertTitle } from "@/components/ui/alert";
@@ -26,6 +26,9 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
+import { Attachment, AttachmentMedia } from "@/components/ui/attachment";
+import { Spinner } from "@/components/ui/spinner";
 
 type TModoCriacaoGrupo = "criar" | "copiar";
 type TModoCriacaoComplemento = "criar" | "copiar";
@@ -50,7 +53,7 @@ interface IComplemento {
     descricao?: string
     preco: number
     status: boolean
-    external_id?: number
+    external_id?: string
 }
 
 const OPCOES_CRIACAO_GRUPO: {
@@ -176,9 +179,13 @@ export default function UpsertComplementoDrawer({ open, setOpen, categoria_id, i
 
     const [complementosParaCopiar, setComplementosParaCopiar] = useState<TComplementoParaCopiar[]>([])
 
+    const [complemento, setComplemento] = useState<Partial<IComplemento>>()
+
     const [contagemSteps, setContagemSteps] = useState<number>(1)
 
     const [salvando, setSalvando] = useState<boolean>(false)
+
+    const [isUploadingImage, setIsUploadingImage] = useState<boolean>(false)
 
     const resetComponent = () => {
         setModoCriacaoGrupo(undefined);
@@ -188,6 +195,7 @@ export default function UpsertComplementoDrawer({ open, setOpen, categoria_id, i
         setGrupoComplemento(undefined);
         setModoCriacaoComplemento(undefined)
         setComplementosParaCopiar([])
+        setComplemento(undefined)
         setContagemSteps(1);
     };
 
@@ -223,6 +231,27 @@ export default function UpsertComplementoDrawer({ open, setOpen, categoria_id, i
 
     function removeComplementoParaCopiar(id: number) {
         setComplementosParaCopiar(prev => prev.filter(c => c.id !== id))
+    }
+
+    // Complemento criado manualmente não tem id no banco ainda — usa um id
+    // sintético negativo (nunca colide com ids reais) só pra entrar na mesma
+    // lista/tabela usada pelos complementos copiados.
+    function adicionaComplementoCriado() {
+        if (!complemento?.nome) return
+
+        setComplementosParaCopiar(prev => [
+            ...prev,
+            {
+                id: -Date.now(),
+                nome: complemento.nome!,
+                descricao: complemento.descricao,
+                imagem: complemento.imagem,
+                preco: complemento.preco ?? 0,
+                external_id: complemento.external_id ? Number(complemento.external_id) : undefined,
+            },
+        ])
+        setComplemento(undefined)
+        setModoCriacaoComplemento(undefined)
     }
 
     async function salvarGrupoComplemento() {
@@ -270,7 +299,15 @@ export default function UpsertComplementoDrawer({ open, setOpen, categoria_id, i
     useEffect(() => {
         if (open) return
 
+        // Fechou sem finalizar o cadastro: se uma imagem já tinha sido
+        // enviada para o complemento em criação, ela nunca chegou a ser
+        // vinculada a um complemento salvo — apaga pra não ficar órfã.
+        if (complemento?.imagem) {
+            apagarImagemPendente(complemento.imagem)
+        }
+
         resetComponent()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open])
 
     function criaGrupoComplementoBase(grupo_complemento: IGrupoComplemento) {
@@ -288,6 +325,52 @@ export default function UpsertComplementoDrawer({ open, setOpen, categoria_id, i
                 },
             ],
         }))
+    }
+
+    function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        uploadImagem(file);
+    }
+
+    async function apagarImagemPendente(url: string) {
+        if (!categoria_id) return
+
+        await axios.delete(route('aplicacao.empresa.cardapios.categorias.item.destroy-imagem', {
+            cnpj,
+            cardapio_id,
+            categoria_id,
+        }), { data: { url } }).catch(() => {})
+    }
+
+    async function uploadImagem(file: File) {
+        if (!categoria_id) return
+
+        setIsUploadingImage(true)
+        const imagemAnterior = complemento?.imagem
+        const formData = new FormData();
+        formData.append('imagem', file);
+        await axios.post(route('aplicacao.empresa.cardapios.categorias.item.store-imagem', {
+            cnpj,
+            cardapio_id,
+            categoria_id,
+        }), formData)
+        .then((response) => {
+            setComplemento(prev => ({
+                ...prev,
+                imagem: response.data.url
+            }))
+            // Só apaga a imagem anterior se ela mesma ainda não tinha sido
+            // vinculada a um complemento salvo (troca de imagem antes de salvar).
+            if (imagemAnterior) {
+                apagarImagemPendente(imagemAnterior)
+            }
+        })
+        .catch((error) => {
+            toast.error(error.response?.data?.message ?? 'Erro inesperado, tente novamente.')
+        })
+        .finally(() => setIsUploadingImage(false))
     }
 
     useEffect(() => {
@@ -623,6 +706,119 @@ export default function UpsertComplementoDrawer({ open, setOpen, categoria_id, i
                                         fecharComponente={() => setModoCriacaoComplemento(undefined)}
                                         idsJaAdicionados={complementosParaCopiar.map(c => c.id)}
                                     />
+                                )}
+
+                                {modoCriacaoComplemento === 'criar' && ['ingredientes', 'cross-sell'].includes(tipoGrupoComplemento!) && (
+                                    <>
+                                        <Card className="m-4">
+                                            <CardHeader className="flex flex-row justify-between">
+                                                <CardTitle className="inline-flex gap-2">{<Plus />} Criar novo complemento</CardTitle>
+                                                <CardAction>
+                                                    <Button variant={'destructive'}>
+                                                        <Trash />
+                                                    </Button>
+                                                </CardAction>
+                                            </CardHeader>
+                                            <FieldGroup className="px-4">
+                                                <Field>
+                                                    <FieldLabel htmlFor="complemento_nome">Nome do produto</FieldLabel>
+                                                    <Input
+                                                        id="complemento_nome"
+                                                        name="complemento_nome"
+                                                        value={complemento?.nome ?? ""}
+                                                        onInput={(e) => {
+                                                            const value = e.currentTarget.value
+                                                            setComplemento(prev => ({
+                                                                ...prev!,
+                                                                nome: value
+                                                            }))
+                                                        }}
+                                                    />
+                                                </Field>
+                                                <FieldGroup className="flex flex-col gap-4 md:flex-row">
+                                                        <Field className="md:flex-1">
+                                                            <FieldLabel htmlFor="complemento_descricao">Descrição</FieldLabel>
+                                                            <Textarea
+                                                                id="complemento_descricao"
+                                                                name="complemento_descricao"
+                                                                className="h-52 resize-none field-sizing-fixed"
+                                                                value={complemento?.descricao ?? ""}
+                                                                onInput={(e) => {
+                                                                    const value = e.currentTarget.value
+                                                                    setComplemento(prev => ({
+                                                                        ...prev!,
+                                                                        descricao: value
+                                                                    }))
+                                                                }}
+                                                            />
+                                                        </Field>
+                                                        <Field className="md:w-fit md:shrink-0">
+                                                            <FieldLabel>Imagem</FieldLabel>
+                                                            <FieldLabel className="cursor-pointer">
+                                                                <Attachment state={isUploadingImage ? 'uploading' : 'idle'} orientation={'vertical'} className="size-52">
+                                                                    <AttachmentMedia variant={'image'}>
+                                                                        {isUploadingImage ? (
+                                                                            <Spinner />
+                                                                        ) : (
+                                                                            <img className="h-full w-full object-cover" src={complemento?.imagem ?? 'https://placehold.co/300'} alt="Imagem de item novo" />
+                                                                        )}
+                                                                    </AttachmentMedia>
+                                                                </Attachment>
+                                                                <input
+                                                                    type="file"
+                                                                    accept="image/*"
+                                                                    className="hidden"
+                                                                    onChange={handleFileChange}
+                                                                />
+                                                            </FieldLabel>
+                                                        </Field>
+                                                </FieldGroup>
+
+                                                <FieldGroup className="flex flex-col md:grid md:grid-cols-2 gap-4">
+                                                    <Field className="flex-1">
+                                                        <FieldLabel htmlFor="complemento_preco">Preço</FieldLabel>
+                                                        <InputGroup>
+                                                            <InputGroupAddon>R$</InputGroupAddon>
+                                                            <InputGroupInput
+                                                                name="complemento_preco"
+                                                                id="complemento_preco"
+                                                                value={complemento?.preco ?? 0}
+                                                                type="number"
+                                                                min={0}
+                                                                step={0.01}
+                                                                onInput={(e) => {
+                                                                    const value = e.currentTarget.value
+                                                                    setComplemento(prev => ({
+                                                                        ...prev!,
+                                                                        preco: value === "" ? 0 : Number(value)
+                                                                    }))
+                                                                }}
+                                                            />
+                                                        </InputGroup>
+                                                    </Field>
+                                                    <Field className="flex-1">
+                                                        <FieldLabel htmlFor="complemento_external_id">Código PDV</FieldLabel>
+                                                        <Input
+                                                            id="complemento_external_id"
+                                                            name="complemento_external_id"
+                                                            value={complemento?.external_id ?? ""}
+                                                            onInput={(e) => {
+                                                                const value = e.currentTarget.value
+                                                                setComplemento(prev => ({
+                                                                    ...prev!,
+                                                                    external_id: value
+                                                                }))
+                                                            }}
+                                                        />
+                                                    </Field>
+                                                </FieldGroup>
+                                            </FieldGroup>
+                                        </Card>
+                                        <DrawerFooter className="flex-row justify-end gap-2">
+                                            <Button variant={'destructive'} onClick={() => setContagemSteps(2)} disabled={salvando}>Cancelar</Button>
+                                            <Button onClick={adicionaComplementoCriado} disabled={salvando || !complemento?.nome}>Salvar</Button>
+                                        </DrawerFooter>
+                                    </>
                                 )}
                             </>
                         )}

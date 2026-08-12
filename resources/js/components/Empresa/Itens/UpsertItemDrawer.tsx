@@ -473,10 +473,10 @@ function DrawerContentItemNormal({
     const isChecked = (value: string) => itemProp.classificacao?.find((c) => c.value === value)?.status ?? false;
 
     function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+        const file = e.target.files?.[0];
+        if (!file) return;
 
-    uploadImagem(file);
+        uploadImagem(file);
     }
 
     async function uploadImagem(file: File) {
