@@ -32,7 +32,10 @@ class GrupoComplementoController extends Controller
         $this->item = Item::withTrashed()->where('categoria_id', $this->categoria->getAttribute('id'))->where('id', $request->route('item_id'))->firstOrFail();
         /** @var Configuracao|null $configuracaoExportaDadosIfood */
         $configuracaoExportaDadosIfood = $this->empresa->configuracoes()->where('configuracao', 'replicar_informacao_importacao')->first();
-        $this->exportaDadosIfood = (bool) $configuracaoExportaDadosIfood?->getAttribute('valor');
+        // A exportação só faz sentido pra cardápios que foram efetivamente
+        // importados do iFood — um cardápio criado manualmente não existe lá.
+        $this->exportaDadosIfood = (bool) $configuracaoExportaDadosIfood?->getAttribute('valor')
+            && $this->cardapio->getAttribute('tipo_importacao') === 'ifood';
     }
 
     /**

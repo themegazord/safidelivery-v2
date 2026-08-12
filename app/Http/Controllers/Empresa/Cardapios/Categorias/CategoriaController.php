@@ -38,7 +38,10 @@ class CategoriaController extends Controller
         $this->cardapio = $this->empresa->cardapios()->where('id', $request->route('cardapio_id'))->first();
         /** @var Configuracao|null $configuracaoExportaDadosIfood */
         $configuracaoExportaDadosIfood = $this->empresa->configuracoes()->where('configuracao', 'replicar_informacao_importacao')->first();
-        $this->exportaDadosIfood = (bool) $configuracaoExportaDadosIfood?->getAttribute('valor');
+        // A exportação só faz sentido pra cardápios que foram efetivamente
+        // importados do iFood — um cardápio criado manualmente não existe lá.
+        $this->exportaDadosIfood = (bool) $configuracaoExportaDadosIfood?->getAttribute('valor')
+            && $this->cardapio?->getAttribute('tipo_importacao') === 'ifood';
         if (!$this->cardapio) {
             abort(404);
         }
