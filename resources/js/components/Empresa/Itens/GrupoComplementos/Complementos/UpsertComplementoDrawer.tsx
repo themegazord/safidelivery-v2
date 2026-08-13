@@ -47,6 +47,15 @@ type TComplementoParaCopiar = IComplementoBuscaSelecionavel & {
     external_id?: number
 }
 
+type TGrupoBuscaSelecionavel = IComplementoBuscaSelecionavel & {
+    obrigatoriedade: boolean
+    qtd_minima: number
+    qtd_maxima: number
+    ja_adicionado: boolean
+}
+
+type TGrupoParaCopiar = TGrupoBuscaSelecionavel
+
 interface IComplemento {
     nome?: string
     imagem?: string
@@ -179,6 +188,8 @@ export default function UpsertComplementoDrawer({ open, setOpen, categoria_id, i
 
     const [complementosParaCopiar, setComplementosParaCopiar] = useState<TComplementoParaCopiar[]>([])
 
+    const [gruposParaCopiar, setGruposParaCopiar] = useState<TGrupoParaCopiar[]>([])
+
     const [complemento, setComplemento] = useState<Partial<IComplemento>>()
 
     const [contagemSteps, setContagemSteps] = useState<number>(1)
@@ -196,6 +207,7 @@ export default function UpsertComplementoDrawer({ open, setOpen, categoria_id, i
         setGrupoComplemento(undefined);
         setModoCriacaoComplemento(undefined)
         setComplementosParaCopiar([])
+        setGruposParaCopiar([])
         setComplemento(undefined)
         setContagemSteps(1);
     };
@@ -216,6 +228,68 @@ export default function UpsertComplementoDrawer({ open, setOpen, categoria_id, i
         )
 
         return resposta.data.complementos
+    }
+
+    async function buscaGruposComplementoParaCopia({ busca, page }: { busca: string; page: number }): Promise<IRespostaPaginada<TGrupoBuscaSelecionavel>> {
+        if (!categoria_id || !item_id) {
+            return { data: [], current_page: 1, last_page: 1 }
+        }
+
+        const resposta = await axios.get(
+            route('aplicacao.empresa.cardapios.categorias.item.buscaGruposComplementoParaCopia', {
+                cnpj,
+                cardapio_id,
+                categoria_id,
+                item_id,
+            }),
+            { params: { busca, page } }
+        )
+
+        return resposta.data.grupos
+    }
+
+    function selecionaGruposParaCopiar(grupos: TGrupoBuscaSelecionavel[]) {
+        setGruposParaCopiar(grupos)
+    }
+
+    function atualizaGrupoParaCopiar(id: number, dados: Partial<Pick<TGrupoParaCopiar, 'obrigatoriedade' | 'qtd_minima' | 'qtd_maxima'>>) {
+        setGruposParaCopiar(prev => prev.map(g => g.id === id ? { ...g, ...dados } : g))
+    }
+
+    function removeGrupoParaCopiar(id: number) {
+        setGruposParaCopiar(prev => prev.filter(g => g.id !== id))
+    }
+
+    async function copiaGruposComplementoSelecionados() {
+        if (!categoria_id || !item_id || gruposParaCopiar.length === 0) return
+
+        setSalvando(true)
+        await axios.post(
+            route('aplicacao.empresa.cardapios.categorias.item.copiaGruposComplementoSelecionados', {
+                cnpj,
+                cardapio_id,
+                categoria_id,
+                item_id,
+            }),
+            {
+                grupos: gruposParaCopiar.map((grupo) => ({
+                    id: grupo.id,
+                    obrigatoriedade: grupo.obrigatoriedade,
+                    qtd_minima: grupo.qtd_minima,
+                    qtd_maxima: grupo.qtd_maxima,
+                })),
+            },
+        )
+            .then((response) => {
+                toast.success(response.data.mensagem)
+                setOpen(false)
+                router.reload({ only: ['categorias', 'categoriaStatus'] })
+                onSalvar?.()
+            })
+            .catch((error) => {
+                toast.error(error.response?.data?.message ?? 'Erro inesperado, tente novamente.')
+            })
+            .finally(() => setSalvando(false))
     }
 
     function adicionaComplementosParaCopiar(itens: IComplementoBuscaSelecionavel[]) {
@@ -996,6 +1070,115 @@ export default function UpsertComplementoDrawer({ open, setOpen, categoria_id, i
                                         </DrawerFooter>
                                     </>
                                 )}
+                            </>
+                        )}
+                    </>
+                )}
+
+                {modoCriacaoGrupo === 'copiar' && (
+                    <>
+                        <DrawerHeader className="flex-row items-center justify-between p-0 pb-4">
+                            <DrawerTitle>Copiar grupo de complemento</DrawerTitle>
+                        </DrawerHeader>
+                        <Steps totalSteps={2} currentStep={gruposParaCopiar.length === 0 ? 1 : 2} />
+
+                        {gruposParaCopiar.length === 0 && (
+                            <BuscaSelecaoPaginada<TGrupoBuscaSelecionavel>
+                                titulo="Selecione o grupo que deseja reutilizar"
+                                placeholder="Escreva o nome do grupo"
+                                nomeItem="grupo"
+                                buscar={buscaGruposComplementoParaCopia}
+                                onAdicionar={selecionaGruposParaCopiar}
+                                fecharComponente={() => setModoCriacaoGrupo(undefined)}
+                                desabilitarItem={(grupo) => grupo.ja_adicionado}
+                                mensagemItemDesabilitado="já utilizado neste item"
+                            />
+                        )}
+
+                        {gruposParaCopiar.length > 0 && (
+                            <>
+                                <DrawerTitle>Agora, defina a obrigatoriedade e as quantidades de cada grupo</DrawerTitle>
+                                <div className="h-[80vh] overflow-y-scroll my-4">
+                                    <div className="m-4 flex flex-1 min-h-0 flex-col gap-4">
+                                        {gruposParaCopiar.map((grupo) => (
+                                            <Card key={grupo.id}>
+                                                <CardHeader className="flex flex-row justify-between">
+                                                    <CardTitle>{grupo.nome}</CardTitle>
+                                                    <CardAction>
+                                                        <Button
+                                                            type="button"
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="text-muted-foreground hover:text-destructive"
+                                                            onClick={() => removeGrupoParaCopiar(grupo.id)}
+                                                        >
+                                                            <Trash2 />
+                                                        </Button>
+                                                    </CardAction>
+                                                </CardHeader>
+                                                <CardContent>
+                                                    <FieldGroup className="md:grid md:grid-cols-2">
+                                                        <Field>
+                                                            <Label htmlFor={`grupo_copiado_obrigatoriedade_${grupo.id}`}>Este grupo é obrigatório ou opcional?</Label>
+                                                            <Select
+                                                                id={`grupo_copiado_obrigatoriedade_${grupo.id}`}
+                                                                name={`grupo_copiado_obrigatoriedade_${grupo.id}`}
+                                                                items={OPCOES_OBRIGATORIEDADE}
+                                                                value={grupo.obrigatoriedade}
+                                                                onValueChange={(e) => atualizaGrupoParaCopiar(grupo.id, { obrigatoriedade: e as boolean })}
+                                                            >
+                                                                <SelectTrigger className="w-full">
+                                                                    <SelectValue />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {OPCOES_OBRIGATORIEDADE.map((opcao, opcaoIdx) => (
+                                                                        <SelectItem key={opcaoIdx} value={opcao.value}>{opcao.label}</SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </Field>
+                                                        <FieldGroup className="md:grid md:grid-cols-2">
+                                                            <Field>
+                                                                <Label htmlFor={`grupo_copiado_qtd_minima_${grupo.id}`}>Qtd. mínima</Label>
+                                                                <InputGroup>
+                                                                    <InputGroupButton onClick={() => atualizaGrupoParaCopiar(grupo.id, { qtd_minima: Math.max(0, grupo.qtd_minima - 1) })}><Minus/></InputGroupButton>
+                                                                    <InputGroupInput
+                                                                        id={`grupo_copiado_qtd_minima_${grupo.id}`}
+                                                                        name={`grupo_copiado_qtd_minima_${grupo.id}`}
+                                                                        className="text-center"
+                                                                        value={grupo.qtd_minima}
+                                                                        type="number"
+                                                                        readOnly
+                                                                    />
+                                                                    <InputGroupButton onClick={() => atualizaGrupoParaCopiar(grupo.id, { qtd_minima: grupo.qtd_minima + 1 })}><Plus/></InputGroupButton>
+                                                                </InputGroup>
+                                                            </Field>
+                                                            <Field>
+                                                                <Label htmlFor={`grupo_copiado_qtd_maxima_${grupo.id}`}>Qtd. máxima</Label>
+                                                                <InputGroup>
+                                                                    <InputGroupButton onClick={() => atualizaGrupoParaCopiar(grupo.id, { qtd_maxima: Math.max(1, grupo.qtd_maxima - 1) })}><Minus/></InputGroupButton>
+                                                                    <InputGroupInput
+                                                                        id={`grupo_copiado_qtd_maxima_${grupo.id}`}
+                                                                        name={`grupo_copiado_qtd_maxima_${grupo.id}`}
+                                                                        className="text-center"
+                                                                        value={grupo.qtd_maxima}
+                                                                        type="number"
+                                                                        readOnly
+                                                                    />
+                                                                    <InputGroupButton onClick={() => atualizaGrupoParaCopiar(grupo.id, { qtd_maxima: grupo.qtd_maxima + 1 })}><Plus/></InputGroupButton>
+                                                                </InputGroup>
+                                                            </Field>
+                                                        </FieldGroup>
+                                                    </FieldGroup>
+                                                </CardContent>
+                                            </Card>
+                                        ))}
+                                    </div>
+                                </div>
+                                <DrawerFooter className="flex-row justify-end gap-2">
+                                    <Button variant={'destructive'} onClick={() => setGruposParaCopiar([])} disabled={salvando}>Voltar</Button>
+                                    <Button onClick={copiaGruposComplementoSelecionados} disabled={salvando}>Salvar</Button>
+                                </DrawerFooter>
                             </>
                         )}
                     </>

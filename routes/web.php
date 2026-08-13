@@ -112,7 +112,9 @@ Route::group([], function () {
                     Route::prefix('{item_id}/grupo_complementos')->group(function () {
                         Route::post('/', [GrupoComplementoController::class, 'store'])->name('aplicacao.empresa.cardapios.categorias.item.storeGrupoComplemento');
                         Route::post('copiaGrupoComplementos', [GrupoComplementoController::class, 'copiaGrupoComplementos'])->name('aplicacao.empresa.cardapios.categorias.item.copiaGrupoComplementos');
+                        Route::post('copiaGruposComplementoSelecionados', [GrupoComplementoController::class, 'copiaGruposComplementoSelecionados'])->name('aplicacao.empresa.cardapios.categorias.item.copiaGruposComplementoSelecionados');
                         Route::get('buscaComplementosParaCopia', [GrupoComplementoController::class, 'buscaComplementosParaCopia'])->name('aplicacao.empresa.cardapios.categorias.item.buscaComplementosParaCopia');
+                        Route::get('buscaGruposComplementoParaCopia', [GrupoComplementoController::class, 'buscaGruposComplementoParaCopia'])->name('aplicacao.empresa.cardapios.categorias.item.buscaGruposComplementoParaCopia');
                     });
                 });
             });

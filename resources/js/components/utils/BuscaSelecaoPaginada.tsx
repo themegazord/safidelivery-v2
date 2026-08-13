@@ -23,19 +23,25 @@ export interface IRespostaPaginada<T> {
 interface IProps<T extends IComplementoBuscaSelecionavel> {
     titulo: string;
     placeholder?: string;
+    nomeItem?: string;
     buscar: (params: { busca: string; page: number }) => Promise<IRespostaPaginada<T>>;
     onAdicionar: (itens: T[]) => void;
     fecharComponente: () => void;
     idsJaAdicionados?: number[];
+    desabilitarItem?: (item: T) => boolean;
+    mensagemItemDesabilitado?: string;
 }
 
 export default function BuscaSelecaoPaginada<T extends IComplementoBuscaSelecionavel>({
     titulo,
     placeholder = "Escreva o nome do produto",
+    nomeItem = "complemento",
     buscar,
     onAdicionar,
     fecharComponente,
     idsJaAdicionados = [],
+    desabilitarItem,
+    mensagemItemDesabilitado = "já adicionado",
 }: IProps<T>) {
     const [busca, setBusca] = useState("");
     const [pagina, setPagina] = useState(1);
@@ -123,32 +129,43 @@ export default function BuscaSelecaoPaginada<T extends IComplementoBuscaSelecion
                     ) : resultado.data.length === 0 ? (
                         <p className="py-6 text-center text-sm text-muted-foreground">Nenhum resultado encontrado.</p>
                     ) : (
-                        resultado.data.map((item) => (
-                            <label key={item.id} className={cn("flex items-center gap-3", idsJaAdicionados.includes(item.id) ? "cursor-not-allowed opacity-50" : "cursor-pointer")}>
-                                <Checkbox
-                                    checked={idsSelecionados.includes(item.id) || idsJaAdicionados.includes(item.id)}
-                                    disabled={idsJaAdicionados.includes(item.id)}
-                                    onCheckedChange={() => toggleSelecionado(item)}
-                                />
-                                {item.imagem ? (
-                                    <img
-                                        src={item.imagem}
-                                        alt={item.nome}
-                                        className="size-12 shrink-0 rounded-lg object-cover"
+                        resultado.data.map((item) => {
+                            const jaAdicionado = idsJaAdicionados.includes(item.id);
+                            const desabilitadoPorRegra = desabilitarItem?.(item) ?? false;
+                            const desabilitado = jaAdicionado || desabilitadoPorRegra;
+
+                            return (
+                                <label key={item.id} className={cn("flex items-center gap-3", desabilitado ? "cursor-not-allowed opacity-50" : "cursor-pointer")}>
+                                    <Checkbox
+                                        checked={idsSelecionados.includes(item.id) || desabilitado}
+                                        disabled={desabilitado}
+                                        onCheckedChange={() => toggleSelecionado(item)}
                                     />
-                                ) : (
-                                    <div className="flex justify-center items-center size-12 shrink-0 rounded-lg bg-muted">
-                                        <Images />
-                                    </div>
-                                )}
-                                <div className="flex flex-col">
-                                    <span className="font-medium">{item.nome}</span>
-                                    {item.descricao && (
-                                        <span className="text-sm text-muted-foreground">{item.descricao}</span>
+                                    {item.imagem ? (
+                                        <img
+                                            src={item.imagem}
+                                            alt={item.nome}
+                                            className="size-12 shrink-0 rounded-lg object-cover"
+                                        />
+                                    ) : (
+                                        <div className="flex justify-center items-center size-12 shrink-0 rounded-lg bg-muted">
+                                            <Images />
+                                        </div>
                                     )}
-                                </div>
-                            </label>
-                        ))
+                                    <div className="flex flex-col">
+                                        <span className="flex items-center gap-2 font-medium">
+                                            {item.nome}
+                                            {desabilitadoPorRegra && (
+                                                <span className="text-xs font-normal text-muted-foreground">({mensagemItemDesabilitado})</span>
+                                            )}
+                                        </span>
+                                        {item.descricao && (
+                                            <span className="text-sm text-muted-foreground">{item.descricao}</span>
+                                        )}
+                                    </div>
+                                </label>
+                            );
+                        })
                     )}
                 </div>
 
@@ -192,7 +209,7 @@ export default function BuscaSelecaoPaginada<T extends IComplementoBuscaSelecion
                 {selecionados.length > 0 && (
                         <Button type="button" onClick={adicionarSelecionados}>
                             <Plus />
-                            Adicionar {selecionados.length} complemento{selecionados.length > 1 ? 's' : ''}
+                            Adicionar {selecionados.length} {nomeItem}{selecionados.length > 1 ? 's' : ''}
                         </Button>
                 )}
             </CardFooter>

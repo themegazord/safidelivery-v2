@@ -24,6 +24,10 @@ class GrupoComplemento extends Model
     'qtd_maxima',
   ];
 
+  protected $casts = [
+    'obrigatoriedade' => 'boolean',
+  ];
+
   public function item(): BelongsTo {
     return $this->belongsTo(Item::class, 'item_id');
   }

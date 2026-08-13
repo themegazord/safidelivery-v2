@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Empresa\Cardapios\Categorias\Itens\GrupoComplemento;
 
 use App\Actions\GrupoComplementos\CopiaGrupoComplementoAction;
+use App\Actions\GrupoComplementos\CopiaGruposComplementoSelecionadosAction;
 use App\Actions\GrupoComplementos\BuscaComplementosParaCopiaAction;
+use App\Actions\GrupoComplementos\BuscaGruposComplementoParaCopiaAction;
 use App\Actions\GrupoComplementos\StoreGrupoComplementoAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Cardapios\Categorias\Itens\GrupoComplemento\CopiaGrupoComplementoRequest;
+use App\Http\Requests\Cardapios\Categorias\Itens\GrupoComplemento\CopiaGruposComplementoSelecionadosRequest;
 use App\Http\Requests\Cardapios\Categorias\Itens\GrupoComplemento\StoreGrupoComplementoRequest;
 use App\Models\Cardapio;
 use App\Models\Categoria;
@@ -91,5 +94,19 @@ class GrupoComplementoController extends Controller
         $complementos = $action->handle($this->cardapio, $request->string('busca')->value() ?: null, (int) $request->input('por_pagina', 5));
 
         return response()->json(['complementos' => $complementos]);
+    }
+
+    public function buscaGruposComplementoParaCopia(Request $request, string $cnpj, string $cardapio_id, string $categoria_id, string $item_id, BuscaGruposComplementoParaCopiaAction $action): JsonResponse
+    {
+        $grupos = $action->handle($this->cardapio, $request->string('busca')->value() ?: null, (int) $request->input('por_pagina', 5), $this->item);
+
+        return response()->json(['grupos' => $grupos]);
+    }
+
+    public function copiaGruposComplementoSelecionados(CopiaGruposComplementoSelecionadosRequest $request, string $cnpj, string $cardapio_id, string $categoria_id, string $item_id, CopiaGruposComplementoSelecionadosAction $action): JsonResponse
+    {
+        $action->handle($request->validated('grupos'), $this->item, $this->exportaDadosIfood);
+
+        return response()->json(['mensagem' => 'Grupo de complemento copiado com sucesso']);
     }
 }
