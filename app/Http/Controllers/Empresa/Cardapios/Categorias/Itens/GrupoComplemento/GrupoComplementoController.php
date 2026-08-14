@@ -6,11 +6,17 @@ use App\Actions\GrupoComplementos\CopiaGrupoComplementoAction;
 use App\Actions\GrupoComplementos\CopiaGruposComplementoSelecionadosAction;
 use App\Actions\GrupoComplementos\BuscaComplementosParaCopiaAction;
 use App\Actions\GrupoComplementos\BuscaGruposComplementoParaCopiaAction;
+use App\Actions\GrupoComplementos\DestroyComplementoAction;
+use App\Actions\GrupoComplementos\DestroyGrupoComplementoAction;
 use App\Actions\GrupoComplementos\StoreGrupoComplementoAction;
+use App\Actions\GrupoComplementos\UpdateComplementoAction;
+use App\Actions\GrupoComplementos\UpdateGrupoComplementoAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Cardapios\Categorias\Itens\GrupoComplemento\CopiaGrupoComplementoRequest;
 use App\Http\Requests\Cardapios\Categorias\Itens\GrupoComplemento\CopiaGruposComplementoSelecionadosRequest;
 use App\Http\Requests\Cardapios\Categorias\Itens\GrupoComplemento\StoreGrupoComplementoRequest;
+use App\Http\Requests\Cardapios\Categorias\Itens\GrupoComplemento\UpdateComplementoRequest;
+use App\Http\Requests\Cardapios\Categorias\Itens\GrupoComplemento\UpdateGrupoComplementoRequest;
 use App\Models\Cardapio;
 use App\Models\Categoria;
 use App\Models\Configuracao;
@@ -70,17 +76,33 @@ class GrupoComplementoController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateGrupoComplementoRequest $request, string $cnpj, string $cardapio_id, string $categoria_id, string $item_id, string $grupo_id, UpdateGrupoComplementoAction $action): JsonResponse
     {
-        //
+        $dados = $request->validated();
+        $action->handle($dados, $this->item, $grupo_id);
+        return response()->json(['mensagem' => 'Grupo de complemento editado com sucesso']);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(string $cnpj, string $cardapio_id, string $categoria_id, string $item_id, string $grupo_id, DestroyGrupoComplementoAction $action): JsonResponse
     {
-        //
+        $action->handle($this->item, $grupo_id);
+        return response()->json(['mensagem' => 'Grupo de complemento removido com sucesso']);
+    }
+
+    public function updateComplemento(UpdateComplementoRequest $request, string $cnpj, string $cardapio_id, string $categoria_id, string $item_id, string $grupo_id, string $complemento_id, UpdateComplementoAction $action): JsonResponse
+    {
+        $dados = $request->validated();
+        $action->handle($dados, $this->item, $grupo_id, $complemento_id, $this->cardapio->getAttribute('id'), $this->exportaDadosIfood, $this->empresa);
+        return response()->json(['mensagem' => 'Complemento editado com sucesso']);
+    }
+
+    public function destroyComplemento(string $cnpj, string $cardapio_id, string $categoria_id, string $item_id, string $grupo_id, string $complemento_id, DestroyComplementoAction $action): JsonResponse
+    {
+        $action->handle($this->item, $grupo_id, $complemento_id);
+        return response()->json(['mensagem' => 'Complemento removido com sucesso']);
     }
 
     public function copiaGrupoComplementos(CopiaGrupoComplementoRequest $request, string $cnpj, string $cardapio_id, string $categoria_id, string $item_id, CopiaGrupoComplementoAction $action) {

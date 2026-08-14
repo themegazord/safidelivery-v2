@@ -35,6 +35,7 @@ class ItemResource extends JsonResource
                     'id' => $complemento->id,
                     'external_id' => $complemento->external_id,
                     'grupo_id' => $complemento->grupo_id,
+                    'imagem' => $complemento->imagem,
                     'nome' => $complemento->nome,
                     'descricao' => $complemento->descricao,
                     'preco' => $complemento->preco,

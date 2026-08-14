@@ -21,11 +21,15 @@ import { H5, H6 } from "@/components/utils/Heading";
 import { ICategoria } from "@/types/empresa/cardapios/types";
 import { usePage } from "@inertiajs/react";
 import axios from "axios";
-import { AlertCircle, AlertTriangle, Beer, CandyOff, ChevronDownIcon, Citrus, CookingPot, Copy, Leaf, Loader, LucideIcon, MilkOff, Pizza, Plus, ScanBarcode, Snowflake, Sprout, User, Users, UsersRound, Wheat, Wine } from "lucide-react";
+import { AlertCircle, AlertTriangle, Beer, CandyOff, ChevronDownIcon, Citrus, CookingPot, Copy, Leaf, Loader, LucideIcon, MilkOff, Pencil, Pizza, Plus, ScanBarcode, Snowflake, Sprout, Trash2, User, Users, UsersRound, Wheat, Wine } from "lucide-react";
 import { ReactNode, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { converteReal } from "@/utils/utils";
 import { Separator } from "@base-ui/react";
+import EditarGrupoComplementoDialog from "@/components/Empresa/Itens/GrupoComplementos/EditarGrupoComplementoDialog";
+import ConfirmarRemocaoGrupoComplementoDialog from "@/components/Empresa/Itens/GrupoComplementos/ConfirmarRemocaoGrupoComplementoDialog";
+import EditarComplementoDialog from "@/components/Empresa/Itens/GrupoComplementos/Complementos/EditarComplementoDialog";
+import ConfirmarRemocaoComplementoDialog from "@/components/Empresa/Itens/GrupoComplementos/Complementos/ConfirmarRemocaoComplementoDialog";
 
 // Tipagens
 interface IProps {
@@ -78,6 +82,7 @@ type TComplementos = {
     id?: number,
     external_id?: number,
     grupo_id?: number,
+    imagem?: string,
     nome?: string,
     descricao?: string,
     preco?: number,
@@ -424,6 +429,14 @@ function DrawerContentItemNormal({
   const [itensCategoriaSelecionadaParaCopiaGrupoComplemento, setItensCategoriaSelecionadaParaCopiaGrupoComplemento] = useState<TItemParaCopiaGrupoComplemento[]>([])
   const [loadingItensPorCategoria, setLoadingItensPorCategoria] = useState<boolean>(false)
   const [loadingCopiaGrupoComplemento, setLoadingCopiaGrupoComplemento] = useState<boolean>(false)
+  const [grupoEditando, setGrupoEditando] = useState<TGrupoComplemento | undefined>(undefined)
+  const [salvandoGrupoComplemento, setSalvandoGrupoComplemento] = useState<boolean>(false)
+  const [grupoParaRemover, setGrupoParaRemover] = useState<TGrupoComplemento | undefined>(undefined)
+  const [removendoGrupoComplemento, setRemovendoGrupoComplemento] = useState<boolean>(false)
+  const [complementoEditando, setComplementoEditando] = useState<{ grupo: TGrupoComplemento, complemento: TComplementos } | undefined>(undefined)
+  const [salvandoComplemento, setSalvandoComplemento] = useState<boolean>(false)
+  const [complementoParaRemover, setComplementoParaRemover] = useState<{ grupo: TGrupoComplemento, complemento: TComplementos } | undefined>(undefined)
+  const [removendoComplemento, setRemovendoComplemento] = useState<boolean>(false)
 
   // Reseta pra aba inicial toda vez que o drawer é reaberto, senão fica
   // preso na última aba usada no item anterior.
@@ -595,6 +608,11 @@ function DrawerContentItemNormal({
             .finally(() => setLoadingItensPorCategoria(false))
     }
 
+    async function recarregarGrupoComplementos() {
+        const itemAtualizado = await axios.get(route('aplicacao.empresa.cardapios.categorias.item.show', {cnpj, cardapio_id, categoria_id: itemProp.categoria_id, item_id: itemProp.id}))
+        setItemProp(prev => ({ ...prev, grupo_complementos: itemAtualizado.data.item.grupo_complementos }))
+    }
+
     async function copiaGrupoComplemento() {
         setLoadingCopiaGrupoComplemento(true)
         await axios.post(route('aplicacao.empresa.cardapios.categorias.item.copiaGrupoComplementos', {cnpj, cardapio_id, categoria_id: itemProp.categoria_id, item_id: itemProp.id}), {
@@ -603,8 +621,7 @@ function DrawerContentItemNormal({
         })
             .then(async (response) => {
                 toast.success(response.data.mensagem)
-                const itemAtualizado = await axios.get(route('aplicacao.empresa.cardapios.categorias.item.show', {cnpj, cardapio_id, categoria_id: itemProp.categoria_id, item_id: itemProp.id}))
-                setItemProp(prev => ({ ...prev, grupo_complementos: itemAtualizado.data.item.grupo_complementos }))
+                await recarregarGrupoComplementos()
             })
             .catch((error) => {
                 toast.error(error.response?.data?.message ?? 'Erro inesperado, tente novamente.')
@@ -615,12 +632,69 @@ function DrawerContentItemNormal({
             })
     }
 
+    async function editarGrupoComplemento(grupo_id: number, dados: { nome: string, obrigatoriedade: boolean, qtd_minima: number, qtd_maxima: number }) {
+        setSalvandoGrupoComplemento(true)
+        await axios.put(route('aplicacao.empresa.cardapios.categorias.item.updateGrupoComplemento', {cnpj, cardapio_id, categoria_id: itemProp.categoria_id, item_id: itemProp.id, grupo_id}), dados)
+            .then(async (response) => {
+                toast.success(response.data.mensagem)
+                await recarregarGrupoComplementos()
+                setGrupoEditando(undefined)
+            })
+            .catch((error) => {
+                toast.error(error.response?.data?.message ?? 'Erro inesperado, tente novamente.')
+            })
+            .finally(() => setSalvandoGrupoComplemento(false))
+    }
+
+    async function removerGrupoComplemento(grupo_id: number) {
+        setRemovendoGrupoComplemento(true)
+        await axios.delete(route('aplicacao.empresa.cardapios.categorias.item.destroyGrupoComplemento', {cnpj, cardapio_id, categoria_id: itemProp.categoria_id, item_id: itemProp.id, grupo_id}))
+            .then(async (response) => {
+                toast.success(response.data.mensagem)
+                await recarregarGrupoComplementos()
+                setGrupoParaRemover(undefined)
+            })
+            .catch((error) => {
+                toast.error(error.response?.data?.message ?? 'Erro inesperado, tente novamente.')
+            })
+            .finally(() => setRemovendoGrupoComplemento(false))
+    }
+
+    async function editarComplemento(grupo_id: number, complemento_id: number, dados: { nome: string, descricao?: string, imagem?: string, preco: number, status: boolean, external_id?: number }) {
+        setSalvandoComplemento(true)
+        await axios.put(route('aplicacao.empresa.cardapios.categorias.item.updateComplemento', {cnpj, cardapio_id, categoria_id: itemProp.categoria_id, item_id: itemProp.id, grupo_id, complemento_id}), dados)
+            .then(async (response) => {
+                toast.success(response.data.mensagem)
+                await recarregarGrupoComplementos()
+                setComplementoEditando(undefined)
+            })
+            .catch((error) => {
+                toast.error(error.response?.data?.message ?? 'Erro inesperado, tente novamente.')
+            })
+            .finally(() => setSalvandoComplemento(false))
+    }
+
+    async function removerComplemento(grupo_id: number, complemento_id: number) {
+        setRemovendoComplemento(true)
+        await axios.delete(route('aplicacao.empresa.cardapios.categorias.item.destroyComplemento', {cnpj, cardapio_id, categoria_id: itemProp.categoria_id, item_id: itemProp.id, grupo_id, complemento_id}))
+            .then(async (response) => {
+                toast.success(response.data.mensagem)
+                await recarregarGrupoComplementos()
+                setComplementoParaRemover(undefined)
+            })
+            .catch((error) => {
+                toast.error(error.response?.data?.message ?? 'Erro inesperado, tente novamente.')
+            })
+            .finally(() => setRemovendoComplemento(false))
+    }
+
     useEffect(() => {
         if (handleCategoriaParaCopiaGrupoComplemento === undefined) return
         consultaItensDeCategoria(handleCategoriaParaCopiaGrupoComplemento)
     }, [handleCategoriaParaCopiaGrupoComplemento])
 
   return (
+    <>
     <DrawerContent className="w-full p-6 lg:w-[55vw]">
       <Tabs defaultValue={'detalhes'} value={tab} onValueChange={(v) => setTab(v as TTab)} className="min-h-0 flex-1">
         <TabsList className='w-full'>
@@ -932,17 +1006,31 @@ function DrawerContentItemNormal({
                                         <CardHeader>
                                             <CardTitle>{grupo.nome}</CardTitle>
                                             <CardDescription>{`${contagemComplementos} ${contagemComplementos == 1 ? 'opção' : 'opções'}`}</CardDescription>
-                                            <CardAction>
+                                            <CardAction className="flex items-center gap-2">
                                                 <Badge variant={grupo.obrigatoriedade ? 'default' : 'secondary'}>
                                                     {grupo.obrigatoriedade ? 'Obrigatório' : 'Opcional'}
                                                 </Badge>
+                                                <Button type="button" variant="ghost" size="icon" onClick={() => setGrupoEditando(grupo)}>
+                                                    <Pencil />
+                                                </Button>
+                                                <Button type="button" variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => setGrupoParaRemover(grupo)}>
+                                                    <Trash2 />
+                                                </Button>
                                             </CardAction>
                                         </CardHeader>
                                         <CardContent>
                                                 {(grupo.complementos ?? []).map(complemento => (
-                                                    <div className="flex justify-between px-4" key={complemento.id}>
+                                                    <div className="flex items-center justify-between px-4" key={complemento.id}>
                                                         <p>{complemento.nome}</p>
-                                                        <p><b>R$ {converteReal(complemento.preco)}</b></p>
+                                                        <div className="flex items-center gap-2">
+                                                            <p><b>R$ {converteReal(complemento.preco)}</b></p>
+                                                            <Button type="button" variant="ghost" size="icon" onClick={() => setComplementoEditando({ grupo, complemento })}>
+                                                                <Pencil className="size-4" />
+                                                            </Button>
+                                                            <Button type="button" variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => setComplementoParaRemover({ grupo, complemento })}>
+                                                                <Trash2 className="size-4" />
+                                                            </Button>
+                                                        </div>
                                                     </div>
                                                 ))}
                                         </CardContent>
@@ -1080,6 +1168,52 @@ function DrawerContentItemNormal({
           <DrawerClose render={<Button variant={'destructive'} /> } disabled={isSubmiting}>Cancelar</DrawerClose>
         </DrawerFooter>
     </DrawerContent>
+    <EditarGrupoComplementoDialog
+        open={grupoEditando !== undefined}
+        onOpenChange={(value) => { if (!value) setGrupoEditando(undefined) }}
+        grupo={grupoEditando ? {
+            id: grupoEditando.id!,
+            nome: grupoEditando.nome ?? '',
+            obrigatoriedade: grupoEditando.obrigatoriedade ?? false,
+            qtd_minima: grupoEditando.qtd_minima ?? 0,
+            qtd_maxima: grupoEditando.qtd_maxima ?? 1,
+        } : undefined}
+        onSubmit={(dados) => editarGrupoComplemento(grupoEditando!.id!, dados)}
+        loading={salvandoGrupoComplemento}
+    />
+    <ConfirmarRemocaoGrupoComplementoDialog
+        open={grupoParaRemover !== undefined}
+        onOpenChange={(value) => { if (!value) setGrupoParaRemover(undefined) }}
+        grupo={grupoParaRemover ? { id: grupoParaRemover.id!, nome: grupoParaRemover.nome } : undefined}
+        onSubmit={() => removerGrupoComplemento(grupoParaRemover!.id!)}
+        loading={removendoGrupoComplemento}
+    />
+    <EditarComplementoDialog
+        open={complementoEditando !== undefined}
+        onOpenChange={(value) => { if (!value) setComplementoEditando(undefined) }}
+        cnpj={cnpj}
+        cardapio_id={cardapio_id}
+        categoria_id={itemProp.categoria_id}
+        complemento={complementoEditando ? {
+            id: complementoEditando.complemento.id!,
+            nome: complementoEditando.complemento.nome ?? '',
+            descricao: complementoEditando.complemento.descricao,
+            imagem: complementoEditando.complemento.imagem,
+            preco: complementoEditando.complemento.preco ?? 0,
+            status: complementoEditando.complemento.status ?? true,
+            external_id: complementoEditando.complemento.external_id,
+        } : undefined}
+        onSubmit={(dados) => editarComplemento(complementoEditando!.grupo.id!, complementoEditando!.complemento.id!, dados)}
+        loading={salvandoComplemento}
+    />
+    <ConfirmarRemocaoComplementoDialog
+        open={complementoParaRemover !== undefined}
+        onOpenChange={(value) => { if (!value) setComplementoParaRemover(undefined) }}
+        complemento={complementoParaRemover ? { id: complementoParaRemover.complemento.id!, nome: complementoParaRemover.complemento.nome } : undefined}
+        onSubmit={() => removerComplemento(complementoParaRemover!.grupo.id!, complementoParaRemover!.complemento.id!)}
+        loading={removendoComplemento}
+    />
+    </>
   )
 }
 

@@ -115,6 +115,10 @@ Route::group([], function () {
                         Route::post('copiaGruposComplementoSelecionados', [GrupoComplementoController::class, 'copiaGruposComplementoSelecionados'])->name('aplicacao.empresa.cardapios.categorias.item.copiaGruposComplementoSelecionados');
                         Route::get('buscaComplementosParaCopia', [GrupoComplementoController::class, 'buscaComplementosParaCopia'])->name('aplicacao.empresa.cardapios.categorias.item.buscaComplementosParaCopia');
                         Route::get('buscaGruposComplementoParaCopia', [GrupoComplementoController::class, 'buscaGruposComplementoParaCopia'])->name('aplicacao.empresa.cardapios.categorias.item.buscaGruposComplementoParaCopia');
+                        Route::put('/{grupo_id}', [GrupoComplementoController::class, 'update'])->name('aplicacao.empresa.cardapios.categorias.item.updateGrupoComplemento');
+                        Route::delete('/{grupo_id}', [GrupoComplementoController::class, 'destroy'])->name('aplicacao.empresa.cardapios.categorias.item.destroyGrupoComplemento');
+                        Route::put('/{grupo_id}/complementos/{complemento_id}', [GrupoComplementoController::class, 'updateComplemento'])->name('aplicacao.empresa.cardapios.categorias.item.updateComplemento');
+                        Route::delete('/{grupo_id}/complementos/{complemento_id}', [GrupoComplementoController::class, 'destroyComplemento'])->name('aplicacao.empresa.cardapios.categorias.item.destroyComplemento');
                     });
                 });
             });
