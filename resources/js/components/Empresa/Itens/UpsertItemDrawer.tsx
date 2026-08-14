@@ -1130,6 +1130,7 @@ function DrawerContentItemNormal({
           <Button disabled={isSubmiting} onClick={() => {
             if (tab === 'detalhes') setTab('preco_estoque')
             if (tab === 'preco_estoque') setTab(isEditing && itemProp.categoria_tipo === 'I' ? 'complementos' : 'classificacao')
+            if (tab === 'complementos') setTab('classificacao');
             if (tab === 'classificacao') {
                 onSubmit().catch((error) => irParaAbaComErro(error?.response?.data?.errors))
             }
