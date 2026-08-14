@@ -4,11 +4,13 @@ namespace App\Actions\GrupoComplementos;
 
 use App\Models\GrupoComplemento;
 use App\Models\Item;
+use App\Traits\Categorias\ValidaExternalIdUnico;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Symfony\Component\HttpFoundation\Response;
 
 class UpdateGrupoComplementoAction {
+    use ValidaExternalIdUnico;
     public function handle(array $dados, Item $item, string $grupo_id): void {
         try {
             $grupo = GrupoComplemento::query()
