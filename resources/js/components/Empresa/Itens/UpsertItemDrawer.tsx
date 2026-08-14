@@ -960,10 +960,6 @@ function DrawerContentItemNormal({
                         {<Plus />}
                         Adicionar um complemento
                     </Button>
-                    <Button variant={'outline'} onClick={() => setHandleCopiaComplemento(true)}>
-                        {<Copy />}
-                        Copiar complemento de outro item
-                    </Button>
                 </div>
 
                 {handleCopiaComplemento && (
