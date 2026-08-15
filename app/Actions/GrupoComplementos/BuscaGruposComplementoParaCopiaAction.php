@@ -30,7 +30,7 @@ class BuscaGruposComplementoParaCopiaAction
         return GrupoComplemento::query()
             ->whereIn('id', $idsUnicosPorNome)
             ->withCount('complementos')
-            ->with('item')
+            ->with(['item', 'complementos'])
             ->orderBy('nome')
             ->paginate($porPagina)
             ->withQueryString()
@@ -43,6 +43,11 @@ class BuscaGruposComplementoParaCopiaAction
                 'qtd_minima' => $grupo->getAttribute('qtd_minima'),
                 'qtd_maxima' => $grupo->getAttribute('qtd_maxima'),
                 'ja_adicionado' => $nomesGruposDoItemAtual->contains($grupo->getAttribute('nome')),
+                'complementos' => $grupo->complementos->map(fn ($complemento) => [
+                    'id' => $complemento->getAttribute('id'),
+                    'nome' => $complemento->getAttribute('nome'),
+                    'preco' => (float) $complemento->getAttribute('preco'),
+                ]),
             ]);
     }
 }

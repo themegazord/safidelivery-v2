@@ -52,6 +52,16 @@ export interface ItemNormal {
 
 export type AtualizacaoEmMassa = "codpdv" | "precos" | null;
 
+export interface ComboListagem {
+    id: number;
+    nome: string;
+    tipo_preco: string;
+    preco_combo: number | null;
+    trashed: boolean;
+    external_id: string | null;
+    grupos_count: number;
+}
+
 interface ItensCategoriaTableProps {
     categoriaTipo: "P" | "I";
     categoriaId: number;
@@ -59,6 +69,7 @@ interface ItensCategoriaTableProps {
     status?: boolean,
     loadingStatusCategoria?: boolean,
     itens: ItemPizza[] | ItemNormal[];
+    combos?: ComboListagem[];
     atualizacaoEmMassa?: AtualizacaoEmMassa;
     setStatusCategoria: (categoriaId: number, status: boolean) => void;
     onCriarCombo: (categoriaId: number, status: boolean) => void;
@@ -72,6 +83,7 @@ interface ItensCategoriaTableProps {
     onItensRemover: (itemId: number, categoriaId: number) => void;
     onItensAtualizaCodPdv: (itemId: number, valor: string) => void;
     onItensAtualizaPreco: (itemId: number, valor: string) => void;
+    onCombosEditar: (comboId: number, categoriaId: number, status: boolean) => void;
     isSubmiting?: boolean;
 }
 
@@ -435,6 +447,74 @@ function TabelaItensNormais({
 }
 
 // ---------------------------------------------------------------------------
+// Tabela de combos
+// ---------------------------------------------------------------------------
+
+function TabelaCombos({
+    combos,
+    categoriaId,
+    onCombosEditar,
+    onItensAlterarStatus,
+    onItensDuplicar,
+    onItensRemover,
+    isSubmiting,
+}: {
+    combos: ComboListagem[];
+    categoriaId: number;
+    onCombosEditar: ItensCategoriaTableProps["onCombosEditar"];
+    onItensAlterarStatus: ItensCategoriaTableProps["onItensAlterarStatus"];
+    onItensDuplicar: ItensCategoriaTableProps["onItensDuplicar"];
+    onItensRemover: ItensCategoriaTableProps["onItensRemover"];
+    isSubmiting?: boolean;
+}) {
+    return (
+        <div className="flex flex-col gap-2">
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead className="max-w-xs">Combo</TableHead>
+                        <TableHead className="w-64">Preço</TableHead>
+                        <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {combos.map((combo) => (
+                        <TableRow key={combo.id}>
+                            <TableCell className="max-w-xs">
+                                <div className="flex flex-col">
+                                    <p className="font-bold">{combo.nome}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {combo.grupos_count} {combo.grupos_count === 1 ? "grupo" : "grupos"} de itens
+                                    </p>
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                {combo.tipo_preco === "preco_combo" && combo.preco_combo !== null ? (
+                                    <p>R$ {formatarMoeda(combo.preco_combo)}</p>
+                                ) : (
+                                    <p className="text-xs text-muted-foreground">Soma dos itens</p>
+                                )}
+                            </TableCell>
+                            <TableCell className="text-right">
+                                <AcoesItem
+                                    item={{ id: combo.id, trashed: combo.trashed }}
+                                    categoriaId={categoriaId}
+                                    onItensAlterarStatus={onItensAlterarStatus}
+                                    onItensDuplicar={onItensDuplicar}
+                                    onItensEditar={onCombosEditar}
+                                    onItensRemover={onItensRemover}
+                                    isSubmiting={isSubmiting}
+                                />
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </div>
+    );
+}
+
+// ---------------------------------------------------------------------------
 // Componente principal
 // ---------------------------------------------------------------------------
 
@@ -446,6 +526,7 @@ export function ItensCategoriaTable({
     status,
     loadingStatusCategoria,
     itens,
+    combos = [],
     atualizacaoEmMassa = null,
     onCriarCombo,
     onCriarItem,
@@ -458,6 +539,7 @@ export function ItensCategoriaTable({
     onItensRemover,
     onItensAtualizaCodPdv,
     onItensAtualizaPreco,
+    onCombosEditar,
     isSubmiting,
 }: ItensCategoriaTableProps) {
     return (
@@ -489,10 +571,23 @@ export function ItensCategoriaTable({
                     </DropdownMenu>
                 </div>
             </div>
+            {combos.length > 0 && (
+                <TabelaCombos
+                    combos={combos}
+                    categoriaId={categoriaId}
+                    onCombosEditar={onCombosEditar}
+                    onItensAlterarStatus={onItensAlterarStatus}
+                    onItensDuplicar={onItensDuplicar}
+                    onItensRemover={onItensRemover}
+                    isSubmiting={isSubmiting}
+                />
+            )}
             {itens.length === 0 ? (
-                <div className="p-4 text-center text-muted-foreground">
-                    Nenhum item cadastrado nesta categoria.
-                </div>
+                combos.length === 0 && (
+                    <div className="p-4 text-center text-muted-foreground">
+                        Nenhum item cadastrado nesta categoria.
+                    </div>
+                )
             ) : categoriaTipo === "P" ? (
                 <TabelaPizzas
                     itens={itens as ItemPizza[]}

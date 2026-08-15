@@ -4,6 +4,7 @@ import ConfirmarClonagemItemDialog from "@/components/Empresa/Itens/ConfirmarClo
 import ConfirmarRemocaoItemDialog from "@/components/Empresa/Itens/ConfirmarRemocaoItemDialog";
 import GerenciarOrdenacaoDialog from "@/components/Empresa/Categorias/GerenciarOrdenacaoDialog";
 import ItensCategoriaTable, {
+    ComboListagem,
     ItemNormal,
     ItemPizza,
 } from "@/components/Empresa/Categorias/ItensCategoriaTable";
@@ -41,6 +42,7 @@ import { ArrowUpDown, ChevronDown, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import UpsertComplementoDrawer from "@/components/Empresa/Itens/GrupoComplementos/Complementos/UpsertComplementoDrawer";
+import UpsertItemComboDrawer, { TCombo } from "@/components/Empresa/Itens/UpsertItemComboDrawer";
 
 // Garante um card por tamanho da categoria, mesmo que o tamanho nunca tenha
 // sido marcado como ativo (e por isso não tenha ItemPreco salvo no backend).
@@ -70,7 +72,7 @@ export default function Categoria() {
         cnpj: string;
     }>().props;
     const [itensPorCategoria, setItensPorCategoria] = useState<
-        Record<number, ItemNormal[] | ItemPizza[]>
+        Record<number, { itens: ItemNormal[] | ItemPizza[]; combos: ComboListagem[] }>
     >({});
     const [loadingCategoria, setLoadingCategoria] = useState<number | null>(
         null,
@@ -84,6 +86,7 @@ export default function Categoria() {
     ] = useState(false);
     const [handleDrawerUpsertCategoria, setHandleDrawerUpsertCategoria] = useState(false)
     const [handleDrawerUpsertItem, setHandleDrawerUpsertItem] = useState(false)
+    const [handleDrawerUpserItemCombo, setHandleDrawerUpserItemCombo] = useState<boolean>(false)
     const [handleDrawerUpsertComplemento, setHandleDrawerUpsertComplemento] = useState(false)
     const [handleDialogClonagemCategoria, setHandleDialogClonagemCategoria] = useState(false)
     const [handleDialogRemocaoCategoria, setHandleDialogRemocaoCategoria] = useState(false)
@@ -94,12 +97,15 @@ export default function Categoria() {
     const [loadingClonagemItem, setLoadingClonagemItem] = useState(false)
     const [loadingRemocaoItem, setLoadingRemocaoItem] = useState(false)
     const [isSubmiting, setIsSubmiting] = useState<boolean>(false)
+    const [isSubmitingCombo, setIsSubmitingCombo] = useState<boolean>(false)
     const [carregandoItem, setCarregandoItem] = useState<boolean>(false)
+    const [carregandoCombo, setCarregandoCombo] = useState<boolean>(false)
     const [categoriasState, setCategoriasState] = useState<ICategoria[]>();
     const [categoria, setCategoria] = useState<
         (Partial<CategoriaFormData> & { id: number }) | undefined
     >()
     const [item, setItem] = useState<(Partial<TItem> & {id?: number}) | undefined>()
+    const [combo, setCombo] = useState<(Partial<TCombo> & {id?: number}) | undefined>()
     const [grupoComplementoAtualizadoEm, setGrupoComplementoAtualizadoEm] = useState(0)
     const [itemParaClonar, setItemParaClonar] = useState<{ id: number; categoria_id: number; nome?: string } | undefined>()
     const [itemParaRemover, setItemParaRemover] = useState<{ id: number; categoria_id: number; nome?: string } | undefined>()
@@ -234,19 +240,33 @@ export default function Categoria() {
         setHandleDrawerUpsertItem(status)
     }
 
+    function abreCadastroItemCombo(categoria_id: number, status: boolean) {
+        setCombo({ categoria_id })
+        setHandleDrawerUpserItemCombo(status)
+    }
+
     async function abreEdicaoItem(item_id: number, categoria_id: number, status: boolean) {
         await consultaItem(categoria_id, item_id, () => setHandleDrawerUpsertItem(status))
     }
 
+    async function abreEdicaoItemCombo(combo_id: number, categoria_id: number, status: boolean) {
+        await consultaCombo(categoria_id, combo_id, () => setHandleDrawerUpserItemCombo(status))
+    }
+
+    function encontraNomeItemOuCombo(item_id: number, categoria_id: number): string | undefined {
+        const registro = itensPorCategoria[categoria_id]
+        const itemEncontrado = registro?.itens.find((i) => i.id === item_id) as ItemNormal | ItemPizza | undefined
+        const comboEncontrado = registro?.combos.find((c) => c.id === item_id)
+        return itemEncontrado?.nome ?? comboEncontrado?.nome
+    }
+
     function abreDialogConfirmacaoClonagemItem(item_id: number, categoria_id: number) {
-        const itemEncontrado = itensPorCategoria[categoria_id]?.find((i) => i.id === item_id)
-        setItemParaClonar({ id: item_id, categoria_id, nome: (itemEncontrado as ItemNormal | ItemPizza | undefined)?.nome })
+        setItemParaClonar({ id: item_id, categoria_id, nome: encontraNomeItemOuCombo(item_id, categoria_id) })
         setHandleDialogClonagemItem(true)
     }
 
     function abreDialogConfirmacaoRemocaoItem(item_id: number, categoria_id: number) {
-        const itemEncontrado = itensPorCategoria[categoria_id]?.find((i) => i.id === item_id)
-        setItemParaRemover({ id: item_id, categoria_id, nome: (itemEncontrado as ItemNormal | ItemPizza | undefined)?.nome })
+        setItemParaRemover({ id: item_id, categoria_id, nome: encontraNomeItemOuCombo(item_id, categoria_id) })
         setHandleDialogRemocaoItem(true)
     }
     // Funções CRUD categoria
@@ -419,6 +439,56 @@ export default function Categoria() {
             })
     }
 
+    async function consultaCombo(categoria_id: number, combo_id: number, aoConcluir?: () => void) {
+        setCarregandoCombo(true)
+        return axios.get(route('aplicacao.empresa.cardapios.categorias.combo.show', {cnpj, cardapio_id, categoria_id, combo_id}))
+            .then((response) => {
+                setCombo(response.data.combo)
+                setCarregandoCombo(false)
+                aoConcluir?.()
+            })
+            .catch((error) => {
+                toast.error(error.response?.data?.message ?? 'Erro ao tentar consultar os dados do combo, tente novamente.')
+                setCarregandoCombo(false)
+            })
+    }
+
+    async function cadastraCombo(combo: TCombo) {
+        setIsSubmitingCombo(true)
+        return axios.post(route('aplicacao.empresa.cardapios.categorias.combo.store', {cnpj, cardapio_id, categoria_id: combo.categoria_id}), combo)
+            .then(() => {
+                toast.success('Combo cadastrado com sucesso.')
+                if (combo.categoria_id) {
+                    carregarItensDaCategoria(combo.categoria_id)
+                }
+                router.reload({ only: ['categorias', 'categoriaStatus'] })
+                setHandleDrawerUpserItemCombo(false)
+            })
+            .catch((error) => {
+                toast.error(error.response?.data?.message ?? 'Erro inesperado, tente novamente.')
+                throw error
+            })
+            .finally(() => setIsSubmitingCombo(false))
+    }
+
+    async function editaCombo(combo: TCombo) {
+        setIsSubmitingCombo(true)
+        return axios.put(route('aplicacao.empresa.cardapios.categorias.combo.update', {cnpj, cardapio_id, categoria_id: combo.categoria_id, combo_id: combo.id}), combo)
+            .then((response) => {
+                toast.success(response.data.mensagem)
+                if (combo.categoria_id) {
+                    carregarItensDaCategoria(combo.categoria_id)
+                }
+                router.reload({ only: ['categorias', 'categoriaStatus'] })
+                setHandleDrawerUpserItemCombo(false)
+            })
+            .catch((error) => {
+                toast.error(error.response?.data?.message ?? 'Erro inesperado, tente novamente.')
+                throw error
+            })
+            .finally(() => setIsSubmitingCombo(false))
+    }
+
     async function editaItem(item: TItem) {
         setIsSubmiting(true)
         return axios.put(route('aplicacao.empresa.cardapios.categorias.item.update', {cnpj, cardapio_id, categoria_id: item.categoria_id, item_id: item.id}), item)
@@ -546,7 +616,12 @@ export default function Categoria() {
                                                     itens={
                                                         itensPorCategoria[
                                                             categoria.id
-                                                        ] ?? []
+                                                        ]?.itens ?? []
+                                                    }
+                                                    combos={
+                                                        itensPorCategoria[
+                                                            categoria.id
+                                                        ]?.combos ?? []
                                                     }
                                                     atualizacaoEmMassa={
                                                         undefined
@@ -563,7 +638,7 @@ export default function Categoria() {
                                                         loadingStatusCategoria === categoria.id
                                                     }
                                                     setStatusCategoria={alterarStatusCategoria}
-                                                    onCriarCombo={() => {}}
+                                                    onCriarCombo={abreCadastroItemCombo}
                                                     onCriarItem={abreCadastroItem}
                                                     onCategoriaDuplicar={abreDialogConfirmacaoClonagemCategoria}
                                                     onCategoriaEditar={abreEdicaoCategoria}
@@ -574,7 +649,8 @@ export default function Categoria() {
                                                     onItensRemover={abreDialogConfirmacaoRemocaoItem}
                                                     onItensAtualizaCodPdv={() => {}}
                                                     onItensAtualizaPreco={() => {}}
-                                                    isSubmiting={carregandoItem}
+                                                    onCombosEditar={abreEdicaoItemCombo}
+                                                    isSubmiting={carregandoItem || carregandoCombo}
                                                 />
                                             )}
                                         </CollapsibleContent>
@@ -617,6 +693,17 @@ export default function Categoria() {
                 isSubmiting={isSubmiting}
                 onOpenDrawerGrupoComplemento={setHandleDrawerUpsertComplemento}
                 grupoComplementoAtualizadoEm={grupoComplementoAtualizadoEm}
+            />
+            <UpsertItemComboDrawer
+                open={handleDrawerUpserItemCombo}
+                onOpenChange={setHandleDrawerUpserItemCombo}
+                combo={combo}
+                categorias={categorias}
+                onSubmit={(dados: TCombo) => !combo?.id
+                    ? cadastraCombo(dados)
+                    : editaCombo(dados)
+                }
+                isSubmiting={isSubmitingCombo}
             />
             <UpsertComplementoDrawer
                 open={handleDrawerUpsertComplemento}

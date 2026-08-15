@@ -6,6 +6,7 @@ use App\Http\Controllers\Empresa\CardapioDigital\CardapioController;
 use App\Http\Controllers\Empresa\CardapioDigital\FinalizarPedidoController;
 use App\Http\Controllers\Empresa\Cardapios\CardapioController as EmpresaCardapioController;
 use App\Http\Controllers\Empresa\Cardapios\Categorias\CategoriaController;
+use App\Http\Controllers\Empresa\Cardapios\Categorias\Itens\ComboController;
 use App\Http\Controllers\Empresa\Cardapios\Categorias\Itens\GrupoComplemento\GrupoComplementoController;
 use App\Http\Controllers\Empresa\Cardapios\Categorias\Itens\ItemController;
 use App\Http\Controllers\Empresa\Cashback\CashbackConfigController;
@@ -19,7 +20,6 @@ use App\Http\Controllers\Empresa\Promocoes\PromocaoController;
 use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-
 
 Route::get('/', [HomeController::class, 'index'])->name('aplicacao.home');
 
@@ -35,6 +35,7 @@ Route::prefix('autenticacao')->group(function () {
     Route::prefix('cliente')->group(function () {
         Route::get('logout', function () {
             Auth::logout();
+
             return to_route('aplicacao.home');
         });
         Route::post('consultaDadosCliente', [LoginClienteController::class, 'consultaDadosCliente'])->name('aplicacao.autenticacao.cliente.consultaDadosCliente');
@@ -120,6 +121,13 @@ Route::group([], function () {
                         Route::put('/{grupo_id}/complementos/{complemento_id}', [GrupoComplementoController::class, 'updateComplemento'])->name('aplicacao.empresa.cardapios.categorias.item.updateComplemento');
                         Route::delete('/{grupo_id}/complementos/{complemento_id}', [GrupoComplementoController::class, 'destroyComplemento'])->name('aplicacao.empresa.cardapios.categorias.item.destroyComplemento');
                     });
+                });
+                Route::prefix('{categoria_id}/combos')->group(function () {
+                    Route::post('/', [ComboController::class, 'store'])->name('aplicacao.empresa.cardapios.categorias.combo.store');
+                    Route::get('buscaItensParaCombo', [ComboController::class, 'buscaItensParaCombo'])->name('aplicacao.empresa.cardapios.categorias.combo.buscaItensParaCombo');
+                    Route::get('buscaGruposComplementoParaCombo', [ComboController::class, 'buscaGruposComplementoParaCombo'])->name('aplicacao.empresa.cardapios.categorias.combo.buscaGruposComplementoParaCombo');
+                    Route::get('/{combo_id}', [ComboController::class, 'show'])->name('aplicacao.empresa.cardapios.categorias.combo.show');
+                    Route::put('/{combo_id}', [ComboController::class, 'update'])->name('aplicacao.empresa.cardapios.categorias.combo.update');
                 });
             });
         });

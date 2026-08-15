@@ -5,7 +5,6 @@ import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader,
 import { Checkbox } from "@/components/ui/checkbox";
 import { Combobox, ComboboxChip, ComboboxChips, ComboboxChipsInput, ComboboxContent, ComboboxEmpty, ComboboxItem, ComboboxList, ComboboxValue, useComboboxAnchor } from "@/components/ui/combobox";
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
@@ -131,7 +130,7 @@ const RESTRICOES_BEBIDA: ClassificacaoOption[] = [
 
 // Remove uma imagem ainda não vinculada a um item salvo (best-effort: se
 // falhar aqui, a limpeza agendada no backend remove mais tarde).
-async function apagarImagemPendente(cnpj: string, cardapio_id: string, categoria_id: string, url: string) {
+export async function apagarImagemPendente(cnpj: string, cardapio_id: string, categoria_id: string, url: string) {
   await axios.delete(route('aplicacao.empresa.cardapios.categorias.item.destroy-imagem', {
     cnpj,
     cardapio_id,
@@ -148,12 +147,12 @@ type TBotoesSelecionarTipoItem = {
 
 // Constantes
 
-type TDiaSemana = {
+export type TDiaSemana = {
     label: string;
     value: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }
 
-const DIAS_SEMANA: TDiaSemana[] = [
+export const DIAS_SEMANA: TDiaSemana[] = [
     { label: 'Domingo', value: 0 },
     { label: 'Segunda-feira', value: 1 },
     { label: 'Terça-feira', value: 2 },

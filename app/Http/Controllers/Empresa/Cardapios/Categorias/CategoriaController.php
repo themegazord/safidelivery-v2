@@ -12,25 +12,25 @@ use App\Actions\Categorias\ToggleStatusCategoriaAction;
 use App\Actions\Categorias\UpdateCategoriaAction;
 use App\Actions\Itens\IndexItemPorCategoriaAction;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\CategoriaResource;
 use App\Http\Requests\Cardapios\Categorias\ReordenarCategoriaRequest;
 use App\Http\Requests\Cardapios\Categorias\StoreCategoriaRequest;
 use App\Http\Requests\Cardapios\Categorias\UpdateCategoriaRequest;
+use App\Http\Resources\CategoriaResource;
 use App\Models\Cardapio;
 use App\Models\Configuracao;
 use App\Models\Empresa;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Inertia\Inertia;
 
 class CategoriaController extends Controller
 {
     public Empresa $empresa;
-    public Cardapio $cardapio;
-    public bool $exportaDadosIfood;
 
+    public Cardapio $cardapio;
+
+    public bool $exportaDadosIfood;
 
     public function __construct(Request $request)
     {
@@ -42,10 +42,11 @@ class CategoriaController extends Controller
         // importados do iFood — um cardápio criado manualmente não existe lá.
         $this->exportaDadosIfood = (bool) $configuracaoExportaDadosIfood?->getAttribute('valor')
             && $this->cardapio?->getAttribute('tipo_importacao') === 'ifood';
-        if (!$this->cardapio) {
+        if (! $this->cardapio) {
             abort(404);
         }
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -53,6 +54,7 @@ class CategoriaController extends Controller
     {
         $categorias = $action->handle($this->cardapio);
         $categoriaStatus = $action->carregaCategoriaStatus($categorias);
+
         return Inertia::render('Empresa/Cardapios/Categorias/Categoria', [
             'categorias' => $categorias,
             'categoriaStatus' => $categoriaStatus,
@@ -60,11 +62,13 @@ class CategoriaController extends Controller
         ]);
     }
 
-    public function itensPorCategoria(string $cnpj, string $cardapio_id, string $categoria_id, IndexItemPorCategoriaAction $action): Collection {
+    public function itensPorCategoria(string $cnpj, string $cardapio_id, string $categoria_id, IndexItemPorCategoriaAction $action): array
+    {
         return $action->handle($this->cardapio, $categoria_id);
     }
 
-    public function reordenar(ReordenarCategoriaRequest $request, string $cnpj, string $cardapio_id, ReordenarCategoriaAction $action) {
+    public function reordenar(ReordenarCategoriaRequest $request, string $cnpj, string $cardapio_id, ReordenarCategoriaAction $action)
+    {
         $ordem = $request->validated()['ordem'];
         $action->handle($ordem);
     }
@@ -76,6 +80,7 @@ class CategoriaController extends Controller
     {
         $dados = $request->validated();
         $action->handle($dados, $this->cardapio, $this->exportaDadosIfood, $this->empresa);
+
         return redirect()->back();
     }
 
@@ -85,21 +90,25 @@ class CategoriaController extends Controller
     public function show(string $cnpj, string $cardapio_id, string $categoria_id, ShowCategoriaAction $action): JsonResponse
     {
         $categoria = $action->handle($this->cardapio->getAttribute('id'), $categoria_id);
+
         return response()->json(['categoria' => new CategoriaResource($categoria)]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateCategoriaRequest $request,string $cnpj, string $cardapio_id, string $categoria_id, UpdateCategoriaAction $action): JsonResponse
+    public function update(UpdateCategoriaRequest $request, string $cnpj, string $cardapio_id, string $categoria_id, UpdateCategoriaAction $action): JsonResponse
     {
         $dados = $request->validated();
         $action->handle($dados, $categoria_id, $cardapio_id);
+
         return response()->json(['message' => 'Categoria atualizada com sucesso.']);
     }
 
-    public function clone(string $cnpj, string $cardapio_id, string $categoria_id, CloneCategoriaAction $action): RedirectResponse {
+    public function clone(string $cnpj, string $cardapio_id, string $categoria_id, CloneCategoriaAction $action): RedirectResponse
+    {
         $action->handle($cardapio_id, $categoria_id);
+
         return redirect()->back();
     }
 
@@ -109,11 +118,14 @@ class CategoriaController extends Controller
     public function destroy(string $cnpj, string $cardapio_id, string $categoria_id, DestroyCategoriaAction $action): JsonResponse
     {
         $action->handle($categoria_id, $cardapio_id);
+
         return response()->json(['mensagem' => 'Categoria removida com sucesso.']);
     }
 
-    public function status(string $cnpj, string $cardapio_id, string $categoria_id, ToggleStatusCategoriaAction $action): JsonResponse {
+    public function status(string $cnpj, string $cardapio_id, string $categoria_id, ToggleStatusCategoriaAction $action): JsonResponse
+    {
         $status = $action->handle($this->cardapio->getAttribute('id'), $categoria_id);
-        return response()->json(['mensagem' => 'Categoria' . ($status ? ' inativada '  : ' ativada ') . 'com sucesso.']);
+
+        return response()->json(['mensagem' => 'Categoria'.($status ? ' inativada ' : ' ativada ').'com sucesso.']);
     }
 }
