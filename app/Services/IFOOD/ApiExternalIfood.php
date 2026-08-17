@@ -1154,7 +1154,7 @@ final class ApiExternalIfood
             ->flip();
 
         $precoCombo = $importar_preco ? ($item['price']['originalValue'] ?? $item['price']['value'] ?? 0) : 0;
-        $tipoPrecificacao = $precoCombo > 0 ? 'preco_combo' : 'preco_itens';
+        $tipoPrecificacao = $precoCombo > 0 ? 'preco_combo' : 'preco_item';
 
         $comboCriado = Combo::query()->create([
             'categoria_id' => $categoria->getAttribute('id'),
@@ -1414,7 +1414,7 @@ final class ApiExternalIfood
                             'COMBO_V2' => 'C',
                             default => 'I',
                         },
-                        'tipo_preco' => $isCombo ? 'preco_itens' : null,
+                        'tipo_preco' => $isCombo ? 'preco_item' : null,
                         'quantidade' => $item['quantity'],
                         'preco_unitario' => $item['unitPrice'],
                         'subtotal' => $item['totalPrice'],

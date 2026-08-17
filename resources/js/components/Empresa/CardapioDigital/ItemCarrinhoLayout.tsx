@@ -18,7 +18,7 @@ export default function ItemCarrinhoLayout({item, idx, children, lista}: IProps)
       <CardHeader>
             <CardTitle className="flex justify-between">
               <span>{item.categoria.nome}</span>
-              <span>R$ {"grupos" in item ? converteReal(item.preco_fixo) : "grupo_complemento" in item ? converteReal(item.preco_unitario) : ''}</span>
+              <span>R$ {"grupos" in item ? converteReal(item.total / item.quantidade) : "grupo_complemento" in item ? converteReal(item.preco_unitario) : ''}</span>
             </CardTitle>
             {"sabores" in item ? (
               <CardDescription>

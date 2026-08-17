@@ -12,6 +12,7 @@ class ComboPedidoResource extends JsonResource
     public function toArray(Request $request): array
     {
         $precoCombo = (float) ($this->meta?->preco_combo ?? $this->preco ?? 0);
+        $totalInicial = $this->tipo_preco === 'preco_combo' ? $precoCombo : 0.0;
 
         return [
             'id' => $this->id,
@@ -23,11 +24,11 @@ class ComboPedidoResource extends JsonResource
             'preco_fixo' => $precoCombo,
             'quantidade' => 1,
             'categoria' => $this->whenLoaded('categoria', fn () => $this->categoria->only(['id', 'nome'])),
-            'preco_unitario' => $this->tipo_preco === 'preco_combo' ? $precoCombo : 0.0,
+            'preco_unitario' => $totalInicial,
             'grupos' => ComboGrupoPedidoResource::collection($this->whenLoaded('grupos')),
             'grupos_complemento' => $this->whenLoaded('entradas', fn () => $this->formatGruposComplemento()),
             'observacao' => '',
-            'total' => $precoCombo,
+            'total' => $totalInicial,
         ];
     }
 

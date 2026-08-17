@@ -81,15 +81,14 @@ export default function ModalItemCombo({
                             <div className="hover:bg-background/20 flex items-center justify-between rounded-lg p-2" key={itensIdx}>
                                 <div>
                                     <p className="font-medium">{itens.nome}</p>
-                                    {item.tipo_preco === "preco_itens" &&
-                                        item.preco_unitario > 0 && (
-                                            <p className="text-primary text-sm font-bold">
-                                                R${" "}
-                                                {converteReal(
-                                                    itens.preco,
-                                                )}
-                                            </p>
-                                        )}
+                                    {item.tipo_preco === "preco_item" && (
+                                        <p className="text-primary text-sm font-bold">
+                                            R${" "}
+                                            {converteReal(
+                                                itens.preco,
+                                            )}
+                                        </p>
+                                    )}
                                 </div>
                                 <ButtonGroup className="max-w-1/2 md:max-w-2/7">
                                     <Button
@@ -172,14 +171,12 @@ export default function ModalItemCombo({
                                             <p className="font-medium">
                                                 {_complemento.nome}
                                             </p>
-                                            {item.preco_unitario > 0 && (
-                                                    <p className="text-primary text-sm font-bold">
-                                                        R${" "}
-                                                        {converteReal(
-                                                            _complemento.preco,
-                                                        )}
-                                                    </p>
+                                            <p className="text-primary text-sm font-bold">
+                                                R${" "}
+                                                {converteReal(
+                                                    _complemento.preco,
                                                 )}
+                                            </p>
                                         </div>
                                         <ButtonGroup className="max-w-1/2 md:max-w-2/7">
                                             <Button

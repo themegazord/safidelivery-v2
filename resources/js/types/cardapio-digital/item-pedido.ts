@@ -41,7 +41,7 @@ export interface IItemCombo {
     nome: string;
     descricao?: string;
     imagem?: string;
-    tipo_preco: "preco_combo" | "preco_itens";
+    tipo_preco: "preco_combo" | "preco_item";
     preco_fixo: number;
     quantidade: number;
     preco_unitario: number;

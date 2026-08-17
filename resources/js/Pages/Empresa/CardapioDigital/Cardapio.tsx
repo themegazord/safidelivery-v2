@@ -129,7 +129,7 @@ export default function Cardapio({
         if ("grupos" in item) {
             const precoBase = item.tipo_preco === "preco_combo" ? item.preco_fixo : 0;
 
-            const totalGrupos = item.tipo_preco === "preco_itens" ? item.grupos.reduce(
+            const totalGrupos = item.tipo_preco === "preco_item" ? item.grupos.reduce(
                 (acc, g) => acc + g.itens.reduce(
                     (soma, i) => soma + i.quantidade * Number(i.preco),
                     0,

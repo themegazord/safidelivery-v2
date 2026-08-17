@@ -86,7 +86,7 @@ export default function ItemCarrinho({item, idx, lista}: IProps) {
                     {grupo.itens.filter(itemGrupo => itemGrupo.quantidade > 0).map((itemGrupo, idx) => (
                       <div className="flex items-center justify-between gap-2" key={idx}>
                         <span className="min-w-0 truncate"><span className="opacity-60">{itemGrupo.quantidade}x</span> {itemGrupo.nome}</span>
-                        {itemGrupo.preco > 0 && item.tipo_preco === 'preco_itens' && (
+                        {itemGrupo.preco > 0 && item.tipo_preco === 'preco_item' && (
                           <span className="shrink-0 opacity-60">R$ {converteReal((itemGrupo.quantidade * itemGrupo.preco))}</span>
                         )}
                       </div>

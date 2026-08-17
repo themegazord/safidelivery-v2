@@ -113,7 +113,7 @@ export default function LayoutModalItem({
                             className="w-full cursor-pointer bg-green-50 text-green-700 hover:bg-green-50/20 md:w-auto dark:bg-green-950 dark:text-green-300 dark:hover:bg-green-950/20"
                         >
                             <ShoppingCart /> Adicionar R${" "}
-                            {converteReal(item && "grupos" in item ? item.preco_fixo : item?.total)}
+                            {converteReal(item?.total)}
                         </Button>
                     </div>
                 </DialogFooter>
