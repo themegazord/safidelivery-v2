@@ -13,7 +13,7 @@ class UpdateGrupoComplementoAction {
     use ValidaExternalIdUnico;
     public function handle(array $dados, Item $item, string $grupo_id): void {
         try {
-            $grupo = GrupoComplemento::query()
+            $grupo = GrupoComplemento::withTrashed()
                 ->where('item_id', $item->getAttribute('id'))
                 ->where('id', $grupo_id)
                 ->firstOrFail();

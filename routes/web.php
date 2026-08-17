@@ -9,6 +9,7 @@ use App\Http\Controllers\Empresa\Cardapios\Categorias\CategoriaController;
 use App\Http\Controllers\Empresa\Cardapios\Categorias\Itens\ComboController;
 use App\Http\Controllers\Empresa\Cardapios\Categorias\Itens\GrupoComplemento\GrupoComplementoController;
 use App\Http\Controllers\Empresa\Cardapios\Categorias\Itens\ItemController;
+use App\Http\Controllers\Empresa\Cardapios\ComplementoController;
 use App\Http\Controllers\Empresa\Cardapios\ProdutoController;
 use App\Http\Controllers\Empresa\Cashback\CashbackConfigController;
 use App\Http\Controllers\Empresa\ConfigEmpresa\ConfiguracoesController;
@@ -93,6 +94,7 @@ Route::group([], function () {
             Route::post('/importarIfood', [EmpresaCardapioController::class, 'importIfood'])->name('aplicacao.empresa.cardapios.import_ifood');
             Route::post('/importarAnotaai', [EmpresaCardapioController::class, 'importAnotaai'])->name('aplicacao.empresa.cardapios.import_anotaai');
             Route::get('/{cardapio_id}/produtos', [ProdutoController::class, 'index'])->name('aplicacao.empresa.cardapios.produtos.index');
+            Route::get('/{cardapio_id}/complementos', [ComplementoController::class, 'index'])->name('aplicacao.empresa.cardapios.complementos.index');
             Route::prefix('{cardapio_id}/categorias')->group(function () {
                 Route::get('/', [CategoriaController::class, 'index'])->name('aplicacao.empresa.cardapios.categorias.index');
                 Route::post('/', [CategoriaController::class, 'store'])->name('aplicacao.empresa.cardapios.categorias.store');
@@ -123,6 +125,7 @@ Route::group([], function () {
                         Route::get('buscaGruposComplementoParaCopia', [GrupoComplementoController::class, 'buscaGruposComplementoParaCopia'])->name('aplicacao.empresa.cardapios.categorias.item.buscaGruposComplementoParaCopia');
                         Route::put('/{grupo_id}', [GrupoComplementoController::class, 'update'])->name('aplicacao.empresa.cardapios.categorias.item.updateGrupoComplemento');
                         Route::delete('/{grupo_id}', [GrupoComplementoController::class, 'destroy'])->name('aplicacao.empresa.cardapios.categorias.item.destroyGrupoComplemento');
+                        Route::patch('/{grupo_id}/status', [GrupoComplementoController::class, 'status'])->name('aplicacao.empresa.cardapios.categorias.item.statusGrupoComplemento');
                         Route::put('/{grupo_id}/complementos/{complemento_id}', [GrupoComplementoController::class, 'updateComplemento'])->name('aplicacao.empresa.cardapios.categorias.item.updateComplemento');
                         Route::delete('/{grupo_id}/complementos/{complemento_id}', [GrupoComplementoController::class, 'destroyComplemento'])->name('aplicacao.empresa.cardapios.categorias.item.destroyComplemento');
                     });

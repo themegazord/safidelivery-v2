@@ -64,6 +64,18 @@ export interface IProduto {
   categoria_nome: string | null,
 }
 
+export interface IGrupoComplementoListagem {
+  id: number,
+  nome: string,
+  obrigatoriedade: boolean,
+  qtd_minima: number,
+  qtd_maxima: number,
+  trashed: boolean,
+  item_id: number,
+  item_nome: string | null,
+  categoria_id: number,
+}
+
 export interface IPaginacao<T> {
   data: T[],
   current_page: number,

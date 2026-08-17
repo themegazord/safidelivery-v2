@@ -9,6 +9,7 @@ use App\Actions\GrupoComplementos\BuscaGruposComplementoParaCopiaAction;
 use App\Actions\GrupoComplementos\DestroyComplementoAction;
 use App\Actions\GrupoComplementos\DestroyGrupoComplementoAction;
 use App\Actions\GrupoComplementos\StoreGrupoComplementoAction;
+use App\Actions\GrupoComplementos\ToggleStatusGrupoComplementoAction;
 use App\Actions\GrupoComplementos\UpdateComplementoAction;
 use App\Actions\GrupoComplementos\UpdateGrupoComplementoAction;
 use App\Http\Controllers\Controller;
@@ -90,6 +91,12 @@ class GrupoComplementoController extends Controller
     {
         $action->handle($this->item, $grupo_id);
         return response()->json(['mensagem' => 'Grupo de complemento removido com sucesso']);
+    }
+
+    public function status(string $cnpj, string $cardapio_id, string $categoria_id, string $item_id, string $grupo_id, ToggleStatusGrupoComplementoAction $action): JsonResponse
+    {
+        $status = $action->handle($this->item, $grupo_id);
+        return response()->json(['mensagem' => 'Grupo de complemento ' . ($status ? 'inativado' : 'ativado') . ' com sucesso', 'trashed' => $status]);
     }
 
     public function updateComplemento(UpdateComplementoRequest $request, string $cnpj, string $cardapio_id, string $categoria_id, string $item_id, string $grupo_id, string $complemento_id, UpdateComplementoAction $action): JsonResponse

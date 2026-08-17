@@ -2,6 +2,8 @@ import ConfirmarClonagemCategoriaDialog from "@/components/Empresa/Categorias/Co
 import ConfirmarRemocaoCategoriaDialog from "@/components/Empresa/Categorias/ConfirmarRemocaoCategoriaDialog";
 import ConfirmarClonagemItemDialog from "@/components/Empresa/Itens/ConfirmarClonagemItemDialog";
 import ConfirmarRemocaoItemDialog from "@/components/Empresa/Itens/ConfirmarRemocaoItemDialog";
+import ConfirmarRemocaoGrupoComplementoDialog from "@/components/Empresa/Itens/GrupoComplementos/ConfirmarRemocaoGrupoComplementoDialog";
+import EditarGrupoComplementoDialog from "@/components/Empresa/Itens/GrupoComplementos/EditarGrupoComplementoDialog";
 import GerenciarOrdenacaoDialog from "@/components/Empresa/Categorias/GerenciarOrdenacaoDialog";
 import ItensCategoriaTable, {
     AtualizacaoEmMassa,
@@ -10,6 +12,7 @@ import ItensCategoriaTable, {
     ItemPizza,
 } from "@/components/Empresa/Categorias/ItensCategoriaTable";
 import ItensCategoriaTableSkeleton from "@/components/Empresa/Categorias/ItensCategoriaTableSkeleton";
+import ComplementosCardapioTable from "@/components/Empresa/Cardapios/ComplementosCardapioTable";
 import ProdutosCardapioTable, { IFiltrosProdutos } from "@/components/Empresa/Cardapios/ProdutosCardapioTable";
 import UpsertCategoriaDrawer, { CategoriaFormData } from "@/components/Empresa/Categorias/UpsertCategoriaDrawer";
 import UpsertItemDrawer, { TItem } from "@/components/Empresa/Itens/UpsertItemDrawer";
@@ -37,7 +40,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LayoutAutenticado from "@/Layouts/LayoutsAutenticado";
-import { ICategoria, ICategoriaStatus, ICategoriaTamanho, IPaginacao, IProduto } from "@/types/empresa/cardapios/types";
+import { ICategoria, ICategoriaStatus, ICategoriaTamanho, IGrupoComplementoListagem, IPaginacao, IProduto } from "@/types/empresa/cardapios/types";
 import { router, usePage } from "@inertiajs/react";
 import axios from "axios";
 import { ArrowUpDown, ChevronDown, Plus } from "lucide-react";
@@ -115,6 +118,13 @@ export default function Categoria() {
     const [produtos, setProdutos] = useState<IPaginacao<IProduto> | null>(null)
     const [loadingProdutos, setLoadingProdutos] = useState<boolean>(false)
     const [filtrosProdutos, setFiltrosProdutos] = useState<IFiltrosProdutos>({ status: "", ordenacao: "asc", nome: "" })
+    const [grupos, setGrupos] = useState<IPaginacao<IGrupoComplementoListagem> | null>(null)
+    const [loadingGrupos, setLoadingGrupos] = useState<boolean>(false)
+    const [nomeGrupos, setNomeGrupos] = useState<string>("")
+    const [grupoEditando, setGrupoEditando] = useState<IGrupoComplementoListagem | undefined>()
+    const [salvandoGrupoComplemento, setSalvandoGrupoComplemento] = useState<boolean>(false)
+    const [grupoParaRemover, setGrupoParaRemover] = useState<IGrupoComplementoListagem | undefined>()
+    const [removendoGrupoComplemento, setRemovendoGrupoComplemento] = useState<boolean>(false)
     const TABS_INFO = [
         { value: "categorias", label: "Categorias" },
         { value: "produtos", label: "Produtos" },
@@ -210,6 +220,9 @@ export default function Categoria() {
         if (value === "produtos" && produtos === null) {
             carregarProdutos();
         }
+        if (value === "complementos" && grupos === null) {
+            carregarGrupos();
+        }
     }
 
     function filtrarProdutos(novosFiltros: Partial<IFiltrosProdutos>) {
@@ -252,6 +265,79 @@ export default function Categoria() {
             .catch((error) => {
                 toast.error(error.response?.data?.message ?? "Erro ao atualizar a imagem, tente novamente.");
             });
+    }
+
+    async function carregarGrupos(nome: string = nomeGrupos, page: number = 1) {
+        setLoadingGrupos(true);
+        await axios
+            .get(route("aplicacao.empresa.cardapios.complementos.index", { cnpj, cardapio_id }), {
+                params: { nome, page },
+            })
+            .then((response) => setGrupos(response.data))
+            .catch((error) =>
+                toast.error(error.response?.data?.message ?? "Erro ao carregar os grupos de complementos"),
+            )
+            .finally(() => setLoadingGrupos(false));
+    }
+
+    function filtrarGrupos(nome: string) {
+        setNomeGrupos(nome);
+        carregarGrupos(nome, 1);
+    }
+
+    function mudarPaginaGrupos(page: number) {
+        carregarGrupos(nomeGrupos, page);
+    }
+
+    async function alterarStatusGrupoComplemento(grupo: IGrupoComplementoListagem) {
+        await axios
+            .patch(route("aplicacao.empresa.cardapios.categorias.item.statusGrupoComplemento", { cnpj, cardapio_id, categoria_id: grupo.categoria_id, item_id: grupo.item_id, grupo_id: grupo.id }))
+            .then((response) => {
+                toast.success(response.data.mensagem);
+                const trashed: boolean = response.data.trashed;
+                setGrupos((prev) => prev ? {
+                    ...prev,
+                    data: prev.data.map((g) => g.id === grupo.id ? { ...g, trashed } : g),
+                } : prev);
+            })
+            .catch((error) => {
+                toast.error(error.response?.data?.message ?? "Erro inesperado, tente novamente.");
+            });
+    }
+
+    async function editarGrupoComplemento(dados: { nome: string; obrigatoriedade: boolean; qtd_minima: number; qtd_maxima: number }) {
+        if (!grupoEditando) return;
+        setSalvandoGrupoComplemento(true);
+        await axios
+            .put(route("aplicacao.empresa.cardapios.categorias.item.updateGrupoComplemento", { cnpj, cardapio_id, categoria_id: grupoEditando.categoria_id, item_id: grupoEditando.item_id, grupo_id: grupoEditando.id }), dados)
+            .then((response) => {
+                toast.success(response.data.mensagem);
+                setGrupos((prev) => prev ? {
+                    ...prev,
+                    data: prev.data.map((g) => g.id === grupoEditando.id ? { ...g, ...dados } : g),
+                } : prev);
+                setGrupoEditando(undefined);
+            })
+            .catch((error) => {
+                toast.error(error.response?.data?.message ?? "Erro inesperado, tente novamente.");
+            })
+            .finally(() => setSalvandoGrupoComplemento(false));
+    }
+
+    async function removerGrupoComplemento() {
+        if (!grupoParaRemover) return;
+        setRemovendoGrupoComplemento(true);
+        await axios
+            .delete(route("aplicacao.empresa.cardapios.categorias.item.destroyGrupoComplemento", { cnpj, cardapio_id, categoria_id: grupoParaRemover.categoria_id, item_id: grupoParaRemover.item_id, grupo_id: grupoParaRemover.id }))
+            .then((response) => {
+                toast.success(response.data.mensagem);
+                setGrupoParaRemover(undefined);
+                carregarGrupos();
+            })
+            .catch((error) => {
+                toast.error(error.response?.data?.message ?? "Erro inesperado, tente novamente.");
+            })
+            .finally(() => setRemovendoGrupoComplemento(false));
     }
 
     async function ordernarCategorias(categoriasOrdenadas: ICategoria[]) {
@@ -849,7 +935,18 @@ export default function Categoria() {
                                 onTrocarImagem={atualizaImagemProduto}
                             />
                         </TabsContent>
-                        <TabsContent value="complementos"></TabsContent>
+                        <TabsContent value="complementos">
+                            <ComplementosCardapioTable
+                                grupos={grupos}
+                                loading={loadingGrupos}
+                                nome={nomeGrupos}
+                                onFiltrar={filtrarGrupos}
+                                onMudarPagina={mudarPaginaGrupos}
+                                onAlterarStatus={alterarStatusGrupoComplemento}
+                                onEditar={setGrupoEditando}
+                                onRemover={setGrupoParaRemover}
+                            />
+                        </TabsContent>
                     </Tabs>
                 </CardContent>
             </Card>
@@ -929,6 +1026,20 @@ export default function Categoria() {
                 item={itemParaRemover}
                 loading={loadingRemocaoItem}
                 onSubmit={removerItem}
+            />
+            <EditarGrupoComplementoDialog
+                open={grupoEditando !== undefined}
+                onOpenChange={(value) => { if (!value) setGrupoEditando(undefined) }}
+                grupo={grupoEditando}
+                onSubmit={editarGrupoComplemento}
+                loading={salvandoGrupoComplemento}
+            />
+            <ConfirmarRemocaoGrupoComplementoDialog
+                open={grupoParaRemover !== undefined}
+                onOpenChange={(value) => { if (!value) setGrupoParaRemover(undefined) }}
+                grupo={grupoParaRemover}
+                onSubmit={removerGrupoComplemento}
+                loading={removendoGrupoComplemento}
             />
         </LayoutAutenticado>
     );
