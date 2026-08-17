@@ -203,6 +203,19 @@ export default function CarrinhoProvider({
         }
     }
 
+    function removeItemCarrinho(item?: IItemPedido | IItemPizza | IItemCombo) {
+        if (!item) return;
+
+        setCarrinho((prev) => prev.filter((i) => i !== item));
+    }
+
+    function atualizaItemCarrinho(
+        idx: number,
+        item: IItemPedido | IItemPizza | IItemCombo,
+    ) {
+        setCarrinho((prev) => prev.map((i, iIdx) => (iIdx === idx ? item : i)));
+    }
+
     function calculaTotal(frete: number | null, desconto: number | null) {
         setTotal(subtotal + (frete ?? 0) - (desconto ?? 0))
     }
@@ -221,8 +234,9 @@ export default function CarrinhoProvider({
                 tipo_funcionamento: tipo_funcionamento,
                 adicionaItemCarrinho: adicionaItemCarrinho,
                 calculaTotal: calculaTotal,
-                removeItemCarrinho: () => {},
+                removeItemCarrinho: removeItemCarrinho,
                 diminuiItemCarrinho: () => {},
+                atualizaItemCarrinho: atualizaItemCarrinho,
                 limparCarrinho: limparCarrinho,
             }}
         >

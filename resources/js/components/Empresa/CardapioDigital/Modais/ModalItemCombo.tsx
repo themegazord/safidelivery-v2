@@ -29,6 +29,7 @@ interface IProps {
     adicionaItemCarrinho: () => void;
     gruposComplementosInvalidos: number[];
     grupoItensInvalidos: number[];
+    emEdicao?: boolean;
 }
 
 export default function ModalItemCombo({
@@ -38,6 +39,7 @@ export default function ModalItemCombo({
     adicionaQtde,
     diminuiQtde,
     adicionaObservacao,
+    emEdicao,
     adicionaItemCarrinho,
     gruposComplementosInvalidos,
     grupoItensInvalidos,
@@ -51,6 +53,7 @@ export default function ModalItemCombo({
             adicionaQtde={adicionaQtde}
             diminuiQtde={diminuiQtde}
             item={item}
+            emEdicao={emEdicao}
         >
             {item?.grupos.map((grupo, grupoIdx) => (
                 <Card key={grupoIdx} className={cn('m-4', grupoItensInvalidos.includes(grupo.id)

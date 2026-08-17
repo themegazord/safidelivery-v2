@@ -35,6 +35,7 @@ import { H4, H5, H6 } from "@/components/utils/Heading";
 import { cn } from "@/lib/utils";
 import { IItemPizza, TManipulaPedidoItem } from "@/types/cardapio-digital/item-pedido";
 import {
+    Check,
     Clock3,
     InfoIcon,
     Minus,
@@ -60,6 +61,7 @@ interface IProps {
     defineMassaSelecionada: (value: string) => void;
     defineBordaSelecionada: (value: string) => void;
     pendenciasDeItens: { massa: boolean; borda: boolean; sabores: boolean };
+    emEdicao?: boolean;
 }
 
 export default function ModalItensPizza({
@@ -73,6 +75,7 @@ export default function ModalItensPizza({
     defineMassaSelecionada,
     defineBordaSelecionada,
     pendenciasDeItens,
+    emEdicao,
 }: IProps) {
     return (
         <Dialog open={open} onOpenChange={() => setOpen(null)}>
@@ -501,7 +504,8 @@ export default function ModalItensPizza({
                             size={"lg"}
                             className="w-full cursor-pointer bg-green-50 text-green-700 hover:bg-green-50/20 md:w-auto dark:bg-green-950 dark:text-green-300 dark:hover:bg-green-950/20"
                         >
-                            <ShoppingCart /> Adicionar R${" "}
+                            {emEdicao ? <Check /> : <ShoppingCart />}{" "}
+                            {emEdicao ? "Salvar alterações" : "Adicionar"} R${" "}
                             {converteReal(item?.total)}
                         </Button>
                     </div>

@@ -16,7 +16,7 @@ import {
     TManipulaPedidoItem,
 } from "@/types/cardapio-digital/item-pedido";
 import { converteReal } from "@/utils/utils";
-import { Minus, Plus, ShoppingCart } from "lucide-react";
+import { Check, Minus, Plus, ShoppingCart } from "lucide-react";
 import { ReactNode } from "react";
 
 interface IProps {
@@ -28,6 +28,7 @@ interface IProps {
     diminuiQtde: TManipulaPedidoItem;
     adicionaObservacao: (observacao: string) => void;
     adicionaItemCarrinho: () => void;
+    emEdicao?: boolean;
 }
 
 export default function LayoutModalItem({
@@ -39,6 +40,7 @@ export default function LayoutModalItem({
     diminuiQtde,
     adicionaObservacao,
     adicionaItemCarrinho,
+    emEdicao,
 }: IProps) {
     return (
         <Dialog open={open} onOpenChange={() => setOpen(null)}>
@@ -112,7 +114,8 @@ export default function LayoutModalItem({
                             size={"lg"}
                             className="w-full cursor-pointer bg-green-50 text-green-700 hover:bg-green-50/20 md:w-auto dark:bg-green-950 dark:text-green-300 dark:hover:bg-green-950/20"
                         >
-                            <ShoppingCart /> Adicionar R${" "}
+                            {emEdicao ? <Check /> : <ShoppingCart />}{" "}
+                            {emEdicao ? "Salvar alterações" : "Adicionar"} R${" "}
                             {converteReal(item?.total)}
                         </Button>
                     </div>

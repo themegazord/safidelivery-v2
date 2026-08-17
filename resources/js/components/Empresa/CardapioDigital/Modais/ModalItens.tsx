@@ -29,6 +29,7 @@ interface IProps {
     adicionaObservacao: (observacao: string) => void;
     adicionaItemCarrinho: () => void;
     gruposComplementosInvalidos: number[];
+    emEdicao?: boolean;
 }
 
 export default function ModalItens({
@@ -40,6 +41,7 @@ export default function ModalItens({
     adicionaObservacao,
     adicionaItemCarrinho,
     gruposComplementosInvalidos,
+    emEdicao,
 }: IProps) {
     return (
         <LayoutModalItem
@@ -50,6 +52,7 @@ export default function ModalItens({
             adicionaQtde={adicionaQtde}
             diminuiQtde={diminuiQtde}
             item={item}
+            emEdicao={emEdicao}
         >
             <div className="mb-4">
                 {Boolean(item?.desconto) ? (

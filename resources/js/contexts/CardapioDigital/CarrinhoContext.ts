@@ -12,6 +12,7 @@ interface ICarrinhoContext {
     adicionaItemCarrinho: TFuncoesManipulaItensCarrinho;
     removeItemCarrinho: TFuncoesManipulaItensCarrinho;
     diminuiItemCarrinho: TFuncoesManipulaItensCarrinho;
+    atualizaItemCarrinho: (idx: number, item: IItemPedido | IItemPizza | IItemCombo) => void;
     limparCarrinho: () => void;
 }
 
@@ -24,5 +25,6 @@ export const CarrinhoContext = createContext<ICarrinhoContext>({
     adicionaItemCarrinho: () => {},
     removeItemCarrinho: () => {},
     diminuiItemCarrinho: () => {},
+    atualizaItemCarrinho: () => {},
     limparCarrinho: () => {},
 });

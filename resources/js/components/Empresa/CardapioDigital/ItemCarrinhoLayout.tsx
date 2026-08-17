@@ -1,9 +1,11 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { CarrinhoContext } from "@/contexts/CardapioDigital/CarrinhoContext"
+import { PedidoModalContext } from "@/contexts/CardapioDigital/PedidoModalContext"
 import { IItemCombo, IItemPedido, IItemPizza } from "@/types/cardapio-digital/item-pedido"
 import { converteReal } from "@/utils/utils"
 import { Edit, Trash } from "lucide-react"
-import { ReactNode } from "react"
+import { ReactNode, useContext } from "react"
 
 interface IProps {
   item: IItemPedido | IItemCombo | IItemPizza,
@@ -13,6 +15,9 @@ interface IProps {
 }
 
 export default function ItemCarrinhoLayout({item, idx, children, lista}: IProps) {
+  const { removeItemCarrinho } = useContext(CarrinhoContext);
+  const { abrirEdicaoItem } = useContext(PedidoModalContext);
+
   return (
     <Card>
       <CardHeader>
@@ -33,10 +38,17 @@ export default function ItemCarrinhoLayout({item, idx, children, lista}: IProps)
               {children}
               {!lista && (
                 <div className="flex gap-2">
-                  <Button className="flex-1 cursor-pointer bg-sky-100 text-sky-700 hover:bg-sky-200 hover:text-sky-800 dark:bg-sky-500/15 dark:text-sky-300 dark:hover:bg-sky-500/25 dark:hover:text-sky-200">
+                  <Button
+                    className="flex-1 cursor-pointer bg-sky-100 text-sky-700 hover:bg-sky-200 hover:text-sky-800 dark:bg-sky-500/15 dark:text-sky-300 dark:hover:bg-sky-500/25 dark:hover:text-sky-200"
+                    onClick={() => abrirEdicaoItem(item, idx)}
+                  >
                     {<Edit />}{" "}Editar
                   </Button>
-                  <Button variant="destructive" className="flex-1 cursor-pointer">
+                  <Button
+                    variant="destructive"
+                    className="flex-1 cursor-pointer"
+                    onClick={() => removeItemCarrinho(item)}
+                  >
                     {<Trash />}{" "}Remover
                   </Button>
                 </div> 
