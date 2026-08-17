@@ -34,7 +34,7 @@ export default function CarrinhoProvider({
     }, [carrinho]);
 
     const subtotal = useMemo(() => {
-        return carrinho.reduce((acc, item) => acc + (item.quantidade * item.total), 0)
+        return carrinho.reduce((acc, item) => acc + item.total, 0)
     }, [carrinho])
 
     const [total, setTotal] = useState(0);
