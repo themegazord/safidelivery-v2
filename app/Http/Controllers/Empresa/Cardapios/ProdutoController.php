@@ -30,6 +30,7 @@ class ProdutoController extends Controller
             'id' => $item->getAttribute('id'),
             'nome' => $item->getAttribute('nome'),
             'tipo' => $item->getAttribute('tipo'),
+            'imagem' => $item->getAttribute('imagem'),
             'trashed' => $item->trashed(),
             'categoria_id' => $item->getAttribute('categoria_id'),
             'categoria_nome' => $item->categoria?->getAttribute('nome'),

@@ -58,6 +58,7 @@ export interface IProduto {
   id: number,
   nome: string,
   tipo: 'PRE' | 'BEB' | 'IND' | 'PIZ' | 'CON',
+  imagem: string | null,
   trashed: boolean,
   categoria_id: number,
   categoria_nome: string | null,

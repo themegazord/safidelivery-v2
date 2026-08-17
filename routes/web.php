@@ -113,6 +113,7 @@ Route::group([], function () {
                     Route::patch('/{item_id}/status', [ItemController::class, 'status'])->name('aplicacao.empresa.cardapios.categorias.item.status');
                     Route::patch('/{item_id}/codpdv', [ItemController::class, 'updateCodPdv'])->name('aplicacao.empresa.cardapios.categorias.item.updateCodPdv');
                     Route::patch('/{item_id}/preco', [ItemController::class, 'updatePreco'])->name('aplicacao.empresa.cardapios.categorias.item.updatePreco');
+                    Route::patch('/{item_id}/imagem', [ItemController::class, 'updateImagem'])->name('aplicacao.empresa.cardapios.categorias.item.updateImagem');
                     Route::delete('/{item_id}', [ItemController::class, 'destroy'])->name('aplicacao.empresa.cardapios.categorias.item.destroy');
                     Route::prefix('{item_id}/grupo_complementos')->group(function () {
                         Route::post('/', [GrupoComplementoController::class, 'store'])->name('aplicacao.empresa.cardapios.categorias.item.storeGrupoComplemento');

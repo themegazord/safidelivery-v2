@@ -232,6 +232,28 @@ export default function Categoria() {
         setHandleDialogRemocaoItem(true);
     }
 
+    async function atualizaImagemProduto(produto_id: number, categoria_id: number, arquivo: File) {
+        const formData = new FormData();
+        formData.append("imagem", arquivo);
+        await axios
+            .post(route("aplicacao.empresa.cardapios.categorias.item.store-imagem", { cnpj, cardapio_id, categoria_id }), formData)
+            .then(async (response) => {
+                const url = response.data.url;
+                await axios
+                    .patch(route("aplicacao.empresa.cardapios.categorias.item.updateImagem", { cnpj, cardapio_id, categoria_id, item_id: produto_id }), { imagem: url })
+                    .then((response) => {
+                        toast.success(response.data.mensagem);
+                        setProdutos((prev) => prev ? {
+                            ...prev,
+                            data: prev.data.map((p) => p.id === produto_id ? { ...p, imagem: url } : p),
+                        } : prev);
+                    });
+            })
+            .catch((error) => {
+                toast.error(error.response?.data?.message ?? "Erro ao atualizar a imagem, tente novamente.");
+            });
+    }
+
     async function ordernarCategorias(categoriasOrdenadas: ICategoria[]) {
         setCategoriasState(categoriasOrdenadas);
         await axios
@@ -824,6 +846,7 @@ export default function Categoria() {
                                 onAdicionarItem={abreCadastroItemProdutos}
                                 onAlterarStatus={alterarStatusItem}
                                 onRemover={abreDialogConfirmacaoRemocaoProduto}
+                                onTrocarImagem={atualizaImagemProduto}
                             />
                         </TabsContent>
                         <TabsContent value="complementos"></TabsContent>

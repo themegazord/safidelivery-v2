@@ -42,6 +42,7 @@ interface IProps {
     onAdicionarItem: () => void;
     onAlterarStatus: (itemId: number, categoriaId: number) => void;
     onRemover: (produto: { id: number; categoria_id: number; nome: string }) => void;
+    onTrocarImagem: (itemId: number, categoriaId: number, arquivo: File) => Promise<void>;
 }
 
 const TAG_POR_TIPO: Record<string, string> = {
@@ -96,6 +97,54 @@ function BotaoAcaoComTooltip({
     );
 }
 
+function CelulaImagemProduto({
+    imagem,
+    onTrocarImagem,
+}: {
+    imagem: string | null;
+    onTrocarImagem: (arquivo: File) => Promise<void>;
+}) {
+    const inputRef = useRef<HTMLInputElement>(null);
+    const [enviando, setEnviando] = useState(false);
+
+    async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const arquivo = e.target.files?.[0];
+        e.target.value = "";
+        if (!arquivo) return;
+        setEnviando(true);
+        await onTrocarImagem(arquivo).finally(() => setEnviando(false));
+    }
+
+    return (
+        <>
+            <button
+                type="button"
+                className="flex items-center justify-center overflow-hidden rounded-md border border-input bg-muted"
+                style={{ width: 60, height: 48 }}
+                onClick={() => inputRef.current?.click()}
+                disabled={enviando}
+            >
+                {enviando ? (
+                    <Spinner className="h-4 w-4" />
+                ) : (
+                    <img
+                        src={imagem ?? "https://placehold.co/60x48"}
+                        alt=""
+                        className="h-full w-full object-cover"
+                    />
+                )}
+            </button>
+            <input
+                ref={inputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileChange}
+            />
+        </>
+    );
+}
+
 export default function ProdutosCardapioTable({
     produtos,
     loading,
@@ -105,6 +154,7 @@ export default function ProdutosCardapioTable({
     onAdicionarItem,
     onAlterarStatus,
     onRemover,
+    onTrocarImagem,
 }: IProps) {
     const [busca, setBusca] = useState(filtros.nome);
     const primeiraRenderizacao = useRef(true);
@@ -171,6 +221,7 @@ export default function ProdutosCardapioTable({
             <Table>
                 <TableHeader>
                     <TableRow>
+                        <TableHead>Imagem</TableHead>
                         <TableHead>Nome</TableHead>
                         <TableHead>Classificação</TableHead>
                         <TableHead>Disponível em</TableHead>
@@ -180,19 +231,25 @@ export default function ProdutosCardapioTable({
                 <TableBody>
                     {loading ? (
                         <TableRow>
-                            <TableCell colSpan={4} className="py-10 text-center">
+                            <TableCell colSpan={5} className="py-10 text-center">
                                 <Spinner className="mx-auto h-4 w-4" />
                             </TableCell>
                         </TableRow>
                     ) : (produtos?.data.length ?? 0) === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={4} className="py-10 text-center text-muted-foreground">
+                            <TableCell colSpan={5} className="py-10 text-center text-muted-foreground">
                                 Nenhum item cadastrado neste cardápio.
                             </TableCell>
                         </TableRow>
                     ) : (
                         produtos!.data.map((produto) => (
                             <TableRow key={produto.id}>
+                                <TableCell>
+                                    <CelulaImagemProduto
+                                        imagem={produto.imagem}
+                                        onTrocarImagem={(arquivo) => onTrocarImagem(produto.id, produto.categoria_id, arquivo)}
+                                    />
+                                </TableCell>
                                 <TableCell className="font-medium">{produto.nome}</TableCell>
                                 <TableCell>
                                     <Badge variant="secondary">
