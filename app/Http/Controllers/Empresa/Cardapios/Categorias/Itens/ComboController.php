@@ -59,10 +59,10 @@ class ComboController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateComboRequest $request, string $cnpj, string $cardapio_id, string $categoria_id, string $combo_id, UpdateComboAction $action): JsonResponse
+    public function update(UpdateComboRequest $request, string $cnpj, string $cardapio_id, string $categoria_id, string $combo_id, UpdateComboAction $action, StoreComboAction $storeComboAction): JsonResponse
     {
         $dados = $request->validated();
-        $action->handle($dados, $this->cardapio, $this->categoria->getAttribute('id'), (int) $combo_id);
+        $action->handle($dados, $this->cardapio, $this->categoria->getAttribute('id'), (int) $combo_id, $storeComboAction);
 
         return response()->json(['mensagem' => 'Combo editado com sucesso']);
     }
