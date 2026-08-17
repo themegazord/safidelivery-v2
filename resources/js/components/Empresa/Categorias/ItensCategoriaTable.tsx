@@ -92,8 +92,8 @@ interface ItensCategoriaTableProps {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function formatarMoeda(valor: number) {
-    return valor.toLocaleString("pt-BR", {
+function formatarMoeda(valor: number | string) {
+    return Number(valor).toLocaleString("pt-BR", {
         style: "currency",
         currency: "BRL",
     });
@@ -496,7 +496,7 @@ function TabelaCombos({
                             </TableCell>
                             <TableCell>
                                 {combo.tipo_preco === "preco_combo" && combo.preco_combo !== null ? (
-                                    <p>{formatarMoeda(Number(combo.preco_combo))}</p>
+                                    <p>{formatarMoeda(combo.preco_combo)}</p>
                                 ) : (
                                     <p className="text-xs text-muted-foreground">Soma dos itens</p>
                                 )}
