@@ -8,9 +8,11 @@ use App\Actions\Itens\ShowComboAction;
 use App\Actions\Itens\StoreComboAction;
 use App\Actions\Itens\UpdateComboAction;
 use App\Actions\Itens\UpdateComboCodPdvAction;
+use App\Actions\Itens\UpdateComboPrecoAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Cardapios\Categorias\Itens\StoreComboRequest;
 use App\Http\Requests\Cardapios\Categorias\Itens\UpdateComboCodPdvRequest;
+use App\Http\Requests\Cardapios\Categorias\Itens\UpdateComboPrecoRequest;
 use App\Http\Requests\Cardapios\Categorias\Itens\UpdateComboRequest;
 use App\Http\Resources\ComboResource;
 use App\Models\Cardapio;
@@ -72,6 +74,13 @@ class ComboController extends Controller
         $action->handle($request->validated('external_id'), (int) $combo_id, $this->categoria->getAttribute('id'), $this->cardapio->getAttribute('id'));
 
         return response()->json(['mensagem' => 'Código PDV atualizado com sucesso']);
+    }
+
+    public function updatePreco(UpdateComboPrecoRequest $request, string $cnpj, string $cardapio_id, string $categoria_id, string $combo_id, UpdateComboPrecoAction $action): JsonResponse
+    {
+        $action->handle((float) $request->validated('valor'), (int) $combo_id, $this->categoria->getAttribute('id'));
+
+        return response()->json(['mensagem' => 'Preço atualizado com sucesso']);
     }
 
     public function buscaItensParaCombo(Request $request, string $cnpj, string $cardapio_id, string $categoria_id, BuscaItensParaComboAction $action): JsonResponse

@@ -85,6 +85,7 @@ interface ItensCategoriaTableProps {
     onItensAtualizaPreco: (itemId: number, categoriaId: number, valor: string) => void;
     onCombosEditar: (comboId: number, categoriaId: number, status: boolean) => void;
     onCombosAtualizaCodPdv: (comboId: number, categoriaId: number, valor: string) => void;
+    onCombosAtualizaPreco: (comboId: number, categoriaId: number, valor: string) => void;
     isSubmiting?: boolean;
 }
 
@@ -451,12 +452,42 @@ function TabelaItensNormais({
 // Tabela de combos
 // ---------------------------------------------------------------------------
 
+function CelulaPrecoCombo({
+    combo,
+    editando,
+    onCombosAtualizaPreco,
+}: {
+    combo: ComboListagem;
+    editando: boolean;
+    onCombosAtualizaPreco: (comboId: number, valor: string) => void;
+}) {
+    if (combo.tipo_preco !== "preco_combo") {
+        return <p className="text-xs text-muted-foreground">Soma dos itens</p>;
+    }
+
+    if (!editando) {
+        return combo.preco_combo !== null ? (
+            <p>{formatarMoeda(combo.preco_combo)}</p>
+        ) : (
+            <p className="text-xs text-muted-foreground">Sem preço definido</p>
+        );
+    }
+
+    return (
+        <Input
+            defaultValue={combo.preco_combo ?? ""}
+            onBlur={(e) => onCombosAtualizaPreco(combo.id, e.target.value)}
+        />
+    );
+}
+
 function TabelaCombos({
     combos,
     categoriaId,
     atualizacaoEmMassa,
     onCombosEditar,
     onCombosAtualizaCodPdv,
+    onCombosAtualizaPreco,
     onItensAlterarStatus,
     onItensDuplicar,
     onItensRemover,
@@ -467,6 +498,7 @@ function TabelaCombos({
     atualizacaoEmMassa: AtualizacaoEmMassa;
     onCombosEditar: ItensCategoriaTableProps["onCombosEditar"];
     onCombosAtualizaCodPdv: ItensCategoriaTableProps["onCombosAtualizaCodPdv"];
+    onCombosAtualizaPreco: ItensCategoriaTableProps["onCombosAtualizaPreco"];
     onItensAlterarStatus: ItensCategoriaTableProps["onItensAlterarStatus"];
     onItensDuplicar: ItensCategoriaTableProps["onItensDuplicar"];
     onItensRemover: ItensCategoriaTableProps["onItensRemover"];
@@ -495,11 +527,11 @@ function TabelaCombos({
                                 </div>
                             </TableCell>
                             <TableCell>
-                                {combo.tipo_preco === "preco_combo" && combo.preco_combo !== null ? (
-                                    <p>{formatarMoeda(combo.preco_combo)}</p>
-                                ) : (
-                                    <p className="text-xs text-muted-foreground">Soma dos itens</p>
-                                )}
+                                <CelulaPrecoCombo
+                                    combo={combo}
+                                    editando={atualizacaoEmMassa === "precos"}
+                                    onCombosAtualizaPreco={(comboId, valor) => onCombosAtualizaPreco(comboId, categoriaId, valor)}
+                                />
                             </TableCell>
                             <TableCell>
                                 <CelulaCodPdv
@@ -555,6 +587,7 @@ export function ItensCategoriaTable({
     onItensAtualizaPreco,
     onCombosEditar,
     onCombosAtualizaCodPdv,
+    onCombosAtualizaPreco,
     isSubmiting,
 }: ItensCategoriaTableProps) {
     return (
@@ -593,6 +626,7 @@ export function ItensCategoriaTable({
                     atualizacaoEmMassa={atualizacaoEmMassa}
                     onCombosEditar={onCombosEditar}
                     onCombosAtualizaCodPdv={onCombosAtualizaCodPdv}
+                    onCombosAtualizaPreco={onCombosAtualizaPreco}
                     onItensAlterarStatus={onItensAlterarStatus}
                     onItensDuplicar={onItensDuplicar}
                     onItensRemover={onItensRemover}

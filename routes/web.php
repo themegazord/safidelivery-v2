@@ -131,6 +131,7 @@ Route::group([], function () {
                     Route::get('/{combo_id}', [ComboController::class, 'show'])->name('aplicacao.empresa.cardapios.categorias.combo.show');
                     Route::put('/{combo_id}', [ComboController::class, 'update'])->name('aplicacao.empresa.cardapios.categorias.combo.update');
                     Route::patch('/{combo_id}/codpdv', [ComboController::class, 'updateCodPdv'])->name('aplicacao.empresa.cardapios.categorias.combo.updateCodPdv');
+                    Route::patch('/{combo_id}/preco', [ComboController::class, 'updatePreco'])->name('aplicacao.empresa.cardapios.categorias.combo.updatePreco');
                 });
             });
         });

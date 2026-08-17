@@ -581,6 +581,27 @@ export default function Categoria() {
             })
     }
 
+    async function atualizaPrecoCombo(combo_id: number, categoria_id: number, valor: string) {
+        await axios.patch(route('aplicacao.empresa.cardapios.categorias.combo.updatePreco', {cnpj, cardapio_id, categoria_id, combo_id}), { valor })
+            .then((response) => {
+                toast.success(response.data.mensagem)
+                setItensPorCategoria((prev) => {
+                    const registro = prev[categoria_id]
+                    if (!registro) return prev
+                    return {
+                        ...prev,
+                        [categoria_id]: {
+                            ...registro,
+                            combos: registro.combos.map((c) => c.id === combo_id ? { ...c, preco_combo: Number(valor) } : c),
+                        },
+                    }
+                })
+            })
+            .catch((error) => {
+                toast.error(error.response?.data?.message ?? 'Erro ao atualizar o preço, tente novamente.')
+            })
+    }
+
     return (
         <LayoutAutenticado>
             <Card>
@@ -725,6 +746,7 @@ export default function Categoria() {
                                                     onItensAtualizaPreco={atualizaPrecoItem}
                                                     onCombosEditar={abreEdicaoItemCombo}
                                                     onCombosAtualizaCodPdv={atualizaCodPdvCombo}
+                                                    onCombosAtualizaPreco={atualizaPrecoCombo}
                                                     isSubmiting={carregandoItem || carregandoCombo}
                                                 />
                                             )}
