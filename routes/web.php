@@ -109,6 +109,8 @@ Route::group([], function () {
                     Route::put('/{item_id}', [ItemController::class, 'update'])->name('aplicacao.empresa.cardapios.categorias.item.update');
                     Route::post('/{item_id}', [ItemController::class, 'clone'])->name('aplicacao.empresa.cardapios.categorias.item.clone');
                     Route::patch('/{item_id}/status', [ItemController::class, 'status'])->name('aplicacao.empresa.cardapios.categorias.item.status');
+                    Route::patch('/{item_id}/codpdv', [ItemController::class, 'updateCodPdv'])->name('aplicacao.empresa.cardapios.categorias.item.updateCodPdv');
+                    Route::patch('/{item_id}/preco', [ItemController::class, 'updatePreco'])->name('aplicacao.empresa.cardapios.categorias.item.updatePreco');
                     Route::delete('/{item_id}', [ItemController::class, 'destroy'])->name('aplicacao.empresa.cardapios.categorias.item.destroy');
                     Route::prefix('{item_id}/grupo_complementos')->group(function () {
                         Route::post('/', [GrupoComplementoController::class, 'store'])->name('aplicacao.empresa.cardapios.categorias.item.storeGrupoComplemento');
@@ -128,6 +130,7 @@ Route::group([], function () {
                     Route::get('buscaGruposComplementoParaCombo', [ComboController::class, 'buscaGruposComplementoParaCombo'])->name('aplicacao.empresa.cardapios.categorias.combo.buscaGruposComplementoParaCombo');
                     Route::get('/{combo_id}', [ComboController::class, 'show'])->name('aplicacao.empresa.cardapios.categorias.combo.show');
                     Route::put('/{combo_id}', [ComboController::class, 'update'])->name('aplicacao.empresa.cardapios.categorias.combo.update');
+                    Route::patch('/{combo_id}/codpdv', [ComboController::class, 'updateCodPdv'])->name('aplicacao.empresa.cardapios.categorias.combo.updateCodPdv');
                 });
             });
         });

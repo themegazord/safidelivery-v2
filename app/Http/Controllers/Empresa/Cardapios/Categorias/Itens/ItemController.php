@@ -10,10 +10,14 @@ use App\Actions\Itens\StoreImagemItemAction;
 use App\Actions\Itens\StoreItemAction;
 use App\Actions\Itens\ToggleStatusItemAction;
 use App\Actions\Itens\UpdateItemAction;
+use App\Actions\Itens\UpdateItemCodPdvAction;
+use App\Actions\Itens\UpdateItemPrecoAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Cardapios\Categorias\Itens\DestroyImagemItemRequest;
 use App\Http\Requests\Cardapios\Categorias\Itens\StoreImagemItemRequest;
 use App\Http\Requests\Cardapios\Categorias\Itens\StoreItemRequest;
+use App\Http\Requests\Cardapios\Categorias\Itens\UpdateItemCodPdvRequest;
+use App\Http\Requests\Cardapios\Categorias\Itens\UpdateItemPrecoRequest;
 use App\Http\Requests\Cardapios\Categorias\Itens\UpdateItemRequest;
 use App\Http\Resources\ItemResource;
 use App\Models\Cardapio;
@@ -96,6 +100,18 @@ class ItemController extends Controller
         $dados = $request->validated();
         $action->handle($dados, $this->cardapio->getAttribute('id'), $this->categoria, $this->exportaDadosIfood, $this->empresa, $item_id);
         return response()->json(['mensagem' => 'Item editado com sucesso']);
+    }
+
+    public function updateCodPdv(UpdateItemCodPdvRequest $request, string $cnpj, string $cardapio_id, string $categoria_id, string $item_id, UpdateItemCodPdvAction $action): JsonResponse
+    {
+        $action->handle($request->validated('external_id'), (int) $item_id, $this->categoria->getAttribute('id'), $this->cardapio->getAttribute('id'));
+        return response()->json(['mensagem' => 'Código PDV atualizado com sucesso']);
+    }
+
+    public function updatePreco(UpdateItemPrecoRequest $request, string $cnpj, string $cardapio_id, string $categoria_id, string $item_id, UpdateItemPrecoAction $action): JsonResponse
+    {
+        $action->handle((float) $request->validated('valor'), (int) $item_id, $this->categoria->getAttribute('id'));
+        return response()->json(['mensagem' => 'Preço atualizado com sucesso']);
     }
 
     public function clone(string $cnpj, string $cardapio_id, string $categoria_id, string $item_id, CloneItemAction $action) {

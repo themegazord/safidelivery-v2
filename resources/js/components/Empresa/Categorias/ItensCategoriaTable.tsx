@@ -81,9 +81,10 @@ interface ItensCategoriaTableProps {
     onItensDuplicar: (itemId: number, categoriaId: number) => void;
     onItensEditar: (itemId: number, categoriaId: number, status: boolean) => void;
     onItensRemover: (itemId: number, categoriaId: number) => void;
-    onItensAtualizaCodPdv: (itemId: number, valor: string) => void;
-    onItensAtualizaPreco: (itemId: number, valor: string) => void;
+    onItensAtualizaCodPdv: (itemId: number, categoriaId: number, valor: string) => void;
+    onItensAtualizaPreco: (itemId: number, categoriaId: number, valor: string) => void;
     onCombosEditar: (comboId: number, categoriaId: number, status: boolean) => void;
+    onCombosAtualizaCodPdv: (comboId: number, categoriaId: number, valor: string) => void;
     isSubmiting?: boolean;
 }
 
@@ -289,7 +290,7 @@ function TabelaPizzas({
                                     <p className="text-xs text-muted-foreground">
                                         A partir de
                                     </p>
-                                    <strong>R$ {formatarMoeda(linha.menorValor)}</strong>
+                                    <strong>{formatarMoeda(linha.menorValor)}</strong>
                                 </div>
                             </TableCell>
                             <TableCell>
@@ -297,7 +298,7 @@ function TabelaPizzas({
                                     itemId={linha.id}
                                     codpdv={linha.codpdv}
                                     editando={atualizacaoEmMassa === "codpdv"}
-                                    onItensAtualizaCodPdv={onItensAtualizaCodPdv}
+                                    onItensAtualizaCodPdv={(itemId, valor) => onItensAtualizaCodPdv(itemId, categoriaId, valor)}
                                 />
                             </TableCell>
                             <TableCell className="text-right">
@@ -336,12 +337,12 @@ function CelulaPreco({
 
     if (!editando) {
         if (!temDesconto) {
-            return <p>R$ {formatarMoeda(item.preco)}</p>;
+            return <p>{formatarMoeda(item.preco)}</p>;
         }
         return (
             <div className="flex gap-4">
                 <p className="italic line-through">
-                    R$ {formatarMoeda(item.preco)}
+                    {formatarMoeda(item.preco)}
                 </p>
                 <p>{formatarMoeda(item.valor_desconto ?? 0)}</p>
             </div>
@@ -360,7 +361,7 @@ function CelulaPreco({
     return (
         <div className="flex items-center gap-2">
             <span className="italic line-through text-muted-foreground">
-                R$ {formatarMoeda(item.preco)}
+                {formatarMoeda(item.preco)}
             </span>
             <Input
                 defaultValue={item.valor_desconto}
@@ -383,11 +384,11 @@ function TabelaItensNormais({
     isSubmiting,
 }: ItensTabelaComunsProps & {
     itens: ItemNormal[];
-    onItensAtualizaPreco: ItensCategoriaTableProps["onItensAtualizaPreco"];
+    onItensAtualizaPreco: (itemId: number, categoriaId: number, valor: string) => void;
 }) {
     return (
         <div className="flex flex-col gap-2">
-            <Table>
+            <Table className="table-fixed">
                 <TableHeader>
                     <TableRow>
                         <TableHead className="max-w-xs">Item</TableHead>
@@ -416,7 +417,7 @@ function TabelaItensNormais({
                                 <CelulaPreco
                                     item={item}
                                     editando={atualizacaoEmMassa === "precos"}
-                                    onItensAtualizaPreco={onItensAtualizaPreco}
+                                    onItensAtualizaPreco={(itemId, valor) => onItensAtualizaPreco(itemId, categoriaId, valor)}
                                 />
                             </TableCell>
                             <TableCell>
@@ -424,7 +425,7 @@ function TabelaItensNormais({
                                     itemId={item.id}
                                     codpdv={item.external_id}
                                     editando={atualizacaoEmMassa === "codpdv"}
-                                    onItensAtualizaCodPdv={onItensAtualizaCodPdv}
+                                    onItensAtualizaCodPdv={(itemId, valor) => onItensAtualizaCodPdv(itemId, categoriaId, valor)}
                                 />
                             </TableCell>
                             <TableCell className="text-right">
@@ -453,7 +454,9 @@ function TabelaItensNormais({
 function TabelaCombos({
     combos,
     categoriaId,
+    atualizacaoEmMassa,
     onCombosEditar,
+    onCombosAtualizaCodPdv,
     onItensAlterarStatus,
     onItensDuplicar,
     onItensRemover,
@@ -461,7 +464,9 @@ function TabelaCombos({
 }: {
     combos: ComboListagem[];
     categoriaId: number;
+    atualizacaoEmMassa: AtualizacaoEmMassa;
     onCombosEditar: ItensCategoriaTableProps["onCombosEditar"];
+    onCombosAtualizaCodPdv: ItensCategoriaTableProps["onCombosAtualizaCodPdv"];
     onItensAlterarStatus: ItensCategoriaTableProps["onItensAlterarStatus"];
     onItensDuplicar: ItensCategoriaTableProps["onItensDuplicar"];
     onItensRemover: ItensCategoriaTableProps["onItensRemover"];
@@ -469,11 +474,12 @@ function TabelaCombos({
 }) {
     return (
         <div className="flex flex-col gap-2">
-            <Table>
+            <Table className="table-fixed">
                 <TableHeader>
                     <TableRow>
                         <TableHead className="max-w-xs">Combo</TableHead>
                         <TableHead className="w-64">Preço</TableHead>
+                        <TableHead className="w-64">Cód. PDV</TableHead>
                         <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -490,10 +496,18 @@ function TabelaCombos({
                             </TableCell>
                             <TableCell>
                                 {combo.tipo_preco === "preco_combo" && combo.preco_combo !== null ? (
-                                    <p>R$ {formatarMoeda(combo.preco_combo)}</p>
+                                    <p>{formatarMoeda(Number(combo.preco_combo))}</p>
                                 ) : (
                                     <p className="text-xs text-muted-foreground">Soma dos itens</p>
                                 )}
+                            </TableCell>
+                            <TableCell>
+                                <CelulaCodPdv
+                                    itemId={combo.id}
+                                    codpdv={combo.external_id}
+                                    editando={atualizacaoEmMassa === "codpdv"}
+                                    onItensAtualizaCodPdv={(comboId, valor) => onCombosAtualizaCodPdv(comboId, categoriaId, valor)}
+                                />
                             </TableCell>
                             <TableCell className="text-right">
                                 <AcoesItem
@@ -540,6 +554,7 @@ export function ItensCategoriaTable({
     onItensAtualizaCodPdv,
     onItensAtualizaPreco,
     onCombosEditar,
+    onCombosAtualizaCodPdv,
     isSubmiting,
 }: ItensCategoriaTableProps) {
     return (
@@ -575,7 +590,9 @@ export function ItensCategoriaTable({
                 <TabelaCombos
                     combos={combos}
                     categoriaId={categoriaId}
+                    atualizacaoEmMassa={atualizacaoEmMassa}
                     onCombosEditar={onCombosEditar}
+                    onCombosAtualizaCodPdv={onCombosAtualizaCodPdv}
                     onItensAlterarStatus={onItensAlterarStatus}
                     onItensDuplicar={onItensDuplicar}
                     onItensRemover={onItensRemover}

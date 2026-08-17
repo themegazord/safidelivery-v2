@@ -4,6 +4,7 @@ import ConfirmarClonagemItemDialog from "@/components/Empresa/Itens/ConfirmarClo
 import ConfirmarRemocaoItemDialog from "@/components/Empresa/Itens/ConfirmarRemocaoItemDialog";
 import GerenciarOrdenacaoDialog from "@/components/Empresa/Categorias/GerenciarOrdenacaoDialog";
 import ItensCategoriaTable, {
+    AtualizacaoEmMassa,
     ComboListagem,
     ItemNormal,
     ItemPizza,
@@ -109,6 +110,7 @@ export default function Categoria() {
     const [grupoComplementoAtualizadoEm, setGrupoComplementoAtualizadoEm] = useState(0)
     const [itemParaClonar, setItemParaClonar] = useState<{ id: number; categoria_id: number; nome?: string } | undefined>()
     const [itemParaRemover, setItemParaRemover] = useState<{ id: number; categoria_id: number; nome?: string } | undefined>()
+    const [atualizacaoEmMassa, setAtualizacaoEmMassa] = useState<AtualizacaoEmMassa>(null)
     const TABS_INFO = [
         { value: "categorias", label: "Categorias" },
         { value: "produtos", label: "Produtos" },
@@ -128,16 +130,20 @@ export default function Categoria() {
             type: "button",
         },
         {
-            label: "Att. em massa",
+            label: atualizacaoEmMassa === "codpdv"
+                ? "Att. em massa: Cód. PDV"
+                : atualizacaoEmMassa === "precos"
+                    ? "Att. em massa: Preços"
+                    : "Att. em massa",
             icon: <ChevronDown />,
             action: () => {},
             type: "dropdown-menu",
         },
     ] as const;
     const ATT_MASSA_OPTIONS = [
-        { label: "Padrão", action: () => {} },
-        { label: "Preços", action: () => {} },
-        { label: "Cód. PDV", action: () => {} },
+        { label: "Padrão", action: () => setAtualizacaoEmMassa(null) },
+        { label: "Preços", action: () => setAtualizacaoEmMassa("precos") },
+        { label: "Cód. PDV", action: () => setAtualizacaoEmMassa("codpdv") },
     ] as const;
     const QTD_SABORES = [
         { id: 1, nome: 1 },
@@ -507,6 +513,74 @@ export default function Categoria() {
             .finally(() => setIsSubmiting(false))
     }
 
+    async function atualizaCodPdvItem(item_id: number, categoria_id: number, valor: string) {
+        await axios.patch(route('aplicacao.empresa.cardapios.categorias.item.updateCodPdv', {cnpj, cardapio_id, categoria_id, item_id}), { external_id: valor || null })
+            .then((response) => {
+                toast.success(response.data.mensagem)
+                setItensPorCategoria((prev) => {
+                    const registro = prev[categoria_id]
+                    if (!registro) return prev
+                    return {
+                        ...prev,
+                        [categoria_id]: {
+                            ...registro,
+                            itens: registro.itens.map((i) => i.id === item_id ? { ...i, external_id: valor || null } : i) as ItemNormal[] | ItemPizza[],
+                        },
+                    }
+                })
+            })
+            .catch((error) => {
+                toast.error(error.response?.data?.message ?? 'Erro ao atualizar o código PDV, tente novamente.')
+            })
+    }
+
+    async function atualizaPrecoItem(item_id: number, categoria_id: number, valor: string) {
+        await axios.patch(route('aplicacao.empresa.cardapios.categorias.item.updatePreco', {cnpj, cardapio_id, categoria_id, item_id}), { valor })
+            .then((response) => {
+                toast.success(response.data.mensagem)
+                setItensPorCategoria((prev) => {
+                    const registro = prev[categoria_id]
+                    if (!registro) return prev
+                    return {
+                        ...prev,
+                        [categoria_id]: {
+                            ...registro,
+                            itens: registro.itens.map((i) => {
+                                if (i.id !== item_id) return i
+                                const item = i as ItemNormal
+                                const campo = item.desconto ? 'valor_desconto' : 'preco'
+                                return { ...item, [campo]: Number(valor) }
+                            }) as ItemNormal[] | ItemPizza[],
+                        },
+                    }
+                })
+            })
+            .catch((error) => {
+                toast.error(error.response?.data?.message ?? 'Erro ao atualizar o preço, tente novamente.')
+            })
+    }
+
+    async function atualizaCodPdvCombo(combo_id: number, categoria_id: number, valor: string) {
+        await axios.patch(route('aplicacao.empresa.cardapios.categorias.combo.updateCodPdv', {cnpj, cardapio_id, categoria_id, combo_id}), { external_id: valor || null })
+            .then((response) => {
+                toast.success(response.data.mensagem)
+                setItensPorCategoria((prev) => {
+                    const registro = prev[categoria_id]
+                    if (!registro) return prev
+                    return {
+                        ...prev,
+                        [categoria_id]: {
+                            ...registro,
+                            combos: registro.combos.map((c) => c.id === combo_id ? { ...c, external_id: valor || null } : c),
+                        },
+                    }
+                })
+            })
+            .catch((error) => {
+                toast.error(error.response?.data?.message ?? 'Erro ao atualizar o código PDV, tente novamente.')
+            })
+    }
+
     return (
         <LayoutAutenticado>
             <Card>
@@ -624,7 +698,7 @@ export default function Categoria() {
                                                         ]?.combos ?? []
                                                     }
                                                     atualizacaoEmMassa={
-                                                        undefined
+                                                        atualizacaoEmMassa
                                                     }
                                                     categoriasStatus={
                                                         categoriaStatus
@@ -647,9 +721,10 @@ export default function Categoria() {
                                                     onItensDuplicar={abreDialogConfirmacaoClonagemItem}
                                                     onItensEditar={abreEdicaoItem}
                                                     onItensRemover={abreDialogConfirmacaoRemocaoItem}
-                                                    onItensAtualizaCodPdv={() => {}}
-                                                    onItensAtualizaPreco={() => {}}
+                                                    onItensAtualizaCodPdv={atualizaCodPdvItem}
+                                                    onItensAtualizaPreco={atualizaPrecoItem}
                                                     onCombosEditar={abreEdicaoItemCombo}
+                                                    onCombosAtualizaCodPdv={atualizaCodPdvCombo}
                                                     isSubmiting={carregandoItem || carregandoCombo}
                                                 />
                                             )}
