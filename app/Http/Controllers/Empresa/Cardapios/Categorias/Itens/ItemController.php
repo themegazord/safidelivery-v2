@@ -121,7 +121,7 @@ class ItemController extends Controller
 
     public function status(string $cnpj, string $cardapio_id, string $categoria_id, string $item_id, ToggleStatusItemAction $action) {
         $status = $action->handle($item_id, $this->categoria->getAttribute('id'), $this->exportaDadosIfood, $this->empresa);
-        return response()->json(['mensagem' => 'Item ' . ($status ? 'inativado' : 'ativado') . ' com sucesso']);
+        return response()->json(['mensagem' => 'Item ' . ($status ? 'inativado' : 'ativado') . ' com sucesso', 'trashed' => $status]);
     }
 
     /**

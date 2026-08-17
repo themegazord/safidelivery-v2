@@ -10,6 +10,7 @@ import ItensCategoriaTable, {
     ItemPizza,
 } from "@/components/Empresa/Categorias/ItensCategoriaTable";
 import ItensCategoriaTableSkeleton from "@/components/Empresa/Categorias/ItensCategoriaTableSkeleton";
+import ProdutosCardapioTable, { IFiltrosProdutos } from "@/components/Empresa/Cardapios/ProdutosCardapioTable";
 import UpsertCategoriaDrawer, { CategoriaFormData } from "@/components/Empresa/Categorias/UpsertCategoriaDrawer";
 import UpsertItemDrawer, { TItem } from "@/components/Empresa/Itens/UpsertItemDrawer";
 import { Badge } from "@/components/ui/badge";
@@ -36,7 +37,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LayoutAutenticado from "@/Layouts/LayoutsAutenticado";
-import { ICategoria, ICategoriaStatus, ICategoriaTamanho } from "@/types/empresa/cardapios/types";
+import { ICategoria, ICategoriaStatus, ICategoriaTamanho, IPaginacao, IProduto } from "@/types/empresa/cardapios/types";
 import { router, usePage } from "@inertiajs/react";
 import axios from "axios";
 import { ArrowUpDown, ChevronDown, Plus } from "lucide-react";
@@ -111,6 +112,9 @@ export default function Categoria() {
     const [itemParaClonar, setItemParaClonar] = useState<{ id: number; categoria_id: number; nome?: string } | undefined>()
     const [itemParaRemover, setItemParaRemover] = useState<{ id: number; categoria_id: number; nome?: string } | undefined>()
     const [atualizacaoEmMassa, setAtualizacaoEmMassa] = useState<AtualizacaoEmMassa>(null)
+    const [produtos, setProdutos] = useState<IPaginacao<IProduto> | null>(null)
+    const [loadingProdutos, setLoadingProdutos] = useState<boolean>(false)
+    const [filtrosProdutos, setFiltrosProdutos] = useState<IFiltrosProdutos>({ status: "", ordenacao: "asc", nome: "" })
     const TABS_INFO = [
         { value: "categorias", label: "Categorias" },
         { value: "produtos", label: "Produtos" },
@@ -188,6 +192,45 @@ export default function Categoria() {
             await carregarItensDaCategoria(categoriaId);
         }
     };
+
+    async function carregarProdutos(filtros: IFiltrosProdutos = filtrosProdutos, page: number = 1) {
+        setLoadingProdutos(true);
+        await axios
+            .get(route("aplicacao.empresa.cardapios.produtos.index", { cnpj, cardapio_id }), {
+                params: { ...filtros, page },
+            })
+            .then((response) => setProdutos(response.data))
+            .catch((error) =>
+                toast.error(error.response?.data?.message ?? "Erro ao carregar os produtos do cardápio"),
+            )
+            .finally(() => setLoadingProdutos(false));
+    }
+
+    function handleTabChange(value: string) {
+        if (value === "produtos" && produtos === null) {
+            carregarProdutos();
+        }
+    }
+
+    function filtrarProdutos(novosFiltros: Partial<IFiltrosProdutos>) {
+        const filtrosAtualizados = { ...filtrosProdutos, ...novosFiltros };
+        setFiltrosProdutos(filtrosAtualizados);
+        carregarProdutos(filtrosAtualizados, 1);
+    }
+
+    function mudarPaginaProdutos(page: number) {
+        carregarProdutos(filtrosProdutos, page);
+    }
+
+    function abreCadastroItemProdutos() {
+        setItem({ categoria_tipo: "I" });
+        setHandleDrawerUpsertItem(true);
+    }
+
+    function abreDialogConfirmacaoRemocaoProduto(produto: { id: number; categoria_id: number; nome: string }) {
+        setItemParaRemover(produto);
+        setHandleDialogRemocaoItem(true);
+    }
 
     async function ordernarCategorias(categoriasOrdenadas: ICategoria[]) {
         setCategoriasState(categoriasOrdenadas);
@@ -340,8 +383,22 @@ export default function Categoria() {
         await axios.patch(route('aplicacao.empresa.cardapios.categorias.item.status', {cnpj, cardapio_id, categoria_id, item_id}))
             .then((response) => {
                 toast.success(response.data.mensagem)
-                carregarItensDaCategoria(categoria_id)
-                router.reload({ only: ['categorias', 'categoriaStatus'] })
+                const trashed: boolean = response.data.trashed
+                setItensPorCategoria((prev) => {
+                    const registro = prev[categoria_id]
+                    if (!registro) return prev
+                    return {
+                        ...prev,
+                        [categoria_id]: {
+                            itens: registro.itens.map((i) => i.id === item_id ? { ...i, trashed } : i) as ItemNormal[] | ItemPizza[],
+                            combos: registro.combos.map((c) => c.id === item_id ? { ...c, trashed } : c),
+                        },
+                    }
+                })
+                setProdutos((prev) => prev ? {
+                    ...prev,
+                    data: prev.data.map((p) => p.id === item_id ? { ...p, trashed } : p),
+                } : prev)
             })
             .catch((error) => {
                 toast.error(error.response?.data?.message ?? 'Erro inesperado, tente novamente.')
@@ -356,6 +413,7 @@ export default function Categoria() {
                 toast.success(response.data.mensagem ?? 'Item removido com sucesso')
                 setHandleDialogRemocaoItem(false)
                 carregarItensDaCategoria(itemParaRemover.categoria_id)
+                if (produtos) carregarProdutos()
                 router.reload({ only: ['categorias', 'categoriaStatus'] })
             })
             .catch((error) => {
@@ -415,6 +473,7 @@ export default function Categoria() {
                 if (item.categoria_id) {
                     carregarItensDaCategoria(item.categoria_id)
                 }
+                if (produtos) carregarProdutos()
                 router.reload({ only: ['categorias', 'categoriaStatus'] })
                 setHandleDrawerUpsertItem(false)
             })
@@ -615,7 +674,7 @@ export default function Categoria() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col">
-                    <Tabs defaultValue="categorias">
+                    <Tabs defaultValue="categorias" onValueChange={handleTabChange}>
                         <TabsList>
                             {TABS_INFO.map((ti) => (
                                 <TabsTrigger value={ti.value} key={ti.value}>
@@ -755,7 +814,18 @@ export default function Categoria() {
                                 ))}
                             </div>
                         </TabsContent>
-                        <TabsContent value="produtos"></TabsContent>
+                        <TabsContent value="produtos">
+                            <ProdutosCardapioTable
+                                produtos={produtos}
+                                loading={loadingProdutos}
+                                filtros={filtrosProdutos}
+                                onFiltrar={filtrarProdutos}
+                                onMudarPagina={mudarPaginaProdutos}
+                                onAdicionarItem={abreCadastroItemProdutos}
+                                onAlterarStatus={alterarStatusItem}
+                                onRemover={abreDialogConfirmacaoRemocaoProduto}
+                            />
+                        </TabsContent>
                         <TabsContent value="complementos"></TabsContent>
                     </Tabs>
                 </CardContent>

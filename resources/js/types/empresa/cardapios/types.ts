@@ -53,3 +53,21 @@ export interface ICategoriaStatus {
   id: number,
   inativo: boolean,
 }
+
+export interface IProduto {
+  id: number,
+  nome: string,
+  tipo: 'PRE' | 'BEB' | 'IND' | 'PIZ' | 'CON',
+  trashed: boolean,
+  categoria_id: number,
+  categoria_nome: string | null,
+}
+
+export interface IPaginacao<T> {
+  data: T[],
+  current_page: number,
+  last_page: number,
+  per_page: number,
+  total: number,
+  links: { url: string | null, label: string, active: boolean }[],
+}

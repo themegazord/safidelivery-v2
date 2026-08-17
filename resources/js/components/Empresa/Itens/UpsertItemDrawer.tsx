@@ -715,7 +715,7 @@ function DrawerContentItemNormal({
                                         value={categorias.find(categoria => categoria.value === String(itemProp.categoria_id))?.value}
                                         onValueChange={(e) => handleInputsItem(setItemProp, Number(e), 'categoria_id')}>
                                         <SelectTrigger className="w-full">
-                                            <SelectValue />
+                                            <SelectValue placeholder="Selecione uma categoria" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectGroup>
@@ -1135,6 +1135,10 @@ function DrawerContentItemNormal({
       </Tabs>
         <DrawerFooter className="flex flex-row-reverse">
           <Button disabled={isSubmiting} onClick={() => {
+            if (tab === 'detalhes' && !itemProp.categoria_id) {
+                toast.error('Selecione uma categoria para continuar.')
+                return
+            }
             if (tab === 'detalhes') setTab('preco_estoque')
             if (tab === 'preco_estoque') setTab(isEditing && itemProp.categoria_tipo === 'I' ? 'complementos' : 'classificacao')
             if (tab === 'complementos') setTab('classificacao');
