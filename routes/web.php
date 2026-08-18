@@ -45,7 +45,7 @@ Route::prefix('autenticacao')->group(function () {
             Auth::logout();
 
             return to_route('aplicacao.home');
-        });
+        })->name('aplicacao.autenticacao.cliente.logout');
         Route::post('consultaDadosCliente', [LoginClienteController::class, 'consultaDadosCliente'])->name('aplicacao.autenticacao.cliente.consultaDadosCliente');
         Route::post('autenticaCliente', [LoginClienteController::class, 'autenticaCliente'])->name('aplicacao.autenticacao.cliente.autenticaCliente');
     });

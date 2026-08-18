@@ -1,5 +1,6 @@
 import Carrinho from "@/components/Empresa/CardapioDigital/Carrinho";
 import DialogAutenticacaoCliente from "@/components/Empresa/CardapioDigital/Dialogs/DialogAutenticacaoCliente";
+import MenuUsuarioCliente from "@/components/Empresa/CardapioDigital/MenuUsuarioCliente";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Drawer } from "@/components/ui/drawer";
@@ -56,14 +57,17 @@ function LayoutCardapioContent({ children }: { children: ReactNode }) {
                         SAFI Delivery
                     </Button>
 
-                    <Button variant="ghost" className="relative cursor-pointer" onClick={(e) => { (e.currentTarget as HTMLButtonElement).blur(); setCarrinhoStatus(true); }}>
-                        <ShoppingCart className="size-6" />
-                        {quantidadeCarrinho > 0 && (
-                            <Badge className="-right-1.5 bg-primary text-primary-foreground absolute -top-1.5 flex h-4.5 w-4.5 items-center justify-center rounded-full text-[11px] font-bold">
-                                {quantidadeCarrinho}
-                            </Badge>
-                        )}
-                    </Button>
+                    <div className="flex items-center gap-1">
+                        <MenuUsuarioCliente />
+                        <Button variant="ghost" className="relative cursor-pointer" onClick={(e) => { (e.currentTarget as HTMLButtonElement).blur(); setCarrinhoStatus(true); }}>
+                            <ShoppingCart className="size-6" />
+                            {quantidadeCarrinho > 0 && (
+                                <Badge className="-right-1.5 bg-primary text-primary-foreground absolute -top-1.5 flex h-4.5 w-4.5 items-center justify-center rounded-full text-[11px] font-bold">
+                                    {quantidadeCarrinho}
+                                </Badge>
+                            )}
+                        </Button>
+                    </div>
                 </nav>
             </header>
             <main className="container mx-auto">{children}</main>
