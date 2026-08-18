@@ -4,18 +4,21 @@ namespace App\Console\Commands;
 
 use App\Models\JustificativaCancelamentoPedido;
 use App\Models\Pedido;
+use App\Models\StatusFinanceiroPedidoApi;
 use App\Services\Pagarme\Pedidos\ApiExternaPedidos;
 use Illuminate\Console\Command;
 
 class CancelaPedidosPixExpiradosCommand extends Command
 {
-    protected $signature = 'pedidos:cancela-pix-expirados {--minutos=5}';
+    protected $signature = 'pedidos:cancela-pix-expirados {--minutos=}';
 
     protected $description = 'Cancela pedidos que ficaram parados em "confirmar pix" além do tempo de expiração do QR Code (rede de segurança independente do front).';
 
     public function handle(ApiExternaPedidos $apiExternaPedidos): int
     {
-        $minutos = (int) $this->option('minutos');
+        $minutos = $this->option('minutos') !== null
+            ? (int) $this->option('minutos')
+            : StatusFinanceiroPedidoApi::EXPIRACAO_MINUTOS;
 
         $pedidosExpirados = Pedido::where('status', 'confirmar pix')
             ->where('created_at', '<=', now()->subMinutes($minutos))

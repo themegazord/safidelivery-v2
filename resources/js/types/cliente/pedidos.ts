@@ -6,6 +6,13 @@ export interface IItemPedidoCliente {
     quantidade: number;
 }
 
+export interface IPixPagamento {
+    copia_cola: string;
+    url_qrcode: string;
+    status: string;
+    expira_em: string;
+}
+
 export interface IPedidoCliente {
     id: number;
     ifood_display_id: string | null;
@@ -17,6 +24,7 @@ export interface IPedidoCliente {
     financeiro: {
         total: number;
         forma_pagamento_label: string;
+        pix: IPixPagamento | null;
     } | null;
     cashback: {
         credito_gerado: number;

@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class StatusFinanceiroPedidoApi extends Model
 {
+  public const EXPIRACAO_MINUTOS = 5;
+
   protected $table = 'status_financeiro_pedido_api';
 
   protected $fillable = [

@@ -278,6 +278,7 @@ class FinalizarPedidoController extends Controller
 
             return response()->json([
                 'pedido_id' => $resultado['pedido']->id,
+                'status' => $resultado['pedido']->status,
                 'cashback_gerado' => $resultado['cashback_gerado'],
                 'mensagem'  => 'Pedido realizado com sucesso!',
             ]);

@@ -11,6 +11,7 @@ import { IPedidoCliente } from "@/types/cliente/pedidos";
 import { converteReal } from "@/utils/utils";
 import { formatarDataHora } from "@/utils/pedidos";
 import { statusClienteConfig } from "@/utils/pedidosCliente";
+import PixPagamentoCard from "./PixPagamentoCard";
 
 interface IProps {
     pedido: IPedidoCliente;
@@ -75,6 +76,10 @@ export default function CardPedidoCliente({ pedido }: IProps) {
                         R$ {converteReal(pedido.financeiro?.total ?? 0)}
                     </span>
                 </div>
+
+                {pedido.status === "confirmar pix" && pedido.financeiro?.pix && (
+                    <PixPagamentoCard pix={pedido.financeiro.pix} />
+                )}
 
                 {pedido.cashback && (
                     <div className="bg-primary/5 flex items-center justify-between rounded-lg px-3 py-2">

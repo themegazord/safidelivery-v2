@@ -70,6 +70,7 @@ export default function FinalizarPedido() {
     const [modalPremioAberto, setModalPremioAberto] = useState<boolean>(false)
     const [modalCashbackAberto, setModalCashbackAberto] = useState<boolean>(false)
     const [cashbackGerado, setCashbackGerado] = useState<number>(0)
+    const [aguardandoPix, setAguardandoPix] = useState<boolean>(false)
     const [observacaoPedido, setObservacaoPedido] = useState<string | undefined>(undefined)
     const [dadosDistanciaRota, setDadosDistaciaRota] = useState< IDadosDistanciaRota | null>(null)
     const [erroEntrega, setErroEntrega] = useState<string | null>(null)
@@ -183,17 +184,24 @@ export default function FinalizarPedido() {
             });
 
             limparCarrinho();
-            toast.success('Pedido realizado com sucesso!');
 
             const cashbackGeradoPedido = response.data?.cashback_gerado ?? 0;
+            const pedidoAguardandoPix = response.data?.status === 'confirmar pix';
+
+            toast.success(
+                pedidoAguardandoPix
+                    ? 'Pedido realizado! Copie o código Pix em Meus pedidos para pagar.'
+                    : 'Pedido realizado com sucesso!'
+            );
 
             if (cashbackGeradoPedido > 0) {
                 setCashbackGerado(cashbackGeradoPedido);
+                setAguardandoPix(pedidoAguardandoPix);
                 setModalCashbackAberto(true);
                 return;
             }
 
-            router.visit(route('aplicacao.empresa.cardapio-digital', { interacao_id, tipo_funcionamento }));
+            redirecionaAposPedido(pedidoAguardandoPix);
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 const mensagem = error.response?.data?.message ?? 'Erro ao realizar pedido. Tente novamente.';
@@ -206,9 +214,15 @@ export default function FinalizarPedido() {
         }
     }
 
+    function redirecionaAposPedido(pix: boolean) {
+        router.visit(pix
+            ? route('aplicacao.cliente.meus-pedidos')
+            : route('aplicacao.empresa.cardapio-digital', { interacao_id, tipo_funcionamento }));
+    }
+
     function continuarAposCashback() {
         setModalCashbackAberto(false);
-        router.visit(route('aplicacao.empresa.cardapio-digital', { interacao_id, tipo_funcionamento }));
+        redirecionaAposPedido(aguardandoPix);
     }
 
     return (

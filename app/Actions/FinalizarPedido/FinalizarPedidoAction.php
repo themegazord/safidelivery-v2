@@ -16,6 +16,7 @@ use App\Models\PedidoComboItem;
 use App\Models\PedidoComplemento;
 use App\Models\PedidoItem;
 use App\Models\PedidoSaborPizza;
+use App\Models\StatusFinanceiroPedidoApi;
 use App\Services\Fidelidade\FidelidadeService;
 use App\Services\Pagarme\Pedidos\ApiExternaPedidos;
 use Exception;
@@ -427,7 +428,7 @@ class FinalizarPedidoAction
                 items: $this->montaItensPagarme($pedido),
                 pagamento: [[
                     'payment_method' => 'pix',
-                    'pix' => ['expires_in' => 300],
+                    'pix' => ['expires_in' => StatusFinanceiroPedidoApi::EXPIRACAO_MINUTOS * 60],
                     'amount' => $this->realCentavo($financeiro->total),
                 ]],
                 entrega: [

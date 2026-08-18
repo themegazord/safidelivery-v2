@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Pedidos;
 
+use App\Models\StatusFinanceiroPedidoApi;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -61,6 +62,15 @@ class PedidoResource extends JsonResource
                     'valor' => $p->valor,
                     'label' => $p->defineFormaPagamento(),
                 ]) : [],
+                'pix' => $this->financeiro->relationLoaded('status_financeiro_api') && $this->financeiro->status_financeiro_api
+                    ? [
+                        'copia_cola' => $this->financeiro->status_financeiro_api->copia_cola_pix,
+                        'url_qrcode' => $this->financeiro->status_financeiro_api->url_qrcode_pix,
+                        'status' => $this->financeiro->status_financeiro_api->status,
+                        'expira_em' => $this->financeiro->status_financeiro_api->created_at
+                            ?->copy()->addMinutes(StatusFinanceiroPedidoApi::EXPIRACAO_MINUTOS),
+                    ]
+                    : null,
             ] : null),
             'itens' => $this->whenLoaded('itens', fn () => PedidoItemResource::collection($this->itens)->resolve()),
             'endereco_entrega' => $this->whenLoaded('enderecoEntrega', fn () => $this->enderecoEntrega ? [

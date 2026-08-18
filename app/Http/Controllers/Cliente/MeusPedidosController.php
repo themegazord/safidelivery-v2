@@ -25,7 +25,7 @@ class MeusPedidosController extends Controller
         $clienteId = Auth::user()->cliente->id;
 
         $pedidos = Pedido::where('cliente_id', $clienteId)
-            ->with(['itens', 'financeiro', 'cashback', 'empresa'])
+            ->with(['itens', 'financeiro.status_financeiro_api', 'cashback', 'empresa'])
             ->orderByDesc('created_at')
             ->take(self::QTD_PEDIDOS)
             ->get();
