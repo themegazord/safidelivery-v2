@@ -50,7 +50,7 @@ export default function SidebarEmpresa() {
             grupo: "Desempenho e vendas",
             itens: [
                 { link: route('aplicacao.empresa.desempenho', {cnpj: cnpj}), icon: <BarChart3 />, label: "Desempenho" },
-                { link: "#", icon: <FileText />, label: "Pedidos" },
+                { link: route('aplicacao.empresa.pedidos.index', {cnpj: cnpj}), icon: <FileText />, label: "Pedidos" },
             ],
         },
         {

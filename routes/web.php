@@ -18,8 +18,13 @@ use App\Http\Controllers\Empresa\ConfigEmpresa\LojaController;
 use App\Http\Controllers\Empresa\ConfiguracaoController;
 use App\Http\Controllers\Empresa\DesempenhoController;
 use App\Http\Controllers\Empresa\Fidelidade\FidelidadeConfigController;
+use App\Http\Controllers\Empresa\Pedidos\ClienteHistoricoController;
+use App\Http\Controllers\Empresa\Pedidos\NotificacaoController;
+use App\Http\Controllers\Empresa\Pedidos\PedidosController;
+use App\Http\Controllers\Empresa\Pedidos\TodosPedidosController;
 use App\Http\Controllers\Empresa\Promocoes\PromocaoController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PedidoImpressaoController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -50,6 +55,25 @@ Route::group([], function () {
         Route::prefix('desempenho')->group(function () {
             Route::get('/', [DesempenhoController::class, 'index'])->name('aplicacao.empresa.desempenho');
             Route::post('buscaPedidosPorData', [DesempenhoController::class, 'buscaPedidosPorData'])->name('aplicacao.empresa.desempenho.buscaPedidosPorData');
+        });
+        Route::prefix('pedidos')->group(function () {
+            Route::get('/', [PedidosController::class, 'index'])->name('aplicacao.empresa.pedidos.index');
+            Route::get('/todos-pedidos', [TodosPedidosController::class, 'index'])->name('aplicacao.empresa.pedidos.todos-pedidos');
+            Route::patch('/configuracao', [PedidosController::class, 'atualizaConfiguracao'])->name('aplicacao.empresa.pedidos.configuracao');
+            Route::get('/verifica-novos', [PedidosController::class, 'verificaNovos'])->name('aplicacao.empresa.pedidos.verifica-novos');
+            Route::get('/cliente/{cliente_id}/historico', [ClienteHistoricoController::class, 'show'])->name('aplicacao.empresa.pedidos.cliente.historico');
+            Route::get('/notificacoes', [NotificacaoController::class, 'index'])->name('aplicacao.empresa.pedidos.notificacoes.index');
+            Route::post('/notificacoes/marcar-lidas', [NotificacaoController::class, 'marcarLidas'])->name('aplicacao.empresa.pedidos.notificacoes.marcar-lidas');
+            Route::post('/notificacoes/{notificacao_id}/responder-negociacao', [NotificacaoController::class, 'responderNegociacao'])->name('aplicacao.empresa.pedidos.notificacoes.responder-negociacao');
+            Route::get('/notificacoes/{notificacao_id}/evidencias', [NotificacaoController::class, 'evidencias'])->name('aplicacao.empresa.pedidos.notificacoes.evidencias');
+            Route::get('/{pedido_id}', [PedidosController::class, 'show'])->name('aplicacao.empresa.pedidos.show');
+            Route::get('/{pedido_id}/url-impressao', [PedidosController::class, 'urlImpressao'])->name('aplicacao.empresa.pedidos.url-impressao');
+            Route::patch('/{pedido_id}/status', [PedidosController::class, 'status'])->name('aplicacao.empresa.pedidos.status');
+            Route::get('/{pedido_id}/motivos-cancelamento-ifood', [PedidosController::class, 'motivosCancelamentoIfood'])->name('aplicacao.empresa.pedidos.motivos-cancelamento-ifood');
+            Route::post('/{pedido_id}/cancelar', [PedidosController::class, 'cancelar'])->name('aplicacao.empresa.pedidos.cancelar');
+            Route::post('/{pedido_id}/confirmar-entrega', [PedidosController::class, 'confirmarEntrega'])->name('aplicacao.empresa.pedidos.confirmar-entrega');
+            Route::post('/{pedido_id}/todos-pedidos-cancelar', [TodosPedidosController::class, 'cancelar'])->name('aplicacao.empresa.pedidos.todos-pedidos.cancelar');
+            Route::post('/{pedido_id}/todos-pedidos-confirmar-entrega', [TodosPedidosController::class, 'confirmarEntrega'])->name('aplicacao.empresa.pedidos.todos-pedidos.confirmar-entrega');
         });
         Route::prefix('configempresa')->group(function () {
             Route::get('loja', [LojaController::class, 'index'])->name('aplicacao.empresa.configempresa.loja');
@@ -162,5 +186,11 @@ Route::group([], function () {
         Route::post('/detalhe-premio-pizza', [FinalizarPedidoController::class, 'detalhePremioPizza'])->name('aplicacao.empresa.finalizar-pedido.detalhe-premio-pizza');
         Route::post('/detalhe-premio-combo', [FinalizarPedidoController::class, 'detalhePremioCombo'])->name('aplicacao.empresa.finalizar-pedido.detalhe-premio-combo');
         Route::post('store', [FinalizarPedidoController::class, 'store'])->name('aplicacao.empresa.finalizar-pedido.store');
+    });
+
+    Route::prefix('pedidos/imprimir')->group(function () {
+        Route::get('/{pedido_id}', [PedidoImpressaoController::class, 'pdf'])->name('pedido.imprimir')->middleware('signed');
+        Route::get('/{pedido_id}/txt', [PedidoImpressaoController::class, 'txt'])->name('pedido.imprimir.txt')->middleware('signed');
+        Route::get('/{pedido_id}/escpos', [PedidoImpressaoController::class, 'escpos'])->name('pedido.imprimir.escpos')->middleware('signed');
     });
 });

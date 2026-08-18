@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Cache;
 
 class Empresa extends Model
 {
@@ -74,6 +75,24 @@ class Empresa extends Model
       16 => 'America/Sao_Paulo',
       default => null, // retorna null se não encontrar
     };
+  }
+
+  public function resolveTimezone(): string
+  {
+    return Cache::remember("empresa:{$this->id}:timezone", 3600, function () {
+      $valor = $this->configuracoes()
+        ->where('configuracao', 'fuso_horario')
+        ->value('valor');
+
+      $id = is_numeric($valor) ? (int) $valor : null;
+      $tz = $id ? $this->fusoHorarioPorId($id) : null;
+
+      if (! $tz || ! in_array($tz, timezone_identifiers_list(), true)) {
+        return config('app.timezone');
+      }
+
+      return $tz;
+    });
   }
 
   public function endereco(): \Illuminate\Database\Eloquent\Relations\BelongsTo
