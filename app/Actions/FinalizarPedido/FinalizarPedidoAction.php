@@ -31,6 +31,7 @@ class FinalizarPedidoAction
     public function handle(
         array $pedido,
         ?string $forma_pagamento,
+        ?float $trocoPara,
         ?float $frete,
         float $subtotal,
         float $total,
@@ -48,6 +49,7 @@ class FinalizarPedidoAction
         return DB::transaction(function () use (
             $pedido,
             $forma_pagamento,
+            $trocoPara,
             $frete,
             $subtotal,
             $total,
@@ -165,6 +167,8 @@ class FinalizarPedidoAction
 
             $pedidoCadastrado = Pedido::create($dadosPedido);
 
+            $pagaEmDinheiro = $formaPagamentoTipo === 'DIN';
+
             $financeiro = [
                 'uuid'               => uuid_create(),
                 'pedido_id'          => $pedidoCadastrado->id,
@@ -173,9 +177,10 @@ class FinalizarPedidoAction
                 'total'              => $totalFinanceiro,
                 'valor_desconto'     => $valorDesconto > 0 ? $valorDesconto : null,
                 'cashback_utilizado' => $cashbackUtilizado,
+                'troco_para'         => $pagaEmDinheiro ? $trocoPara : null,
+                'valor_troco'        => $pagaEmDinheiro && $trocoPara !== null ? round($trocoPara - $totalFinanceiro, 2) : null,
             ];
 
-            // TODO: Troco para pagamento em dinheiro — implementar quando formas de pagamento estiverem prontas
             // TODO: Múltiplas formas de pagamento (FinanceiroPedidoPagamento) — implementar quando a tela estiver pronta
 
             $financeiroCriado = FinanceiroPedido::create($financeiro);

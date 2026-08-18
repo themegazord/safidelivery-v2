@@ -260,6 +260,7 @@ class FinalizarPedidoController extends Controller
             $resultado = (new FinalizarPedidoAction())->handle(
                 pedido: $request->input('pedido', []),
                 forma_pagamento: $dados['forma_pagamento'] ?? null,
+                trocoPara: isset($dados['troco_para']) ? floatval($dados['troco_para']) : null,
                 frete: $dados['frete'] ?? null,
                 subtotal: floatval($dados['subtotal']),
                 total: floatval($dados['total']),

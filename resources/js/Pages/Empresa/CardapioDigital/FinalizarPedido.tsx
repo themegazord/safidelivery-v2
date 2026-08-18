@@ -62,6 +62,7 @@ export default function FinalizarPedido() {
     const [tipoEntrega, setTipoEntrega] = useState<'delivery' | 'retirada' | 'mesa'>(tipo_funcionamento)
     const [numeroMesa, setNumeroMesa] = useState<number | undefined>(mesa)
     const [formaPagamento, setFormaPagamento] = useState<string | undefined>(undefined)
+    const [trocoPara, setTrocoPara] = useState<number | undefined>(undefined)
     const [cupomPedido, setCupomPedido] = useState<string | undefined>(cupomDesconto ?? undefined)
     const [cupomAplicado, setCupomAplicado] = useState<ICupomAplicado | null>(null)
     const [validandoCupom, setValidandoCupom] = useState<boolean>(false)
@@ -114,6 +115,12 @@ export default function FinalizarPedido() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [taxaFrete, subtotal, descontoCupom, cashbackAUsar])
 
+    const pagaEmDinheiro = formasPagamentos?.find((fp) => String(fp.value) === formaPagamento)?.tipo === 'DIN'
+
+    useEffect(() => {
+        setTrocoPara(undefined)
+    }, [formaPagamento])
+
     async function aplicarCupom(nomeCupom: string) {
         setValidandoCupom(true)
 
@@ -161,12 +168,19 @@ export default function FinalizarPedido() {
 
     async function finalizarPedido() {
         if (isFinalizando) return;
+
+        if (pagaEmDinheiro && trocoPara !== undefined && trocoPara < total) {
+            toast.error(`O valor para troco deve ser maior ou igual ao total do pedido (R$ ${total.toFixed(2).replace(".", ",")}).`);
+            return;
+        }
+
         setIsFinalizando(true);
 
         try {
             const response = await axios.post(route('aplicacao.empresa.finalizar-pedido.store'), {
                 pedido: carrinho,
                 forma_pagamento: formaPagamento,
+                troco_para: pagaEmDinheiro ? trocoPara : undefined,
                 frete: dadosDistanciaRota?.dadosDistanciaRota.taxaFrete,
                 subtotal: subtotal,
                 total: total,
@@ -248,7 +262,14 @@ export default function FinalizarPedido() {
                         />
                         {tipo_funcionamento !== 'mesa' && (
                             <>
-                                <SelecaoFormaPagamento formasPagamentos={formasPagamentos} formaPagamento={formaPagamento} setFormaPagamento={setFormaPagamento} />
+                                <SelecaoFormaPagamento
+                                    formasPagamentos={formasPagamentos}
+                                    formaPagamento={formaPagamento}
+                                    setFormaPagamento={setFormaPagamento}
+                                    total={total}
+                                    trocoPara={trocoPara}
+                                    setTrocoPara={setTrocoPara}
+                                />
                                 <CupomPedido
                                     cupomPedido={cupomPedido}
                                     setCupomPedido={setCupomPedido}

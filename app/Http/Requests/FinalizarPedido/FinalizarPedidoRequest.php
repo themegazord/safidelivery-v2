@@ -29,6 +29,7 @@ class FinalizarPedidoRequest extends FormRequest
             'pedido.*.total' => ['required', 'numeric'],
             'pedido.*.tipo' => ['required', 'string', 'in:PRE,BEB,IND,PIZ,CON'],
             'forma_pagamento' => ['required_unless:tipo_funcionamento,mesa'],
+            'troco_para' => ['nullable', 'numeric', 'gte:total'],
             'frete' => ['nullable', 'numeric'],
             'subtotal' => ['required', 'numeric'],
             'total' => ['required', 'numeric'],
@@ -62,6 +63,7 @@ class FinalizarPedidoRequest extends FormRequest
             'integer' => 'O :attribute deve ser um número inteiro.',
             'min' => 'O :attribute deve ter pelo menos :min.',
             'in' => 'O :attribute selecionado é inválido.',
+            'troco_para.gte' => 'O valor para troco deve ser maior ou igual ao total do pedido.',
         ];
     }
 
