@@ -204,7 +204,7 @@ export default function FinalizarPedido() {
             redirecionaAposPedido(pedidoAguardandoPix);
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                const mensagem = error.response?.data?.message ?? 'Erro ao realizar pedido. Tente novamente.';
+                const mensagem = error.response?.data?.mensagem ?? 'Erro ao realizar pedido. Tente novamente.';
                 toast.error(mensagem);
             } else {
                 toast.error('Erro inesperado. Tente novamente.');

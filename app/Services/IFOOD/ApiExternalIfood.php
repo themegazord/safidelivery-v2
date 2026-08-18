@@ -94,11 +94,12 @@ final class ApiExternalIfood
                 'lifetimeTokenIfood' => now()->addSeconds($dados['expiresIn']),
             ]);
         } catch (Exception $e) {
-            // TODO: avaliar se esse erro deveria ser relançado em vez de apenas logado.
             Log::warning('Integração IFOOD: Falha na tentativa de autenticação com IFOOD.', [
                 'empresa_id' => $empresa_id,
                 'erro' => $e->getMessage(),
             ]);
+
+            throw $e;
         }
     }
 
@@ -1575,7 +1576,6 @@ final class ApiExternalIfood
                 'description' => 'Quando for concluído com sucesso, a notificação receberá a informação e se atualizará.',
             ];
         } catch (Exception $e) {
-            // TODO: avaliar se esse erro deveria ser relançado em vez de apenas logado.
             Log::error('Erro ao enviar resposta de negociação para o IFOOD', [
                 'empresa_id' => $empresa_id,
                 'dispute_id' => $dispute_id,
@@ -1583,11 +1583,7 @@ final class ApiExternalIfood
                 'erro' => $e->getMessage(),
             ]);
 
-            return [
-                'success' => false,
-                'message' => 'Solicitação com problemas, por favor, entre em contato com o suporte.',
-                'error' => $e->getMessage(),
-            ];
+            throw $e;
         }
     }
 

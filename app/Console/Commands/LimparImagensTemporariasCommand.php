@@ -33,7 +33,6 @@ class LimparImagensTemporariasCommand extends Command
         $imagem->delete();
         $removidas++;
       } catch (Throwable $e) {
-        // TODO: avaliar se esse erro deveria ser relançado em vez de apenas logado.
         Log::error('Falha ao remover imagem temporária órfã do bucket', [
           'imagem_id' => $imagem->id,
           'url' => $imagem->url,

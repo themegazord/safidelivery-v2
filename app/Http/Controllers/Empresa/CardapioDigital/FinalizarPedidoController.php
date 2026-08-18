@@ -201,7 +201,6 @@ class FinalizarPedidoController extends Controller
                 $dadosValidados['frete'] ?? null,
             );
         } catch (\Exception $e) {
-            // TODO: avaliar se esse erro deveria ser relançado em vez de apenas logado.
             Log::error('Erro ao validar cupom do pedido', [
                 'empresa_id' => $empresa->getAttribute('id'),
                 'cupom' => $dadosValidados['cupom'],
