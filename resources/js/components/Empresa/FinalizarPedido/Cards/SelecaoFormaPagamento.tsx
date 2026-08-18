@@ -23,7 +23,11 @@ export default function SelecaoFormaPagamento({
               <Field>
                 <Select value={formaPagamento} onValueChange={(value) => setFormaPagamento(value ?? undefined)}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Selecione uma forma de pagamento" />
+                    <SelectValue placeholder="Selecione uma forma de pagamento">
+                      {(value: string | null) =>
+                        formasPagamentos.find((fp) => String(fp.value) === value)?.label ?? "Selecione uma forma de pagamento"
+                      }
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
