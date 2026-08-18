@@ -11,7 +11,6 @@ import ClienteHistoricoDialog from "@/components/Empresa/Pedidos/ClienteHistoric
 import CancelarPedidoDialog, { IMotivoCancelamentoIfood } from "@/components/Empresa/Pedidos/CancelarPedidoDialog";
 import ConfirmarEntregaDialog from "@/components/Empresa/Pedidos/ConfirmarEntregaDialog";
 import NotificacoesDrawer from "@/components/Empresa/Pedidos/NotificacoesDrawer";
-import { useSomAlerta } from "@/hooks/useSomAlerta";
 import { transicaoValida, proximoStatus } from "@/utils/pedidos";
 import {
     IConfiguracoesPedidos,
@@ -40,7 +39,6 @@ export default function Kanban({
     timezone,
 }: IProps) {
     const { cnpj } = usePage<{ cnpj: string }>().props;
-    const { tocar: tocarSom } = useSomAlerta("/sons/alerta.mp3");
 
     const [pedidos, setPedidos] = useState<IPedido[]>(pedidosIniciais);
     const [notificacoes, setNotificacoes] = useState<INotificacao[]>(notificacoesIniciais);
@@ -99,7 +97,6 @@ export default function Kanban({
                         return novo;
                     }),
                 );
-                if (data.tocar_som) tocarSom();
             } catch {
                 // silencioso: próxima checagem tenta de novo
             }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Webhook\Pagarme\Pedidos;
 
 use App\Http\Controllers\Controller;
 use App\Models\FinanceiroPedido;
+use App\Models\Notificacao;
 use App\Models\Pedido;
 use Exception;
 use Illuminate\Http\JsonResponse;
@@ -74,6 +75,19 @@ class PixAceitoController extends Controller
                 $novoStatus = $aceitarAutomaticamente ? 'sendo preparado' : 'pendente';
 
                 $pedido->update(['status' => $novoStatus]);
+
+                Notificacao::create([
+                    'empresa_id' => $pedido->empresa_id,
+                    'tipo' => 'novo_pedido',
+                    'titulo' => 'Novo pedido recebido',
+                    'mensagem' => sprintf(
+                        'Pedido #%d — %s — R$ %s (Pix confirmado)',
+                        $pedido->id,
+                        $pedido->nome ?? 'Cliente',
+                        number_format($financeiro->total, 2, ',', '.'),
+                    ),
+                    'data' => ['pedido_id' => $pedido->id],
+                ]);
 
                 Log::channel('financial')->info('[WEBHOOK PAGAR.ME PROCESSADO]', [
                     'order_id' => $orderId,

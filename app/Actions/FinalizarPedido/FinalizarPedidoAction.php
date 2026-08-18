@@ -11,6 +11,7 @@ use App\Models\FormaPagamento;
 use App\Models\Integracao;
 use App\Models\Item;
 use App\Models\Mesa;
+use App\Models\Notificacao;
 use App\Models\Pedido;
 use App\Models\PedidoComboItem;
 use App\Models\PedidoComplemento;
@@ -228,6 +229,23 @@ class FinalizarPedidoAction
 
             if ($pixComPagarme && $clienteAutenticado) {
                 $this->geraPedidoPagarme($pedidoCadastrado, $financeiroCriado, $clienteAutenticado, floatval($frete ?? 0));
+            }
+
+            // Pedido "confirmar pix" ainda não é um pedido ativo (nem aparece no Kanban) —
+            // a notificação dele só faz sentido quando o pagamento é confirmado pelo webhook.
+            if (! $pixComPagarme) {
+                Notificacao::create([
+                    'empresa_id' => $empresa_id,
+                    'tipo' => 'novo_pedido',
+                    'titulo' => 'Novo pedido recebido',
+                    'mensagem' => sprintf(
+                        'Pedido #%d — %s — R$ %s',
+                        $pedidoCadastrado->id,
+                        $dadosPedido['nome'] ?? 'Cliente',
+                        number_format($totalFinanceiro, 2, ',', '.'),
+                    ),
+                    'data' => ['pedido_id' => $pedidoCadastrado->id],
+                ]);
             }
 
             return [

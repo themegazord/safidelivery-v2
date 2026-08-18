@@ -1,4 +1,5 @@
 import SidebarEmpresa from "@/components/utils/SidebarEmpresa";
+import EscutaNovosPedidos from "@/components/utils/EscutaNovosPedidos";
 import {
     SidebarInset,
     SidebarProvider,
@@ -19,6 +20,7 @@ export default function LayoutAutenticado({ children }: IProps) {
                 <div className="flex-1 p-4">{children}</div>
             </SidebarInset>
             <Toaster />
+            <EscutaNovosPedidos />
         </SidebarProvider>
     );
 }
