@@ -17,6 +17,8 @@ class Pedido extends Model
 
     public const STATUS_FINALIZADOS_SUCESSO = ['entregue', 'entregue para mesa', 'finalizado'];
 
+    public const STATUS_CANCELADOS = ['cancelado', 'pix expirado'];
+
     protected $fillable = ['ifood_display_id', 'pedido_ifood_id', 'ifood_entregue_por', 'endereco_entrega_ifood', 'mesa', 'comanda', 'informa_comanda_manual', 'empresa_id', 'cliente_id', 'tipo', 'status', 'prioridade', 'observacao', 'codigo_coleta', 'valor_frete', 'endereco_entrega_id', 'nome', 'telefone', 'cpf_cnpj_ifood', 'eh_agendado', 'data_agendamento_inicio', 'data_agendamento_fim', 'data_inicio_preparo', 'fidelidade_recompensa_aplicada', 'fidelidade_desconto', 'fidelidade_percentual', 'fidelidade_base_calculo', 'frete_original'];
 
     public function itens(): HasMany
