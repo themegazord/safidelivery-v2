@@ -106,21 +106,21 @@ export default function Stats({
                 {icon && (
                     <div
                         className={cn(
-                            "flex h-9 w-9 items-center justify-center",
+                            "flex h-9 w-9 shrink-0 items-center justify-center",
                             colors.text,
                         )}
                     >
                         {icon}
                     </div>
                 )}
-                <div className="truncate text-left rtl:text-right">
+                <div className="min-w-0 truncate text-left rtl:text-right">
                     {title && (
-                        <div className="text-xs whitespace-nowrap text-zinc-500 dark:text-zinc-400">
+                        <div className="truncate text-xs whitespace-nowrap text-zinc-500 dark:text-zinc-400">
                             {title}
                         </div>
                     )}
 
-                    <div className="text-xl font-black text-zinc-900 dark:text-zinc-50">
+                    <div className="text-xl font-black break-words whitespace-normal text-zinc-900 dark:text-zinc-50">
                         {isMoney && typeof value === "number" ? (
                             <>R$ {value.toFixed(2)}</>
                         ) : (
@@ -129,7 +129,7 @@ export default function Stats({
                     </div>
 
                     {description && (
-                        <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                        <div className="text-sm break-words whitespace-normal text-zinc-500 dark:text-zinc-400">
                             {description}
                         </div>
                     )}
