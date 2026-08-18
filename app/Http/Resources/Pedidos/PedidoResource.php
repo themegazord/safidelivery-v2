@@ -61,7 +61,7 @@ class PedidoResource extends JsonResource
                     'label' => $p->defineFormaPagamento(),
                 ]) : [],
             ] : null),
-            'itens' => $this->whenLoaded('itens', fn () => PedidoItemResource::collection($this->itens)),
+            'itens' => $this->whenLoaded('itens', fn () => PedidoItemResource::collection($this->itens)->resolve()),
             'endereco_entrega' => $this->whenLoaded('enderecoEntrega', fn () => $this->enderecoEntrega ? [
                 'logradouro' => $this->enderecoEntrega->logradouro,
                 'numero' => $this->enderecoEntrega->numero,
