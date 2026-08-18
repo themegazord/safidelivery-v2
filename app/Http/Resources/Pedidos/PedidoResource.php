@@ -52,6 +52,7 @@ class PedidoResource extends JsonResource
                 'subtotal_itens' => $this->financeiro->subtotal_itens,
                 'subtotal_itens_ifood' => $this->financeiro->subtotal_itens_ifood,
                 'adicional' => $this->financeiro->adicional,
+                'valor_desconto' => $this->financeiro->valor_desconto,
                 'cashback_utilizado' => $this->financeiro->cashback_utilizado,
                 'troco_para' => $this->financeiro->troco_para,
                 'valor_troco' => $this->financeiro->valor_troco,

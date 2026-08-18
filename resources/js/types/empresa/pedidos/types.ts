@@ -41,6 +41,7 @@ export interface IFinanceiroPedido {
     subtotal_itens: number | null;
     subtotal_itens_ifood: number | null;
     adicional: number | null;
+    valor_desconto: number | null;
     cashback_utilizado: number | null;
     troco_para: number | null;
     valor_troco: number | null;

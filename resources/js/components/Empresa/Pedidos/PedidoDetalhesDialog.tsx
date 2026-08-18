@@ -416,7 +416,7 @@ export default function PedidoDetalhesDialog({
                                                         <Percent className="h-4 w-4" />
                                                         {pedido.cupom_usado_no_pedido.onde_afetara === "produto" ? "Cupom (produtos)" : "Cupom (frete)"}
                                                     </p>
-                                                    <p className="font-bold">Aplicado</p>
+                                                    <p className="font-bold">- {converteReal(pedido.financeiro?.valor_desconto ?? 0)}</p>
                                                 </div>
                                             )}
                                             {pedido.cupons_usado_no_ifood?.map((cupom, idx) => (
