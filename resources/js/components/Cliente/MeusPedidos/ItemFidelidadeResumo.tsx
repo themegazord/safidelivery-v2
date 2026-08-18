@@ -3,11 +3,10 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { IFidelidadeResumoItem } from "@/types/cliente/pedidos";
 import { converteReal } from "@/utils/utils";
-import { formatarDataHora } from "@/utils/pedidos";
+import { formatarData } from "@/utils/pedidos";
 
 interface IProps {
     item: IFidelidadeResumoItem;
-    timezone: string;
 }
 
 function textoRecompensa(item: IFidelidadeResumoItem): string {
@@ -25,7 +24,7 @@ function textoRecompensa(item: IFidelidadeResumoItem): string {
     }
 }
 
-export default function ItemFidelidadeResumo({ item, timezone }: IProps) {
+export default function ItemFidelidadeResumo({ item }: IProps) {
     return (
         <div className="flex flex-col gap-2 rounded-lg border bg-card p-3.5">
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -43,7 +42,7 @@ export default function ItemFidelidadeResumo({ item, timezone }: IProps) {
                     <p className="font-medium text-emerald-600">{textoRecompensa(item)}</p>
                     {item.recompensa_expira_em && (
                         <p className="mt-0.5 text-xs text-muted-foreground">
-                            Válido até {formatarDataHora(item.recompensa_expira_em, timezone).split(" ")[0]}
+                            Válido até {formatarData(item.recompensa_expira_em, item.timezone)}
                         </p>
                     )}
                 </div>

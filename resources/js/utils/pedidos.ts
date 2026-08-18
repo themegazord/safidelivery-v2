@@ -87,6 +87,15 @@ export function formatarHora(iso: string, timezone: string): string {
     }).format(new Date(iso));
 }
 
+export function formatarData(iso: string, timezone: string): string {
+    return new Intl.DateTimeFormat("pt-BR", {
+        timeZone: timezone,
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+    }).format(new Date(iso));
+}
+
 export function formatarDataHora(iso: string, timezone: string): string {
     return new Intl.DateTimeFormat("pt-BR", {
         timeZone: timezone,

@@ -38,6 +38,7 @@ class PedidoResource extends JsonResource
                 'nome_fantasia' => $this->empresa->nome_fantasia,
                 'interacao_id' => $this->empresa->interacao_id,
             ] : null),
+            'timezone' => $this->whenLoaded('empresa', fn () => $this->empresa?->resolveTimezone() ?? config('app.timezone')),
             'cliente' => $this->whenLoaded('cliente', fn () => $this->cliente ? [
                 'id' => $this->cliente->id,
                 'nome' => $this->cliente->nome,

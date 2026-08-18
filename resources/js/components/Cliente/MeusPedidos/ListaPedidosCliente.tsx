@@ -4,24 +4,30 @@ import CardPedidoCliente from "./CardPedidoCliente";
 
 interface IProps {
     pedidos: IPedidoCliente[];
-    timezone: string;
 }
 
-export default function ListaPedidosCliente({ pedidos, timezone }: IProps) {
+export default function ListaPedidosCliente({ pedidos }: IProps) {
     if (pedidos.length === 0) {
         return (
-            <div className="flex flex-col items-center gap-3 py-16 text-center">
-                <PackageOpen className="size-12 text-muted-foreground/50" />
-                <p className="text-sm text-muted-foreground">Nenhum pedido encontrado</p>
+            <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed px-6 py-16 text-center">
+                <span className="bg-muted text-muted-foreground flex size-12 items-center justify-center rounded-full">
+                    <PackageOpen className="size-6" />
+                </span>
+                <div>
+                    <p className="font-medium">Nenhum pedido encontrado</p>
+                    <p className="text-muted-foreground text-sm">
+                        Quando você fizer um pedido, ele aparece aqui.
+                    </p>
+                </div>
             </div>
         );
     }
 
     return (
-        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="flex flex-col gap-3">
             {pedidos.map((pedido) => (
-                <CardPedidoCliente key={pedido.id} pedido={pedido} timezone={timezone} />
+                <CardPedidoCliente key={pedido.id} pedido={pedido} />
             ))}
-        </section>
+        </div>
     );
 }

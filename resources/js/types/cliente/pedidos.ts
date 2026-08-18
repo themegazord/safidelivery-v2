@@ -12,6 +12,7 @@ export interface IPedidoCliente {
     tipo: "D" | "M" | "R";
     status: string;
     created_at: string;
+    timezone: string;
     itens: IItemPedidoCliente[];
     financeiro: {
         total: number;
@@ -30,6 +31,7 @@ export interface IProximoVencimentoCashback {
     pedido_id: number | null;
     saldo_restante: number;
     data_vencimento: string;
+    timezone: string;
 }
 
 export interface ICashbackResumoCliente {
@@ -43,6 +45,7 @@ export interface ICashbackResumoCliente {
 
 export interface IFidelidadeResumoItem {
     empresa_nome: string;
+    timezone: string;
     tipo_gatilho: "qtd_pedidos" | "valor_acumulado";
     valor_gatilho: number;
     tipo_recompensa: TipoRecompensaFidelidade;

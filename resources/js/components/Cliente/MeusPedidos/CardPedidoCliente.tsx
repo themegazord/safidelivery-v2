@@ -1,6 +1,12 @@
 import { Sparkles, Store } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    Card,
+    CardContent,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 import { IPedidoCliente } from "@/types/cliente/pedidos";
 import { converteReal } from "@/utils/utils";
 import { formatarDataHora } from "@/utils/pedidos";
@@ -8,64 +14,84 @@ import { statusClienteConfig } from "@/utils/pedidosCliente";
 
 interface IProps {
     pedido: IPedidoCliente;
-    timezone: string;
 }
 
-export default function CardPedidoCliente({ pedido, timezone }: IProps) {
+export default function CardPedidoCliente({ pedido }: IProps) {
     const status = statusClienteConfig(pedido.status);
 
     return (
-        <Card className="h-fit">
-            <CardHeader className="flex items-start justify-between gap-3">
-                <div className="flex min-w-0 flex-col gap-1">
-                    <CardTitle>Pedido #{pedido.ifood_display_id ?? pedido.id}</CardTitle>
-                    <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
-                        <span>{formatarDataHora(pedido.created_at, timezone)}</span>
-                        {pedido.empresa && (
-                            <span className="inline-flex items-center gap-1">
-                                <Store className="size-3" />
-                                {pedido.empresa.nome_fantasia}
+        <Card className="border-border/60 overflow-hidden shadow-sm transition-shadow hover:shadow-md">
+            <CardHeader className="gap-3 border-b pb-3">
+                <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                        <CardTitle className="truncate text-sm font-semibold">
+                            Pedido #{pedido.ifood_display_id ?? pedido.id}
+                        </CardTitle>
+                        <div className="text-muted-foreground mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+                            <span>
+                                {formatarDataHora(pedido.created_at, pedido.timezone)}
                             </span>
-                        )}
-                    </p>
+                            {pedido.empresa && (
+                                <span className="inline-flex items-center gap-1">
+                                    <span aria-hidden>•</span>
+                                    <Store className="size-3.5" />
+                                    <span className="truncate">
+                                        {pedido.empresa.nome_fantasia}
+                                    </span>
+                                </span>
+                            )}
+                        </div>
+                    </div>
+
+                    <Badge
+                        variant={status.variant}
+                        className="shrink-0 whitespace-nowrap"
+                    >
+                        {status.label}
+                    </Badge>
                 </div>
-                <Badge className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${status.className}`}>
-                    {status.label}
-                </Badge>
             </CardHeader>
 
-            <CardContent className="flex flex-col gap-4">
-                <div className="flex flex-col gap-1.5 rounded-lg bg-muted px-3 py-2.5">
-                    {pedido.itens.map((item) => (
-                        <div key={item.id} className="flex items-baseline justify-between gap-3 text-sm">
-                            <span className="truncate">{item.nome}</span>
-                            <span className="shrink-0 font-medium text-muted-foreground">x{item.quantidade}</span>
-                        </div>
+            <CardContent className="flex flex-col gap-3 pt-4">
+                <ul className="flex flex-col gap-1.5 text-sm">
+                    {pedido.itens.map((item, idx) => (
+                        <li
+                            key={idx}
+                            className="flex items-start justify-between gap-3"
+                        >
+                            <span className="text-foreground/90 min-w-0 flex-1 truncate">
+                                {item.nome}
+                            </span>
+                            <span className="text-muted-foreground shrink-0 tabular-nums">
+                                x{item.quantidade}
+                            </span>
+                        </li>
                     ))}
-                </div>
+                </ul>
 
-                <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Total</span>
-                    <span className="text-sm font-bold sm:text-base">
+                <div className="flex items-center justify-between border-t pt-3">
+                    <span className="text-muted-foreground text-sm">Total</span>
+                    <span className="text-base font-semibold tabular-nums">
                         R$ {converteReal(pedido.financeiro?.total ?? 0)}
                     </span>
                 </div>
 
                 {pedido.cashback && (
-                    <div className="flex items-center justify-between rounded-lg bg-emerald-600/5 px-3 py-2 text-xs">
-                        <div className="flex items-center gap-1.5 text-emerald-600">
+                    <div className="bg-primary/5 flex items-center justify-between rounded-lg px-3 py-2">
+                        <span className="text-primary inline-flex items-center gap-1.5 text-xs font-medium">
                             <Sparkles className="size-3.5" />
-                            <span>Cashback gerado</span>
-                        </div>
-                        <span className="font-semibold text-emerald-600">
+                            Cashback gerado
+                        </span>
+                        <span className="text-primary text-sm font-semibold tabular-nums">
                             + R$ {converteReal(pedido.cashback.credito_gerado)}
                         </span>
                     </div>
                 )}
             </CardContent>
 
-            <CardFooter className="text-xs text-muted-foreground">
-                {pedido.financeiro?.forma_pagamento_label ?? "Forma de pagamento não informada"}
+            <CardFooter className="bg-muted/20 text-muted-foreground border-t py-2.5 text-xs">
+                {pedido.financeiro?.forma_pagamento_label ??
+                    "Forma de pagamento não informada"}
             </CardFooter>
         </Card>
     );

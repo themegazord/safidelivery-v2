@@ -29,6 +29,7 @@ class ResumoFidelidadeClienteAction
 
                 return [
                     'empresa_nome' => $progresso->empresa->nome_fantasia,
+                    'timezone' => $progresso->empresa->resolveTimezone(),
                     'tipo_gatilho' => $config->tipo_gatilho,
                     'valor_gatilho' => $config->valor_gatilho,
                     'tipo_recompensa' => $config->tipo_recompensa,

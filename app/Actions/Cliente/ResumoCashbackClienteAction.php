@@ -9,7 +9,7 @@ class ResumoCashbackClienteAction
 {
     public function handle(int $clienteId): array
     {
-        $todos = CashbackCredito::where('cliente_id', $clienteId)->get();
+        $todos = CashbackCredito::where('cliente_id', $clienteId)->with('empresa')->get();
 
         $agora = Carbon::now();
 
@@ -35,6 +35,7 @@ class ResumoCashbackClienteAction
                 'pedido_id' => $c->pedido_id,
                 'saldo_restante' => (float) $c->saldo_restante,
                 'data_vencimento' => $c->data_vencimento,
+                'timezone' => $c->empresa?->resolveTimezone() ?? config('app.timezone'),
             ]);
 
         return [

@@ -10,8 +10,6 @@ interface IProps {
 }
 
 export default function MeusPedidos({ pedidos, cashbackResumo, fidelidadeResumo }: IProps) {
-    const fusoHorario = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
     return (
         <div className="min-h-screen bg-background/20">
             <MeusPedidosHeader />
@@ -20,9 +18,8 @@ export default function MeusPedidos({ pedidos, cashbackResumo, fidelidadeResumo 
                 <ResumoClienteSection
                     cashbackResumo={cashbackResumo}
                     fidelidadeResumo={fidelidadeResumo}
-                    timezone={fusoHorario}
                 />
-                <ListaPedidosCliente pedidos={pedidos} timezone={fusoHorario} />
+                <ListaPedidosCliente pedidos={pedidos} />
             </main>
         </div>
     );

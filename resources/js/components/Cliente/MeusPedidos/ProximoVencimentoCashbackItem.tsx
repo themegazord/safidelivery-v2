@@ -1,15 +1,14 @@
 import { Banknote } from "lucide-react";
 import { IProximoVencimentoCashback } from "@/types/cliente/pedidos";
 import { converteReal } from "@/utils/utils";
-import { formatarDataHora } from "@/utils/pedidos";
+import { formatarData } from "@/utils/pedidos";
 import { diasParaVencer } from "@/utils/pedidosCliente";
 
 interface IProps {
     credito: IProximoVencimentoCashback;
-    timezone: string;
 }
 
-export default function ProximoVencimentoCashbackItem({ credito, timezone }: IProps) {
+export default function ProximoVencimentoCashbackItem({ credito }: IProps) {
     const dias = diasParaVencer(credito.data_vencimento);
 
     return (
@@ -24,7 +23,7 @@ export default function ProximoVencimentoCashbackItem({ credito, timezone }: IPr
             <div className="text-right">
                 <p className="text-xs text-muted-foreground">Vence em</p>
                 <p className={`text-xs font-medium ${dias <= 7 ? "text-amber-600" : "text-foreground/70"}`}>
-                    {formatarDataHora(credito.data_vencimento, timezone).split(" ")[0]}
+                    {formatarData(credito.data_vencimento, credito.timezone)}
                 </p>
             </div>
         </div>

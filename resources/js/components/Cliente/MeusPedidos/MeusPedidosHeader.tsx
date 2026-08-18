@@ -4,17 +4,21 @@ import { ArrowLeft } from "lucide-react";
 
 export default function MeusPedidosHeader() {
     return (
-        <header className="sticky top-0 z-20 border-b bg-background">
-            <nav className="mx-auto flex w-full max-w-5xl items-center gap-2 px-4 py-4 sm:px-6 lg:px-8">
-                <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    render={<Link href={route("aplicacao.home")} />}
-                >
+        <header className="sticky top-0 z-20 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="mx-auto flex h-14 max-w-3xl items-center gap-3 px-4">
+                <Button variant="ghost" size="icon" className="-ml-2 shrink-0" render={<Link href="/" aria-label="Voltar" />}>
                     <ArrowLeft className="size-5" />
                 </Button>
-                <span className="font-heading text-base font-semibold sm:text-lg">Meus pedidos</span>
-            </nav>
+
+                <div className="min-w-0">
+                    <h1 className="truncate text-base font-semibold leading-tight sm:text-lg">
+                        Meus pedidos
+                    </h1>
+                    <p className="truncate text-xs text-muted-foreground">
+                        Histórico, cashback e fidelidade
+                    </p>
+                </div>
+            </div>
         </header>
     );
 }
