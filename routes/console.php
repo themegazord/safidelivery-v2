@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('itens:limpar-imagens-temporarias')->hourly();
+Schedule::command('pedidos:cancela-pix-expirados')->everyMinute();

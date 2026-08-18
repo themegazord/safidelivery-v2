@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'pagarme' => [
+        'urlBase' => env('PAGARME_URL_API', 'https://api.pagar.me/core/v5'),
+    ],
+
 ];

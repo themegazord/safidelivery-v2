@@ -16,6 +16,16 @@ const STATUS_CLIENTE_CONFIG: Record<string, IStatusClienteConfig> = {
         variant: "secondary",
         className: "bg-amber-500/10 text-amber-700 border-amber-500/20",
     },
+    "confirmar pix": {
+        label: "Esperando confirmação do Pix",
+        variant: "secondary",
+        className: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+    },
+    "pix expirado": {
+        label: "Pix expirado",
+        variant: "destructive",
+        className: "bg-destructive/10 text-destructive border-destructive/20",
+    },
     aceito: {
         label: "Pedido aceito",
         variant: "default",

@@ -4,8 +4,11 @@ namespace App\Actions\FinalizarPedido;
 
 use App\Models\CategoriaBorda;
 use App\Models\CategoriaMassa;
+use App\Models\Cliente;
 use App\Models\Complemento;
 use App\Models\FinanceiroPedido;
+use App\Models\FormaPagamento;
+use App\Models\Integracao;
 use App\Models\Item;
 use App\Models\Mesa;
 use App\Models\Pedido;
@@ -14,9 +17,12 @@ use App\Models\PedidoComplemento;
 use App\Models\PedidoItem;
 use App\Models\PedidoSaborPizza;
 use App\Services\Fidelidade\FidelidadeService;
+use App\Services\Pagarme\Pedidos\ApiExternaPedidos;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class FinalizarPedidoAction
 {
@@ -128,9 +134,32 @@ class FinalizarPedidoAction
                     : session('comanda_atual');
             }
 
-            // TODO: Status 'confirmar pix' — implementar quando integração Pagar.me estiver pronta
-            // TODO: Status 'aguardando_item_premio' — implementar quando fidelidade estiver pronta
-            $dadosPedido['status'] = $tipo_funcionamento === 'mesa' ? 'pedido feito' : 'pendente';
+            $totalFinanceiro = $tipo_funcionamento !== 'mesa'
+                ? ($subtotal + floatval($frete ?? 0) - $valorDesconto - $cashbackUtilizado)
+                : $subtotal;
+
+            // Item grátis de fidelidade já é escolhido pelo cliente antes de finalizar (ModalEscolherPremio),
+            // então o pedido nunca precisa esperar seleção pós-criação — não existe estado "aguardando_item_premio" aqui.
+            $formaPagamentoTipo = ($tipo_funcionamento !== 'mesa' && $forma_pagamento)
+                ? FormaPagamento::find($forma_pagamento)?->tipo
+                : null;
+
+            $temIntegracaoPagarme = Integracao::where('empresa_id', $empresa_id)
+                ->where('tipo', 'pagarme')
+                ->whereNotNull('chavesecreta_pagarme')
+                ->exists();
+
+            $pixComPagarme = $tipo_funcionamento === 'delivery'
+                && ! $usarCashback
+                && $formaPagamentoTipo === 'PIX'
+                && $temIntegracaoPagarme
+                && $totalFinanceiro > 0;
+
+            $dadosPedido['status'] = match (true) {
+                $tipo_funcionamento === 'mesa' => 'pedido feito',
+                $pixComPagarme => 'confirmar pix',
+                default => 'pendente',
+            };
 
             $pedidoCadastrado = Pedido::create($dadosPedido);
 
@@ -139,7 +168,7 @@ class FinalizarPedidoAction
                 'pedido_id'          => $pedidoCadastrado->id,
                 'forma_pagamento_id' => $tipo_funcionamento !== 'mesa' ? $forma_pagamento : null,
                 'subtotal_itens'     => $subtotal,
-                'total'              => $tipo_funcionamento !== 'mesa' ? ($subtotal + floatval($frete ?? 0) - $valorDesconto - $cashbackUtilizado) : $subtotal,
+                'total'              => $totalFinanceiro,
                 'valor_desconto'     => $valorDesconto > 0 ? $valorDesconto : null,
                 'cashback_utilizado' => $cashbackUtilizado,
             ];
@@ -147,7 +176,7 @@ class FinalizarPedidoAction
             // TODO: Troco para pagamento em dinheiro — implementar quando formas de pagamento estiverem prontas
             // TODO: Múltiplas formas de pagamento (FinanceiroPedidoPagamento) — implementar quando a tela estiver pronta
 
-            FinanceiroPedido::create($financeiro);
+            $financeiroCriado = FinanceiroPedido::create($financeiro);
 
             if ($cupomValidado && $clienteAutenticado) {
                 DB::table('promocao_usada')->insert([
@@ -196,7 +225,9 @@ class FinalizarPedidoAction
                 );
             }
 
-            // TODO: Gerar pedido PIX na Pagar.me — implementar quando integração estiver pronta
+            if ($pixComPagarme && $clienteAutenticado) {
+                $this->geraPedidoPagarme($pedidoCadastrado, $financeiroCriado, $clienteAutenticado, floatval($frete ?? 0));
+            }
 
             return [
                 'pedido' => $pedidoCadastrado,
@@ -343,5 +374,106 @@ class FinalizarPedidoAction
             'mesa'     => 'M',
             'retirada' => 'R',
         };
+    }
+
+    /**
+     * Gera o pedido/cobrança PIX na Pagar.me. Falhas de comunicação com a API externa não devem
+     * derrubar o pedido já criado: o cliente cai de volta para "pendente" e segue manualmente.
+     */
+    private function geraPedidoPagarme(Pedido $pedido, FinanceiroPedido $financeiro, Cliente $cliente, float $frete): void
+    {
+        $endereco = $cliente->endereco;
+
+        if (! $endereco) {
+            Log::channel('financial')->warning('[PAGARME] Cliente sem endereço cadastrado, pix não gerado', [
+                'pedido_id' => $pedido->id,
+                'cliente_id' => $cliente->id,
+            ]);
+
+            return;
+        }
+
+        try {
+            $financeiro->refresh();
+            $pedido->load('itens.sabores');
+
+            $telefoneDigitos = preg_replace('/\D/', '', $cliente->telefone ?? '');
+            $enderecoArray = [
+                'line_1'   => substr("{$endereco->numero}, {$endereco->logradouro}, {$endereco->bairro}", 0, 255),
+                'line_2'   => substr($endereco->complemento ?? '', 0, 255),
+                'zip_code' => preg_replace('/\D/', '', $endereco->cep ?? ''),
+                'city'     => $endereco->cidade,
+                'state'    => $endereco->uf,
+                'country'  => 'BR',
+            ];
+
+            app(ApiExternaPedidos::class)->criarPedido(
+                empresa_id: $pedido->empresa_id,
+                uuid_financeiro: $financeiro->uuid,
+                cliente: [
+                    'name' => $cliente->nome,
+                    'type' => 'individual',
+                    'email' => $cliente->email,
+                    'document' => preg_replace('/\D/', '', $cliente->cpf_cnpj ?? ''),
+                    'address' => $enderecoArray,
+                    'phones' => [
+                        'mobile_phone' => [
+                            'country_code' => '55',
+                            'area_code' => substr($telefoneDigitos, 0, 2),
+                            'number' => substr($telefoneDigitos, 2),
+                        ],
+                    ],
+                ],
+                items: $this->montaItensPagarme($pedido),
+                pagamento: [[
+                    'payment_method' => 'pix',
+                    'pix' => ['expires_in' => 300],
+                    'amount' => $this->realCentavo($financeiro->total),
+                ]],
+                entrega: [
+                    'amount' => $this->realCentavo($frete),
+                    'description' => 'Frete',
+                    'recipient_name' => $cliente->nome,
+                    'recipient_phone' => $telefoneDigitos,
+                    'address' => $enderecoArray,
+                ],
+            );
+        } catch (Throwable $e) {
+            Log::channel('financial')->error('[PAGARME] Falha ao gerar pedido PIX, pedido segue como pendente', [
+                'pedido_id' => $pedido->id,
+                'erro' => $e->getMessage(),
+            ]);
+
+            $pedido->update(['status' => 'pendente']);
+        }
+    }
+
+    /**
+     * @return array<int, array{amount: int, code: string, description: string, quantity: int}>
+     */
+    private function montaItensPagarme(Pedido $pedido): array
+    {
+        return $pedido->itens->map(function (PedidoItem $item) {
+            // Item premiado (fidelidade) é grátis para o cliente — o desconto já está
+            // refletido no total do pedido, então ele entra no recibo com valor zero.
+            $valor = $item->item_premio ? 0.0 : match ($item->tipo) {
+                'I', 'C' => (float) $item->subtotal,
+                'P'      => $item->sabores->sum(fn ($s) => $s->preco_unitario * $s->qtde)
+                    + (float) $item->preco_borda + (float) $item->preco_massa,
+                default  => 0.0,
+            };
+
+            return [
+                'amount'      => $this->realCentavo($valor),
+                'code'        => (string) $item->id,
+                'description' => $item->nome,
+                'quantity'    => $item->quantidade,
+            ];
+        })->all();
+    }
+
+    private function realCentavo(float $valor): int
+    {
+        return (int) round($valor * 100);
     }
 }

@@ -26,6 +26,7 @@ use App\Http\Controllers\Empresa\Pedidos\TodosPedidosController;
 use App\Http\Controllers\Empresa\Promocoes\PromocaoController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PedidoImpressaoController;
+use App\Http\Controllers\Webhook\Pagarme\Pedidos\PixAceitoController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -195,5 +196,9 @@ Route::group([], function () {
         Route::get('/{pedido_id}', [PedidoImpressaoController::class, 'pdf'])->name('pedido.imprimir')->middleware('signed');
         Route::get('/{pedido_id}/txt', [PedidoImpressaoController::class, 'txt'])->name('pedido.imprimir.txt')->middleware('signed');
         Route::get('/{pedido_id}/escpos', [PedidoImpressaoController::class, 'escpos'])->name('pedido.imprimir.escpos')->middleware('signed');
+    });
+
+    Route::prefix('webhook/pagarme')->group(function () {
+        Route::post('pix-aceito', [PixAceitoController::class, 'index'])->name('webhook.pagarme.pix-aceito');
     });
 });

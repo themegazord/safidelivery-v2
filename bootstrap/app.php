@@ -24,7 +24,8 @@ return Application::configure(basePath: dirname(__DIR__))
             '*/configuracoes',
             'autenticacao/empresa/login',
             'loja/*',
-            'finalizar-pedido/altera-endereco-principal'
+            'finalizar-pedido/altera-endereco-principal',
+            'webhook/pagarme/*',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
