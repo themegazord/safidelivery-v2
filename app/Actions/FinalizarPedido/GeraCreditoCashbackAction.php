@@ -15,19 +15,19 @@ class GeraCreditoCashbackAction
         string $tipoFuncionamento,
         float $subtotalItens,
         float $cashbackUtilizado,
-    ): void {
+    ): float {
         if ($tipoFuncionamento === 'mesa') {
-            return;
+            return 0.0;
         }
 
         $config = CashbackConfig::where('empresa_id', $empresaId)->first();
 
         if (! $config?->getAttribute('status')) {
-            return;
+            return 0.0;
         }
 
         if (! in_array($tipoFuncionamento, $config->tipos_funcionamento_efetivos, true)) {
-            return;
+            return 0.0;
         }
 
         if ($config->cashback_tipo?->value === 'porcentagem') {
@@ -41,7 +41,7 @@ class GeraCreditoCashbackAction
         }
 
         if ($cashbackGerado <= 0) {
-            return;
+            return 0.0;
         }
 
         $cashbackGerado = round($cashbackGerado, 2);
@@ -55,5 +55,7 @@ class GeraCreditoCashbackAction
             'data_gerado' => $pedido->getAttribute('created_at'),
             'data_vencimento' => now()->addDays((int) $config->getAttribute('dias_validade')),
         ]);
+
+        return $cashbackGerado;
     }
 }

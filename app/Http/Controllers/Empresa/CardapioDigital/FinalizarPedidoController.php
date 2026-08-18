@@ -258,7 +258,7 @@ class FinalizarPedidoController extends Controller
             ->firstOrFail();
 
         try {
-            $pedidoCadastrado = (new FinalizarPedidoAction())->handle(
+            $resultado = (new FinalizarPedidoAction())->handle(
                 pedido: $request->input('pedido', []),
                 forma_pagamento: $dados['forma_pagamento'] ?? null,
                 frete: $dados['frete'] ?? null,
@@ -277,7 +277,8 @@ class FinalizarPedidoController extends Controller
             );
 
             return response()->json([
-                'pedido_id' => $pedidoCadastrado->id,
+                'pedido_id' => $resultado['pedido']->id,
+                'cashback_gerado' => $resultado['cashback_gerado'],
                 'mensagem'  => 'Pedido realizado com sucesso!',
             ]);
         } catch (\Exception $e) {

@@ -1,5 +1,6 @@
 import AdicionarEnderecoNovo from "@/components/Empresa/CardapioDigital/Modais/FinalizarPedido/AdicionarEnderecoNovo";
 import AlteraEnderecoPrincipal from "@/components/Empresa/CardapioDigital/Modais/FinalizarPedido/AlteraEnderecoPrincipal";
+import CashbackGeradoDialog from "@/components/Empresa/FinalizarPedido/Modais/CashbackGeradoDialog";
 import CashbackPedido from "@/components/Empresa/FinalizarPedido/Cards/CashbackPedido";
 import CupomPedido from "@/components/Empresa/FinalizarPedido/Cards/CupomPedido";
 import DadosEntrega from "@/components/Empresa/FinalizarPedido/Cards/DadosEntrega";
@@ -67,6 +68,8 @@ export default function FinalizarPedido() {
     const [usarCashback, setUsarCashback] = useState<boolean>(false)
     const [resgateFidelidade, setResgateFidelidade] = useState<IResgateFidelidade | null>(null)
     const [modalPremioAberto, setModalPremioAberto] = useState<boolean>(false)
+    const [modalCashbackAberto, setModalCashbackAberto] = useState<boolean>(false)
+    const [cashbackGerado, setCashbackGerado] = useState<number>(0)
     const [observacaoPedido, setObservacaoPedido] = useState<string | undefined>(undefined)
     const [dadosDistanciaRota, setDadosDistaciaRota] = useState< IDadosDistanciaRota | null>(null)
     const [erroEntrega, setErroEntrega] = useState<string | null>(null)
@@ -160,7 +163,7 @@ export default function FinalizarPedido() {
         setIsFinalizando(true);
 
         try {
-            await axios.post(route('aplicacao.empresa.finalizar-pedido.store'), {
+            const response = await axios.post(route('aplicacao.empresa.finalizar-pedido.store'), {
                 pedido: carrinho,
                 forma_pagamento: formaPagamento,
                 frete: dadosDistanciaRota?.dadosDistanciaRota.taxaFrete,
@@ -181,6 +184,15 @@ export default function FinalizarPedido() {
 
             limparCarrinho();
             toast.success('Pedido realizado com sucesso!');
+
+            const cashbackGeradoPedido = response.data?.cashback_gerado ?? 0;
+
+            if (cashbackGeradoPedido > 0) {
+                setCashbackGerado(cashbackGeradoPedido);
+                setModalCashbackAberto(true);
+                return;
+            }
+
             router.visit(route('aplicacao.empresa.cardapio-digital', { interacao_id, tipo_funcionamento }));
         } catch (error) {
             if (axios.isAxiosError(error)) {
@@ -192,6 +204,11 @@ export default function FinalizarPedido() {
         } finally {
             setIsFinalizando(false);
         }
+    }
+
+    function continuarAposCashback() {
+        setModalCashbackAberto(false);
+        router.visit(route('aplicacao.empresa.cardapio-digital', { interacao_id, tipo_funcionamento }));
     }
 
     return (
@@ -255,6 +272,11 @@ export default function FinalizarPedido() {
                     setResgateFidelidade(resgate)
                     toast.success('Prêmio escolhido! Ele será adicionado ao seu pedido.')
                 }}
+            />
+            <CashbackGeradoDialog
+                aberto={modalCashbackAberto}
+                cashbackGerado={cashbackGerado}
+                onContinuar={continuarAposCashback}
             />
         </div>
     );

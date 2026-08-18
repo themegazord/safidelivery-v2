@@ -36,7 +36,7 @@ class FinalizarPedidoAction
         ?string $cupom = null,
         bool $usarCashback = false,
         ?array $resgateFidelidade = null,
-    ): Pedido {
+    ): array {
         return DB::transaction(function () use (
             $pedido,
             $forma_pagamento,
@@ -172,8 +172,10 @@ class FinalizarPedidoAction
                 };
             }
 
+            $cashbackGerado = 0.0;
+
             if ($clienteAutenticado) {
-                (new GeraCreditoCashbackAction())->handle(
+                $cashbackGerado = (new GeraCreditoCashbackAction())->handle(
                     $empresa_id,
                     $clienteAutenticado->id,
                     $pedidoCadastrado,
@@ -196,7 +198,10 @@ class FinalizarPedidoAction
 
             // TODO: Gerar pedido PIX na Pagar.me — implementar quando integração estiver pronta
 
-            return $pedidoCadastrado;
+            return [
+                'pedido' => $pedidoCadastrado,
+                'cashback_gerado' => $cashbackGerado,
+            ];
         });
     }
 
