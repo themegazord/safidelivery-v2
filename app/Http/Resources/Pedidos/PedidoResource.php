@@ -34,6 +34,10 @@ class PedidoResource extends JsonResource
             'fidelidade_base_calculo' => $this->fidelidade_base_calculo,
             'frete_original' => $this->frete_original,
             'created_at' => $this->created_at,
+            'empresa' => $this->whenLoaded('empresa', fn () => $this->empresa ? [
+                'nome_fantasia' => $this->empresa->nome_fantasia,
+                'interacao_id' => $this->empresa->interacao_id,
+            ] : null),
             'cliente' => $this->whenLoaded('cliente', fn () => $this->cliente ? [
                 'id' => $this->cliente->id,
                 'nome' => $this->cliente->nome,

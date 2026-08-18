@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Autenticacao\LoginClienteController;
 use App\Http\Controllers\Autenticacao\LoginEmpresaController;
+use App\Http\Controllers\Cliente\MeusPedidosController;
 use App\Http\Controllers\Empresa\CardapioDigital\CardapioController;
 use App\Http\Controllers\Empresa\CardapioDigital\FinalizarPedidoController;
 use App\Http\Controllers\Empresa\Cardapios\CardapioController as EmpresaCardapioController;
@@ -169,6 +170,8 @@ Route::group([], function () {
 });
 
 Route::group([], function () {
+    Route::get('/meus-pedidos', [MeusPedidosController::class, 'index'])->name('aplicacao.cliente.meus-pedidos');
+
     Route::prefix('loja/{interacao_id}/{tipo_funcionamento}')->group(function () {
         Route::get('/', [CardapioController::class, 'index'])->name('aplicacao.empresa.cardapio-digital');
         Route::post('/item-pedido', [CardapioController::class, 'itemPedido'])->name('aplicacao.empresa.cardapio-digital.item-pedido');
