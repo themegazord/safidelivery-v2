@@ -45,3 +45,11 @@ export type TTopCompradoresPorValor = {
     valor_total_gasto: number;
     total_pedidos: number;
 }
+
+export type TTopCompradoresPorQuantidade = {
+    id: number;
+    nome: string;
+    telefone: string;
+    valor_total_gasto: number;
+    total_pedidos: number;
+}

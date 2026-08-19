@@ -26,7 +26,9 @@ import LayoutAutenticado from "@/Layouts/LayoutsAutenticado";
 import {
     TCashbackConfig,
     TDadosFidelidade,
-    TFidelidadeConfig, TTopCompradoresPorValor,
+    TFidelidadeConfig,
+    TTopCompradoresPorQuantidade,
+    TTopCompradoresPorValor,
 } from "@/types/empresa/clientes/types";
 import Stats from "@/components/utils/Stats";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -76,11 +78,15 @@ export default function Clientes() {
 
     const [topCompradoresPorValor, setTopCompradoresPorValor] =
         useState<TTopCompradoresPorValor[] | undefined>(undefined);
+const [topCompradoresPorQuantidade, setTopCompradoresPorQuantidade] =
+        useState<TTopCompradoresPorQuantidade[] | undefined>(undefined);
 
     const [loadingDadosPainelFidelidade, setLoadingDadosPainelFidelidade] = useState(false);
     const [loadingTopCompradoresPorValor, setLoadingTopCompradoresPorValor] = useState(false);
+    const [loadingTopCompradoresPorQuantidade, setLoadingTopCompradoresPorQuantidade] = useState(false);
 
     const [collapsibleTopCompradoresPorValor, setCollapsibleTopCompradoresPorValor] = useState(false);
+    const [collapsibleTopCompradoresPorQuantidade, setCollapsibleTopCompradoresPorQuantidade] = useState(false);
 
     const CASHBACK_CONFIG_DATA = [
         {
@@ -171,9 +177,27 @@ export default function Clientes() {
             .finally(() => setLoadingTopCompradoresPorValor(false));
     }
 
+    async function carregaTopCompradoresPorQuantidade() {
+        setLoadingTopCompradoresPorQuantidade(true);
+        await axios
+            .get(
+                route("aplicacao.empresa.clientes.topCompradoresPorQuantidade", {
+                    cnpj,
+                }),
+            )
+            .then((response) => {
+                setTopCompradoresPorQuantidade(response.data.dados);
+            })
+            .catch((error) => {
+                toast.error(error.response.data.message);
+            })
+            .finally(() => setLoadingTopCompradoresPorQuantidade(false));
+    }
+
     useEffect(() => {
         carregaDadosPainelFidelidade()
         carregaTopCompradoresPorValor()
+        carregaTopCompradoresPorQuantidade()
     }, [])
 
     return (
@@ -373,7 +397,136 @@ export default function Clientes() {
                                                                                 comprador.valor_total_gasto,
                                                                             )}
                                                                         </span>
-                                                                        <span className="text-xs whitespace-nowrap text-gray-400">{comprador.total_pedidos} ped.</span>
+                                                                        <span className="text-xs whitespace-nowrap text-gray-400">
+                                                                            {
+                                                                                comprador.total_pedidos
+                                                                            }{" "}
+                                                                            ped.
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            ),
+                                                        )}
+                                                </CollapsibleContent>
+                                            </>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            </Collapsible>
+                        )}
+                        {(topCompradoresPorQuantidade?.length ?? 0) > 0 && (
+                            <Collapsible
+                                open={collapsibleTopCompradoresPorQuantidade}
+                                onOpenChange={
+                                    setCollapsibleTopCompradoresPorQuantidade
+                                }
+                            >
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>
+                                            Top por Quantidade Gasto
+                                        </CardTitle>
+                                        <CardDescription>
+                                            Maiores compradores por valor total
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                                            {(topCompradoresPorQuantidade ?? [])
+                                                .slice(0, 3)
+                                                .map(
+                                                    (
+                                                        comprador,
+                                                        compradorIdx,
+                                                    ) => (
+                                                        <div
+                                                            className={`${MEDALHAS[compradorIdx].classe} flex flex-row items-center gap-3 rounded-xl border-2 p-3 sm:flex-col sm:items-start sm:gap-1`}
+                                                        >
+                                                            <span className="shrink-0 text-2xl sm:text-xl">
+                                                                {
+                                                                    MEDALHAS[
+                                                                        compradorIdx
+                                                                    ].emoji
+                                                                }
+                                                            </span>
+                                                            <div className="min-w-0 flex-1">
+                                                                <div className="truncate text-sm font-bold">
+                                                                    {
+                                                                        comprador.nome
+                                                                    }
+                                                                </div>
+                                                                <div className="mt-0.5 text-xs text-gray-400">
+                                                                    Total gasto
+                                                                </div>
+                                                                <div className="text-sm font-semibold text-green-700">
+                                                                    R${" "}
+                                                                    {converteReal(
+                                                                        comprador.valor_total_gasto,
+                                                                    )}
+                                                                </div>
+                                                                <div className="text-xs text-gray-500">
+                                                                    {
+                                                                        comprador.total_pedidos
+                                                                    }{" "}
+                                                                    pedidos
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ),
+                                                )}
+                                        </div>
+                                        {(topCompradoresPorQuantidade ?? []).length >
+                                            3 && (
+                                            <>
+                                                <CollapsibleTrigger
+                                                    render={
+                                                        <Button
+                                                            variant={"ghost"}
+                                                        >
+                                                            <ChevronsUpDown />{" "}
+                                                            {collapsibleTopCompradoresPorQuantidade
+                                                                ? "Ocultar restante"
+                                                                : `Ver posições 4º-${topCompradoresPorQuantidade?.length}º`}
+                                                        </Button>
+                                                    }
+                                                />
+                                                <CollapsibleContent className="flex flex-col divide-y">
+                                                    {(
+                                                        topCompradoresPorQuantidade ??
+                                                        []
+                                                    )
+                                                        .slice(3)
+                                                        .map(
+                                                            (
+                                                                comprador,
+                                                                compradorIdx,
+                                                            ) => (
+                                                                <div className="flex items-center justify-between gap-2 py-2">
+                                                                    <div className="flex min-w-0 items-center gap-2">
+                                                                        <span className="w-4 shrink-0 text-right text-xs font-bold text-gray-400">
+                                                                            {compradorIdx +
+                                                                                4}
+                                                                            º
+                                                                        </span>
+                                                                        <span className="truncate text-sm font-medium">
+                                                                            {
+                                                                                comprador.nome
+                                                                            }
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="flex shrink-0 items-center gap-2 text-sm">
+                                                                        <span className="font-semibold whitespace-nowrap text-green-700">
+                                                                            R${" "}
+                                                                            {converteReal(
+                                                                                comprador.valor_total_gasto,
+                                                                            )}
+                                                                        </span>
+                                                                        <span className="text-xs whitespace-nowrap text-gray-400">
+                                                                            {
+                                                                                comprador.total_pedidos
+                                                                            }{" "}
+                                                                            ped.
+                                                                        </span>
                                                                     </div>
                                                                 </div>
                                                             ),

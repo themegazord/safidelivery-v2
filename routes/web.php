@@ -81,6 +81,7 @@ Route::group([], function () {
             Route::get('/', [ClienteController::class, 'index'])->name('aplicacao.empresa.clientes.index');
             Route::get('/consultaDadosPainelCashback', [ClienteController::class, 'consultaDadosPainelCashback'])->name('aplicacao.empresa.clientes.consultaDadosPainelCashback');
             Route::get('/topCompradoresPorValor', [ClienteController::class, 'topCompradoresPorValor'])->name('aplicacao.empresa.clientes.topCompradoresPorValor');
+            Route::get('/topCompradoresPorQuantidade', [ClienteController::class, 'topCompradoresPorQuantidade'])->name('aplicacao.empresa.clientes.topCompradoresPorQuantidade');
         });
         Route::prefix('configempresa')->group(function () {
             Route::get('loja', [LojaController::class, 'index'])->name('aplicacao.empresa.configempresa.loja');
