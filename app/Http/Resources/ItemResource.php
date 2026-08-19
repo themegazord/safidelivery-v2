@@ -5,56 +5,59 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin \App\Models\Item
+ */
 class ItemResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-            'external_id' => $this->external_id,
-            'categoria_id' => $this->categoria_id,
-            'tipo' => $this->tipo,
-            'nome' => $this->nome,
-            'tipo_preco' => $this->tipo_preco,
-            'preco' => $this->preco,
-            'precos' => $this->whenLoaded('precosItemPizza', fn () => $this->precosItemPizza->map(fn ($preco) => [
-                'tamanho_id' => $preco->tamanho_id,
-                'tamanho' => $preco->tamanho?->nome,
-                'status' => $preco->status,
-                'preco' => $preco->preco,
-                'dias_funcionamento' => $preco->dias_funcionamento,
+            'id' => $this->getAttribute('id'),
+            'external_id' => $this->getAttribute('external_id'),
+            'categoria_id' => $this->getAttribute('categoria_id'),
+            'tipo' => $this->getAttribute('tipo'),
+            'nome' => $this->getAttribute('nome'),
+            'tipo_preco' => $this->getAttribute('tipo_preco'),
+            'preco' => $this->getAttribute('preco'),
+            'precos' => $this->whenLoaded('precosItemPizza', fn () => $this->getAttribute('precosItemPizza')->map(fn ($preco) => [
+                'tamanho_id' => $preco->getAttribute('tamanho_id'),
+                'tamanho' => $preco->getAttribute('tamanho')?->getAttribute('nome'),
+                'status' => $preco->getAttribute('status'),
+                'preco' => $preco->getAttribute('preco'),
+                'dias_funcionamento' => $preco->getAttribute('dias_funcionamento'),
             ])),
-            'grupo_complementos' => $this->whenLoaded('grupo_complemento', fn () => $this->grupo_complemento->map(fn ($grupo) => [
-                'id' => $grupo->id,
-                'item_id' => $grupo->item_id,
-                'nome' => $grupo->nome,
-                'obrigatoriedade' => $grupo->obrigatoriedade,
-                'qtd_minima' => $grupo->qtd_minima,
-                'qtd_maxima' => $grupo->qtd_maxima,
-                'complementos' => $grupo->complementos->map(fn ($complemento) => [
-                    'id' => $complemento->id,
-                    'external_id' => $complemento->external_id,
-                    'grupo_id' => $complemento->grupo_id,
-                    'imagem' => $complemento->imagem,
-                    'nome' => $complemento->nome,
-                    'descricao' => $complemento->descricao,
-                    'preco' => $complemento->preco,
-                    'status' => $complemento->status
+            'grupo_complementos' => $this->whenLoaded('grupo_complemento', fn () => $this->getAttribute('grupo_complemento')->map(fn ($grupo) => [
+                'id' => $grupo->getAttribute('id'),
+                'item_id' => $grupo->getAttribute('item_id'),
+                'nome' => $grupo->getAttribute('nome'),
+                'obrigatoriedade' => $grupo->getAttribute('obrigatoriedade'),
+                'qtd_minima' => $grupo->getAttribute('qtd_minima'),
+                'qtd_maxima' => $grupo->getAttribute('qtd_maxima'),
+                'complementos' => $grupo->getAttribute('complementos')->map(fn ($complemento) => [
+                    'id' => $complemento->getAttribute('id'),
+                    'external_id' => $complemento->getAttribute('external_id'),
+                    'grupo_id' => $complemento->getAttribute('grupo_id'),
+                    'imagem' => $complemento->getAttribute('imagem'),
+                    'nome' => $complemento->getAttribute('nome'),
+                    'descricao' => $complemento->getAttribute('descricao'),
+                    'preco' => $complemento->getAttribute('preco'),
+                    'status' => $complemento->getAttribute('status')
                 ])
             ])),
-            'desconto' => $this->desconto,
-            'valor_desconto' => $this->valor_desconto,
-            'porcentagem_desconto' => $this->porcentagem_desconto,
-            'descricao' => $this->descricao,
-            'qtde_pessoas' => $this->qtde_pessoas,
-            'peso' => $this->peso,
-            'gramagem' => $this->gramagem,
-            'eh_bebida' => $this->eh_bebida,
-            'classificacao' => $this->classificacao,
-            'imagem' => $this->imagem,
-            'dias_funcionamento' => $this->dias_funcionamento,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'desconto' => $this->getAttribute('desconto'),
+            'valor_desconto' => $this->getAttribute('valor_desconto'),
+            'porcentagem_desconto' => $this->getAttribute('porcentagem_desconto'),
+            'descricao' => $this->getAttribute('descricao'),
+            'qtde_pessoas' => $this->getAttribute('qtde_pessoas'),
+            'peso' => $this->getAttribute('peso'),
+            'gramagem' => $this->getAttribute('gramagem'),
+            'eh_bebida' => $this->getAttribute('eh_bebida'),
+            'classificacao' => $this->getAttribute('classificacao'),
+            'imagem' => $this->getAttribute('imagem'),
+            'dias_funcionamento' => $this->getAttribute('dias_funcionamento'),
+            'created_at' => $this->getAttribute('created_at'),
+            'updated_at' => $this->getAttribute('updated_at'),
         ];
     }
 }
