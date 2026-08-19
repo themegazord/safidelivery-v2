@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Empresa\Clientes;
 
 use App\Actions\Clientes\ConsultaDadosPainelCashbackAction;
+use App\Actions\Clientes\TopCompradoresPorValorAction;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Clientes\TopCompradoresPorValorResource;
 use App\Models\CashbackConfig;
 use App\Models\Configuracao;
 use App\Models\Empresa;
@@ -55,6 +57,21 @@ class ClienteController extends Controller
             return response()->json(['message' => 'Não foi possivel localizar os dados do painel de cashback'], 400);
         }
         return response()->json(['dados' => $dados]);
+    }
+
+    public function topCompradoresPorValor(string $cnpj, TopCompradoresPorValorAction $action): JsonResponse {
+        try {
+            $compradores = $action->handle($this->empresa);
+        } catch (\Throwable $th) {
+            Log::error('Não foi possivel localizar o top de compradores por valor', [
+                'exception' => $th,
+                'message' => $th->getMessage(),
+                'empresa_id' => $this->empresa->id,
+            ]);
+            return response()->json(['message' => 'Não foi possivel localizar o top de compradores por valor'], 400);
+        }
+
+        return response()->json(['dados' => TopCompradoresPorValorResource::collection($compradores)]);
     }
 
     /**

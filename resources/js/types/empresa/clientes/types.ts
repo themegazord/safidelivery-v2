@@ -37,3 +37,11 @@ export type TDadosFidelidade = {
     clientes_com_recompensa: number;
     clientes_proximos_meta: number;
 };
+
+export type TTopCompradoresPorValor = {
+    id: number;
+    nome: string;
+    telefone: string;
+    valor_total_gasto: number;
+    total_pedidos: number;
+}
