@@ -26,6 +26,7 @@ use App\Http\Controllers\Empresa\Pedidos\TodosPedidosController;
 use App\Http\Controllers\Empresa\Promocoes\PromocaoController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PedidoImpressaoController;
+use App\Http\Controllers\Empresa\Clientes\ClienteController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -75,6 +76,10 @@ Route::group([], function () {
             Route::post('/{pedido_id}/confirmar-entrega', [PedidosController::class, 'confirmarEntrega'])->name('aplicacao.empresa.pedidos.confirmar-entrega');
             Route::post('/{pedido_id}/todos-pedidos-cancelar', [TodosPedidosController::class, 'cancelar'])->name('aplicacao.empresa.pedidos.todos-pedidos.cancelar');
             Route::post('/{pedido_id}/todos-pedidos-confirmar-entrega', [TodosPedidosController::class, 'confirmarEntrega'])->name('aplicacao.empresa.pedidos.todos-pedidos.confirmar-entrega');
+        });
+        Route::prefix('clientes')->group(function () {
+            Route::get('/', [ClienteController::class, 'index'])->name('aplicacao.empresa.clientes.index');
+            Route::get('/consultaDadosPainelCashback', [ClienteController::class, 'consultaDadosPainelCashback'])->name('aplicacao.empresa.clientes.consultaDadosPainelCashback');
         });
         Route::prefix('configempresa')->group(function () {
             Route::get('loja', [LojaController::class, 'index'])->name('aplicacao.empresa.configempresa.loja');
