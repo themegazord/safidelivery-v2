@@ -59,6 +59,35 @@ function StatsSkeleton({ quantidade }: { quantidade: number }) {
     );
 }
 
+function TopCompradoresSkeleton() {
+    return (
+        <Card>
+            <CardHeader>
+                <Skeleton className="h-5 w-40" />
+                <Skeleton className="h-4 w-56" />
+            </CardHeader>
+            <CardContent>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    {Array.from({ length: 3 }).map((_, idx) => (
+                        <div
+                            key={idx}
+                            className="flex flex-row items-center gap-3 rounded-xl border-2 border-zinc-200 bg-zinc-50 p-3 sm:flex-col sm:items-start sm:gap-1 dark:border-zinc-800 dark:bg-zinc-900"
+                        >
+                            <Skeleton className="h-8 w-8 shrink-0 rounded-full" />
+                            <div className="min-w-0 flex-1 space-y-2">
+                                <Skeleton className="h-4 w-24" />
+                                <Skeleton className="h-3 w-16" />
+                                <Skeleton className="h-4 w-20" />
+                                <Skeleton className="h-3 w-14" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
 export default function Clientes() {
     const {
         cnpj,
@@ -290,7 +319,10 @@ const [topCompradoresPorQuantidade, setTopCompradoresPorQuantidade] =
                     )}
 
                     <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-2">
-                        {(topCompradoresPorValor?.length ?? 0) > 0 && (
+                        {loadingTopCompradoresPorValor && (
+                            <TopCompradoresSkeleton />
+                        )}
+                        {!loadingTopCompradoresPorValor && (topCompradoresPorValor?.length ?? 0) > 0 && (
                             <Collapsible
                                 open={collapsibleTopCompradoresPorValor}
                                 onOpenChange={
@@ -414,7 +446,10 @@ const [topCompradoresPorQuantidade, setTopCompradoresPorQuantidade] =
                                 </Card>
                             </Collapsible>
                         )}
-                        {(topCompradoresPorQuantidade?.length ?? 0) > 0 && (
+                        {loadingTopCompradoresPorQuantidade && (
+                            <TopCompradoresSkeleton />
+                        )}
+                        {!loadingTopCompradoresPorQuantidade && (topCompradoresPorQuantidade?.length ?? 0) > 0 && (
                             <Collapsible
                                 open={collapsibleTopCompradoresPorQuantidade}
                                 onOpenChange={
