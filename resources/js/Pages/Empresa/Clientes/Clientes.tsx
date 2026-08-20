@@ -12,31 +12,55 @@ import {
     AlertTitle,
 } from "@/components/ui/alert";
 import {
+    ArrowDown,
+    ArrowUp,
+    ArrowUpDown,
     Banknote,
-    CheckCircle, ChevronsUpDown,
+    CheckCircle,
+    ChevronsUpDown,
     Clock,
+    Eye,
     Flame,
     Gift,
+    RotateCcw,
     TriangleAlert,
     Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link, usePage } from "@inertiajs/react";
+import { Link, router, usePage } from "@inertiajs/react";
 import LayoutAutenticado from "@/Layouts/LayoutsAutenticado";
 import {
     TCashbackConfig,
+    TClienteDetalhe,
+    TClienteListagem,
     TDadosFidelidade,
     TFidelidadeConfig,
+    TFiltrosClientes,
     TTopCompradoresPorQuantidade,
     TTopCompradoresPorValor,
 } from "@/types/empresa/clientes/types";
+import { IPaginacao } from "@/types/empresa/cardapios/types";
 import Stats from "@/components/utils/Stats";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import {converteReal} from "@/utils/utils";
-import {Collapsible, CollapsibleContent, CollapsibleTrigger} from "@/components/ui/collapsible";
+import { converteReal } from "@/utils/utils";
+import { formatarData, formatarTelefone } from "@/utils/pedidos";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import ClienteDetalhesDialog from "@/components/Empresa/Clientes/ClienteDetalhesDialog";
 
 function StatsSkeleton({ quantidade }: { quantidade: number }) {
     return (
@@ -88,7 +112,13 @@ function TopCompradoresSkeleton() {
     );
 }
 
-export default function Clientes() {
+interface IProps {
+    clientes: IPaginacao<TClienteListagem>;
+    filtros: TFiltrosClientes;
+    timezone: string;
+}
+
+export default function Clientes({ clientes, filtros, timezone }: IProps) {
     const {
         cnpj,
         periodoInatividadeCliente,
@@ -107,7 +137,7 @@ export default function Clientes() {
 
     const [topCompradoresPorValor, setTopCompradoresPorValor] =
         useState<TTopCompradoresPorValor[] | undefined>(undefined);
-const [topCompradoresPorQuantidade, setTopCompradoresPorQuantidade] =
+    const [topCompradoresPorQuantidade, setTopCompradoresPorQuantidade] =
         useState<TTopCompradoresPorQuantidade[] | undefined>(undefined);
 
     const [loadingDadosPainelFidelidade, setLoadingDadosPainelFidelidade] = useState(false);
@@ -116,6 +146,14 @@ const [topCompradoresPorQuantidade, setTopCompradoresPorQuantidade] =
 
     const [collapsibleTopCompradoresPorValor, setCollapsibleTopCompradoresPorValor] = useState(false);
     const [collapsibleTopCompradoresPorQuantidade, setCollapsibleTopCompradoresPorQuantidade] = useState(false);
+
+    const [nome, setNome] = useState(filtros.nome ?? "");
+    const [telefone, setTelefone] = useState(filtros.telefone ?? "");
+    const primeiraRenderizacao = useRef(true);
+
+    const [clienteDetalhe, setClienteDetalhe] = useState<TClienteDetalhe | undefined>(undefined);
+    const [loadingDetalhe, setLoadingDetalhe] = useState(false);
+    const [modalDetalheOpen, setModalDetalheOpen] = useState(false);
 
     const CASHBACK_CONFIG_DATA = [
         {
@@ -228,6 +266,93 @@ const [topCompradoresPorQuantidade, setTopCompradoresPorQuantidade] =
         carregaTopCompradoresPorValor()
         carregaTopCompradoresPorQuantidade()
     }, [])
+
+    function aplicarFiltros(novosFiltros: Partial<TFiltrosClientes>) {
+        router.get(
+            route("aplicacao.empresa.clientes.index", { cnpj }),
+            { ...filtros, ...novosFiltros },
+            { preserveState: true, replace: true },
+        );
+    }
+
+    useEffect(() => {
+        if (primeiraRenderizacao.current) {
+            primeiraRenderizacao.current = false;
+            return;
+        }
+        const temporizador = setTimeout(() => aplicarFiltros({ nome, telefone }), 400);
+        return () => clearTimeout(temporizador);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [nome, telefone]);
+
+    function limparFiltros() {
+        setNome("");
+        setTelefone("");
+        router.get(route("aplicacao.empresa.clientes.index", { cnpj }), {}, { preserveState: true, replace: true });
+    }
+
+    function ordenarPor(coluna: string) {
+        const novaDirecao = filtros.sort_by === coluna && filtros.sort_dir !== "desc" ? "desc" : "asc";
+        aplicarFiltros({ sort_by: coluna, sort_dir: novaDirecao });
+    }
+
+    function iconeOrdenacao(coluna: string) {
+        if (filtros.sort_by !== coluna) return <ArrowUpDown className="h-3 w-3 text-muted-foreground" />;
+        return filtros.sort_dir === "desc" ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />;
+    }
+
+    async function abrirDetalhes(clienteId: number) {
+        setModalDetalheOpen(true);
+        setLoadingDetalhe(true);
+        await axios
+            .get(route("aplicacao.empresa.clientes.detalhe", { cnpj, cliente_id: clienteId }))
+            .then((response) => setClienteDetalhe(response.data))
+            .catch((error) => toast.error(error.response?.data?.message ?? "Erro ao carregar o cliente"))
+            .finally(() => setLoadingDetalhe(false));
+    }
+
+    function renderProgressoFidelidade(cliente: TClienteListagem) {
+        if (!fidelidadeConfig) return null;
+
+        if (cliente.recompensa_disponivel) {
+            return (
+                <Badge className="bg-emerald-600 text-white">
+                    <Gift className="h-3 w-3" /> Recompensa disponível!
+                </Badge>
+            );
+        }
+
+        const meta = fidelidadeConfig.valor_gatilho;
+        if (!(meta > 0)) return <span className="text-xs text-muted-foreground">—</span>;
+
+        const atual = fidelidadeConfig.tipo_gatilho === "qtd_pedidos" ? cliente.pontos_fidelidade : cliente.valor_acumulado_fidelidade;
+        const label = fidelidadeConfig.tipo_gatilho === "qtd_pedidos"
+            ? `${atual}/${meta} pedidos`
+            : `R$ ${converteReal(atual)} / R$ ${converteReal(meta)}`;
+        const percentual = Math.min(100, Math.round((atual / meta) * 100));
+
+        return (
+            <div className="flex w-36 flex-col gap-1">
+                <div className="flex items-center justify-between text-xs">
+                    <span className={percentual >= 70 ? "font-semibold text-orange-600" : "text-muted-foreground"}>{label}</span>
+                    {percentual >= 70 && <Flame className="h-3 w-3 text-orange-500" />}
+                </div>
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                    <div
+                        className={`h-full rounded-full ${percentual >= 70 ? "bg-orange-500" : "bg-primary"}`}
+                        style={{ width: `${percentual}%` }}
+                    />
+                </div>
+                <span className="text-right text-xs text-muted-foreground">{percentual}%</span>
+            </div>
+        );
+    }
+
+    const colspan = 7 + (fidelidadeConfig ? 1 : 0) + (cashbackConfig ? 1 : 0) + (periodoInatividadeCliente ? 1 : 0) + 1;
+    const temFiltrosAtivos = Boolean(
+        filtros.nome || filtros.telefone || filtros.primeira_compra_inicio || filtros.primeira_compra_fim ||
+        filtros.ultima_compra_inicio || filtros.ultima_compra_fim || filtros.proximo_meta,
+    );
 
     return (
         <LayoutAutenticado>
@@ -348,6 +473,7 @@ const [topCompradoresPorQuantidade, setTopCompradoresPorQuantidade] =
                                                         compradorIdx,
                                                     ) => (
                                                         <div
+                                                            key={comprador.id}
                                                             className={`${MEDALHAS[compradorIdx].classe} flex flex-row items-center gap-3 rounded-xl border-2 p-3 sm:flex-col sm:items-start sm:gap-1`}
                                                         >
                                                             <span className="shrink-0 text-2xl sm:text-xl">
@@ -409,7 +535,7 @@ const [topCompradoresPorQuantidade, setTopCompradoresPorQuantidade] =
                                                                 comprador,
                                                                 compradorIdx,
                                                             ) => (
-                                                                <div className="flex items-center justify-between gap-2 py-2">
+                                                                <div key={comprador.id} className="flex items-center justify-between gap-2 py-2">
                                                                     <div className="flex min-w-0 items-center gap-2">
                                                                         <span className="w-4 shrink-0 text-right text-xs font-bold text-gray-400">
                                                                             {compradorIdx +
@@ -475,6 +601,7 @@ const [topCompradoresPorQuantidade, setTopCompradoresPorQuantidade] =
                                                         compradorIdx,
                                                     ) => (
                                                         <div
+                                                            key={comprador.id}
                                                             className={`${MEDALHAS[compradorIdx].classe} flex flex-row items-center gap-3 rounded-xl border-2 p-3 sm:flex-col sm:items-start sm:gap-1`}
                                                         >
                                                             <span className="shrink-0 text-2xl sm:text-xl">
@@ -536,7 +663,7 @@ const [topCompradoresPorQuantidade, setTopCompradoresPorQuantidade] =
                                                                 comprador,
                                                                 compradorIdx,
                                                             ) => (
-                                                                <div className="flex items-center justify-between gap-2 py-2">
+                                                                <div key={comprador.id} className="flex items-center justify-between gap-2 py-2">
                                                                     <div className="flex min-w-0 items-center gap-2">
                                                                         <span className="w-4 shrink-0 text-right text-xs font-bold text-gray-400">
                                                                             {compradorIdx +
@@ -574,8 +701,188 @@ const [topCompradoresPorQuantidade, setTopCompradoresPorQuantidade] =
                             </Collapsible>
                         )}
                     </div>
+
+                    <Card className="mt-4">
+                        <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                            <div className="flex flex-col gap-2">
+                                <Label htmlFor="filtro-nome">Nome do cliente</Label>
+                                <Input id="filtro-nome" placeholder="Insira o nome do cliente..." value={nome} onChange={(e) => setNome(e.target.value)} />
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <Label htmlFor="filtro-telefone">Telefone do cliente</Label>
+                                <Input id="filtro-telefone" placeholder="Insira o telefone do cliente..." value={telefone} onChange={(e) => setTelefone(e.target.value)} />
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <Label htmlFor="filtro-primeira-compra-inicio">Primeira compra (de)</Label>
+                                <Input
+                                    id="filtro-primeira-compra-inicio"
+                                    type="date"
+                                    value={filtros.primeira_compra_inicio ?? ""}
+                                    onChange={(e) => aplicarFiltros({ primeira_compra_inicio: e.target.value })}
+                                />
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <Label htmlFor="filtro-primeira-compra-fim">Primeira compra (até)</Label>
+                                <Input
+                                    id="filtro-primeira-compra-fim"
+                                    type="date"
+                                    value={filtros.primeira_compra_fim ?? ""}
+                                    onChange={(e) => aplicarFiltros({ primeira_compra_fim: e.target.value })}
+                                />
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <Label htmlFor="filtro-ultima-compra-inicio">Última compra (de)</Label>
+                                <Input
+                                    id="filtro-ultima-compra-inicio"
+                                    type="date"
+                                    value={filtros.ultima_compra_inicio ?? ""}
+                                    onChange={(e) => aplicarFiltros({ ultima_compra_inicio: e.target.value })}
+                                />
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <Label htmlFor="filtro-ultima-compra-fim">Última compra (até)</Label>
+                                <Input
+                                    id="filtro-ultima-compra-fim"
+                                    type="date"
+                                    value={filtros.ultima_compra_fim ?? ""}
+                                    onChange={(e) => aplicarFiltros({ ultima_compra_fim: e.target.value })}
+                                />
+                            </div>
+                        </CardContent>
+                        <CardContent className="flex flex-wrap items-center gap-4 border-t pt-4">
+                            {fidelidadeConfig && (
+                                <div className="flex items-center gap-3">
+                                    <Switch
+                                        id="proximo-meta"
+                                        checked={filtros.proximo_meta ?? false}
+                                        onCheckedChange={(v) => aplicarFiltros({ proximo_meta: v })}
+                                    />
+                                    <label htmlFor="proximo-meta" className="text-sm">Apenas próximos da meta (≥ 70%)</label>
+                                    {filtros.proximo_meta && dadosPainelFidelidade && (
+                                        <Badge className="bg-orange-500 text-white">
+                                            <Flame className="h-3 w-3" /> {dadosPainelFidelidade.clientes_proximos_meta} cliente(s)
+                                        </Badge>
+                                    )}
+                                </div>
+                            )}
+                            {temFiltrosAtivos && (
+                                <Button variant="ghost" size="sm" onClick={limparFiltros}>
+                                    <RotateCcw /> Limpar filtros
+                                </Button>
+                            )}
+                            <div className="ml-auto text-sm text-muted-foreground">{clientes.total} cliente(s) encontrado(s)</div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="mt-4">
+                        <CardContent className="overflow-x-auto p-0">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="cursor-pointer select-none" onClick={() => ordenarPor("nome")}>
+                                            <span className="flex items-center gap-1">Nome do cliente {iconeOrdenacao("nome")}</span>
+                                        </TableHead>
+                                        <TableHead>Telefone</TableHead>
+                                        <TableHead className="cursor-pointer select-none" onClick={() => ordenarPor("primeira_compra")}>
+                                            <span className="flex items-center gap-1">Primeira compra {iconeOrdenacao("primeira_compra")}</span>
+                                        </TableHead>
+                                        <TableHead className="cursor-pointer select-none" onClick={() => ordenarPor("ultima_compra")}>
+                                            <span className="flex items-center gap-1">Última compra {iconeOrdenacao("ultima_compra")}</span>
+                                        </TableHead>
+                                        <TableHead className="cursor-pointer select-none text-right" onClick={() => ordenarPor("total_pedidos")}>
+                                            <span className="flex items-center justify-end gap-1">Qtde. pedidos {iconeOrdenacao("total_pedidos")}</span>
+                                        </TableHead>
+                                        <TableHead className="cursor-pointer select-none text-right" onClick={() => ordenarPor("valor_total_gasto")}>
+                                            <span className="flex items-center justify-end gap-1">Total (R$) {iconeOrdenacao("valor_total_gasto")}</span>
+                                        </TableHead>
+                                        <TableHead className="cursor-pointer select-none text-right" onClick={() => ordenarPor("ticket_medio")}>
+                                            <span className="flex items-center justify-end gap-1">Ticket médio (R$) {iconeOrdenacao("ticket_medio")}</span>
+                                        </TableHead>
+                                        {fidelidadeConfig && <TableHead>Fidelidade</TableHead>}
+                                        {cashbackConfig && <TableHead>Saldo Cashback</TableHead>}
+                                        {periodoInatividadeCliente && <TableHead>Status</TableHead>}
+                                        <TableHead className="text-right">Ações</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {clientes.data.length === 0 && (
+                                        <TableRow>
+                                            <TableCell colSpan={colspan} className="py-10 text-center text-muted-foreground">
+                                                Não contêm clientes ainda.
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                    {clientes.data.map((cliente) => (
+                                        <TableRow key={cliente.id} className="cursor-pointer" onClick={() => abrirDetalhes(cliente.id)}>
+                                            <TableCell className="font-medium">{cliente.nome}</TableCell>
+                                            <TableCell>{formatarTelefone(cliente.telefone)}</TableCell>
+                                            <TableCell>{cliente.primeira_compra ? formatarData(cliente.primeira_compra, timezone) : "—"}</TableCell>
+                                            <TableCell>{cliente.ultima_compra ? formatarData(cliente.ultima_compra, timezone) : "—"}</TableCell>
+                                            <TableCell className="text-right">{cliente.total_pedidos}</TableCell>
+                                            <TableCell className="text-right font-semibold text-emerald-600">R$ {converteReal(cliente.valor_total_gasto)}</TableCell>
+                                            <TableCell className="text-right">R$ {converteReal(cliente.ticket_medio)}</TableCell>
+                                            {fidelidadeConfig && <TableCell>{renderProgressoFidelidade(cliente)}</TableCell>}
+                                            {cashbackConfig && (
+                                                <TableCell>
+                                                    {cliente.saldo_cashback > 0 ? (
+                                                        <Badge className="bg-emerald-600 text-white">R$ {converteReal(cliente.saldo_cashback)}</Badge>
+                                                    ) : (
+                                                        <span className="text-xs text-muted-foreground">—</span>
+                                                    )}
+                                                </TableCell>
+                                            )}
+                                            {periodoInatividadeCliente && (
+                                                <TableCell>
+                                                    {cliente.esta_ativo ? (
+                                                        <Badge className="bg-emerald-600 text-white">Ativo</Badge>
+                                                    ) : (
+                                                        <Badge variant="destructive">Inativo</Badge>
+                                                    )}
+                                                </TableCell>
+                                            )}
+                                            <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                                                <Button variant="ghost" size="icon" onClick={() => abrirDetalhes(cliente.id)}>
+                                                    <Eye />
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </CardContent>
+                    </Card>
+
+                    {clientes.last_page > 1 && (
+                        <div className="mt-4 flex items-center justify-between">
+                            <p className="text-sm text-muted-foreground">
+                                Página {clientes.current_page} de {clientes.last_page} — {clientes.total} clientes
+                            </p>
+                            <div className="flex gap-2">
+                                {clientes.links.map((link, index) => (
+                                    <Button
+                                        key={index}
+                                        variant={link.active ? "default" : "outline"}
+                                        size="sm"
+                                        disabled={!link.url}
+                                        onClick={() => link.url && router.get(link.url, {}, { preserveState: true })}
+                                        dangerouslySetInnerHTML={{ __html: link.label }}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
+
+            <ClienteDetalhesDialog
+                open={modalDetalheOpen}
+                onOpenChange={setModalDetalheOpen}
+                detalhe={clienteDetalhe}
+                loading={loadingDetalhe}
+                fidelidadeConfig={fidelidadeConfig}
+                cashbackConfig={cashbackConfig}
+                timezone={timezone}
+            />
         </LayoutAutenticado>
     );
 }

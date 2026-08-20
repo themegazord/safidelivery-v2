@@ -3,12 +3,16 @@
 namespace App\Http\Controllers\Empresa\Clientes;
 
 use App\Actions\Clientes\ConsultaDadosPainelCashbackAction;
+use App\Actions\Clientes\DetalheClienteAction;
+use App\Actions\Clientes\IndexClientesAction;
 use App\Actions\Clientes\TopCompradoresPorQuantidadeAction;
 use App\Actions\Clientes\TopCompradoresPorValorAction;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Clientes\ClienteListagemResource;
 use App\Http\Resources\Clientes\TopCompradoresPorQuantidadeResource;
 use App\Http\Resources\Clientes\TopCompradoresPorValorResource;
 use App\Models\CashbackConfig;
+use App\Models\Cliente;
 use App\Models\Configuracao;
 use App\Models\Empresa;
 use App\Models\FidelidadeConfig;
@@ -33,17 +37,51 @@ class ClienteController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request, IndexClientesAction $action)
     {
         $configuracaoPeriodoInatividadeCliente = Configuracao::query()
             ->where('empresa_id', $this->empresa->getAttribute('id'))
-            ->where('configuracao', 'periodo_inatividade_cliente')->firstOrFail();
-        $periodoInatividadeCliente = boolval(intval($configuracaoPeriodoInatividadeCliente?->getAttribute('valor')));
+            ->where('configuracao', 'periodo_inatividade_cliente')->first();
+        $diasInatividadeCliente = intval($configuracaoPeriodoInatividadeCliente?->getAttribute('valor'));
+        $periodoInatividadeCliente = boolval($diasInatividadeCliente);
+
+        $filtros = $request->only([
+            'nome', 'telefone', 'primeira_compra_inicio', 'primeira_compra_fim',
+            'ultima_compra_inicio', 'ultima_compra_fim', 'proximo_meta', 'sort_by', 'sort_dir',
+        ]);
+        $filtros['proximo_meta'] = filter_var($filtros['proximo_meta'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+        $clientes = $action->handle($this->empresa, $filtros, $this->fidelidadeConfig, $diasInatividadeCliente);
+        $clientes->through(fn (Cliente $cliente) => (new ClienteListagemResource($cliente))->resolve());
+
         return Inertia::render('Empresa/Clientes/Clientes', [
             'periodoInatividadeCliente' => $periodoInatividadeCliente,
+            'diasInatividadeCliente' => $diasInatividadeCliente,
             'fidelidadeConfig' => $this->fidelidadeConfig,
             'cashbackConfig' => $this->cashbackConfig,
+            'clientes' => $clientes,
+            'filtros' => $filtros,
+            'timezone' => $this->empresa->resolveTimezone(),
         ]);
+    }
+
+    public function detalhe(string $cnpj, int $cliente_id, DetalheClienteAction $action): JsonResponse
+    {
+        $cliente = Cliente::query()->findOrFail($cliente_id);
+
+        try {
+            $dados = $action->handle($this->empresa, $cliente, $this->fidelidadeConfig, $this->cashbackConfig);
+        } catch (\Throwable $th) {
+            Log::error('Não foi possivel localizar o detalhe do cliente', [
+                'exception' => $th,
+                'message' => $th->getMessage(),
+                'empresa_id' => $this->empresa->id,
+                'cliente_id' => $cliente_id,
+            ]);
+            return response()->json(['message' => 'Não foi possivel localizar o detalhe do cliente'], 400);
+        }
+
+        return response()->json($dados);
     }
 
     public function consultaDadosPainelCashback(string $cnpj, ConsultaDadosPainelCashbackAction $action): JsonResponse {
