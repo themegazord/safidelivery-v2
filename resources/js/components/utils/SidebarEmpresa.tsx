@@ -98,7 +98,11 @@ export default function SidebarEmpresa() {
             grupo: "Ajuda",
             itens: [
                 { link: "#", icon: <HelpCircle />, label: "Chamados e ajuda" },
-                { link: "#", icon: <Bug />, label: "Encontrou um problema?" },
+                {
+                    link: route('aplicacao.empresa.ajuda.bug.index', {cnpj: cnpj}),
+                    icon: <Bug />,
+                    label: "Encontrou um problema?",
+                },
             ],
         },
     ];

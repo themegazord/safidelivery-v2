@@ -9,6 +9,7 @@ class BugReport extends Model
 {
   protected $fillable = [
     'empresa_id',
+    'titulo',
     'gh_numero_issue',
     'gh_id_issue'
   ];

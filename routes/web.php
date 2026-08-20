@@ -3,6 +3,7 @@
 use App\Http\Controllers\Autenticacao\LoginClienteController;
 use App\Http\Controllers\Autenticacao\LoginEmpresaController;
 use App\Http\Controllers\Cliente\MeusPedidosController;
+use App\Http\Controllers\Empresa\AjudaBug\BugReportController;
 use App\Http\Controllers\Empresa\CardapioDigital\CardapioController;
 use App\Http\Controllers\Empresa\CardapioDigital\FinalizarPedidoController;
 use App\Http\Controllers\Empresa\Cardapios\CardapioController as EmpresaCardapioController;
@@ -201,6 +202,10 @@ Route::group([], function () {
                     Route::patch('/{combo_id}/preco', [ComboController::class, 'updatePreco'])->name('aplicacao.empresa.cardapios.categorias.combo.updatePreco');
                 });
             });
+        });
+        Route::prefix('ajuda/bug')->group(function () {
+            Route::get('/', [BugReportController::class, 'index'])->name('aplicacao.empresa.ajuda.bug.index');
+            Route::post('/', [BugReportController::class, 'store'])->name('aplicacao.empresa.ajuda.bug.store');
         });
     });
 });

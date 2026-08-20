@@ -39,4 +39,9 @@ return [
         'urlBase' => env('PAGARME_URL_API', 'https://api.pagar.me/core/v5'),
     ],
 
+    'github' => [
+        'token' => env('GITHUB_API_TOKEN'),
+        'repo' => env('GITHUB_REPO', 'themegazord/safidelivery-v2'),
+    ],
+
 ];
