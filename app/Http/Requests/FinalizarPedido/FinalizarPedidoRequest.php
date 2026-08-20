@@ -4,6 +4,7 @@ namespace App\Http\Requests\FinalizarPedido;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class FinalizarPedidoRequest extends FormRequest
 {
@@ -28,8 +29,15 @@ class FinalizarPedidoRequest extends FormRequest
             'pedido.*.quantidade' => ['required', 'integer', 'min:1'],
             'pedido.*.total' => ['required', 'numeric'],
             'pedido.*.tipo' => ['required', 'string', 'in:PRE,BEB,IND,PIZ,CON'],
-            'forma_pagamento' => ['required_unless:tipo_funcionamento,mesa'],
+            'forma_pagamento' => [
+                'nullable',
+                Rule::requiredIf(fn () => $this->input('tipo_funcionamento') !== 'mesa' && empty($this->input('pagamentos'))),
+            ],
             'troco_para' => ['nullable', 'numeric', 'gte:total'],
+            'pagamentos' => ['nullable', 'array'],
+            'pagamentos.*.forma_pagamento_id' => ['required', 'integer'],
+            'pagamentos.*.valor' => ['required', 'numeric', 'gt:0'],
+            'pagamentos.*.troco_para' => ['nullable', 'numeric'],
             'frete' => ['nullable', 'numeric'],
             'subtotal' => ['required', 'numeric'],
             'total' => ['required', 'numeric'],
@@ -80,6 +88,9 @@ class FinalizarPedidoRequest extends FormRequest
             'tipo_funcionamento' => 'tipo de funcionamento',
             'interacao_id' => 'interação',
             'configuracoes' => 'configurações',
+            'pagamentos' => 'formas de pagamento',
+            'pagamentos.*.forma_pagamento_id' => 'forma de pagamento',
+            'pagamentos.*.valor' => 'valor',
         ];
     }
 }

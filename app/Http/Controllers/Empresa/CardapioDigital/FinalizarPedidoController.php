@@ -269,6 +269,7 @@ class FinalizarPedidoController extends Controller
                 cupom: $dados['cupom'] ?? null,
                 usarCashback: $request->boolean('usar_cashback'),
                 resgateFidelidade: $dados['resgate_fidelidade'] ?? null,
+                pagamentos: $dados['pagamentos'] ?? null,
                 tipo_funcionamento: $dados['tipo_funcionamento'],
                 empresa_id: $empresa->id,
                 configuracoes: $dados['configuracoes'],

@@ -7,6 +7,7 @@ use App\Models\CategoriaMassa;
 use App\Models\Cliente;
 use App\Models\Complemento;
 use App\Models\FinanceiroPedido;
+use App\Models\FinanceiroPedidoPagamento;
 use App\Models\FormaPagamento;
 use App\Models\Integracao;
 use App\Models\Item;
@@ -45,6 +46,7 @@ class FinalizarPedidoAction
         ?string $cupom = null,
         bool $usarCashback = false,
         ?array $resgateFidelidade = null,
+        ?array $pagamentos = null,
     ): array {
         return DB::transaction(function () use (
             $pedido,
@@ -63,7 +65,30 @@ class FinalizarPedidoAction
             $cupom,
             $usarCashback,
             $resgateFidelidade,
+            $pagamentos,
         ) {
+            // Uma única entrada em "pagamentos" equivale ao fluxo de forma de pagamento
+            // única — normaliza aqui para não precisar duplicar a lógica abaixo.
+            if ($pagamentos && count($pagamentos) === 1) {
+                $forma_pagamento = (string) $pagamentos[0]['forma_pagamento_id'];
+                $trocoPara = ! empty($pagamentos[0]['troco_para']) ? floatval($pagamentos[0]['troco_para']) : null;
+                $pagamentos = null;
+            }
+
+            $usaMultiplasFormas = $tipo_funcionamento !== 'mesa' && $pagamentos && count($pagamentos) > 1;
+
+            if ($usaMultiplasFormas) {
+                $idsInformados = array_column($pagamentos, 'forma_pagamento_id');
+                $idsValidos = FormaPagamento::where('empresa_id', $empresa_id)
+                    ->whereIn('id', $idsInformados)
+                    ->pluck('id')
+                    ->all();
+
+                if (count(array_diff($idsInformados, $idsValidos)) > 0) {
+                    throw new Exception('Uma das formas de pagamento selecionadas é inválida.');
+                }
+            }
+
             $cupomValidado = null;
             $valorDesconto = 0.0;
 
@@ -142,6 +167,13 @@ class FinalizarPedidoAction
                 ? ($subtotal + floatval($frete ?? 0) - $valorDesconto - $cashbackUtilizado)
                 : $subtotal;
 
+            if ($usaMultiplasFormas) {
+                $somaPagamentos = round(array_sum(array_map(fn ($p) => floatval($p['valor'] ?? 0), $pagamentos)), 2);
+                if (abs($somaPagamentos - round($totalFinanceiro, 2)) > 0.01) {
+                    throw new Exception('A soma dos valores informados nas formas de pagamento deve ser igual ao total do pedido.');
+                }
+            }
+
             // Item grátis de fidelidade já é escolhido pelo cliente antes de finalizar (ModalEscolherPremio),
             // então o pedido nunca precisa esperar seleção pós-criação — não existe estado "aguardando_item_premio" aqui.
             $formaPagamentoTipo = ($tipo_funcionamento !== 'mesa' && $forma_pagamento)
@@ -167,12 +199,13 @@ class FinalizarPedidoAction
 
             $pedidoCadastrado = Pedido::create($dadosPedido);
 
-            $pagaEmDinheiro = $formaPagamentoTipo === 'DIN';
+            $pagaEmDinheiro = ! $usaMultiplasFormas && $formaPagamentoTipo === 'DIN';
 
             $financeiro = [
                 'uuid'               => uuid_create(),
                 'pedido_id'          => $pedidoCadastrado->id,
-                'forma_pagamento_id' => $tipo_funcionamento !== 'mesa' ? $forma_pagamento : null,
+                'forma_pagamento'    => $usaMultiplasFormas ? 'multiplo' : null,
+                'forma_pagamento_id' => ($tipo_funcionamento !== 'mesa' && ! $usaMultiplasFormas) ? $forma_pagamento : null,
                 'subtotal_itens'     => $subtotal,
                 'total'              => $totalFinanceiro,
                 'valor_desconto'     => $valorDesconto > 0 ? $valorDesconto : null,
@@ -181,9 +214,22 @@ class FinalizarPedidoAction
                 'valor_troco'        => $pagaEmDinheiro && $trocoPara !== null ? round($trocoPara - $totalFinanceiro, 2) : null,
             ];
 
-            // TODO: Múltiplas formas de pagamento (FinanceiroPedidoPagamento) — implementar quando a tela estiver pronta
-
             $financeiroCriado = FinanceiroPedido::create($financeiro);
+
+            if ($usaMultiplasFormas) {
+                foreach ($pagamentos as $pagamento) {
+                    $valorPagamento = round(floatval($pagamento['valor']), 2);
+                    $trocoParaPagamento = ! empty($pagamento['troco_para']) ? floatval($pagamento['troco_para']) : null;
+
+                    FinanceiroPedidoPagamento::create([
+                        'financeiro_pedido_uuid' => $financeiroCriado->uuid,
+                        'forma_pagamento_id'     => $pagamento['forma_pagamento_id'],
+                        'valor'                  => $valorPagamento,
+                        'troco_para'             => $trocoParaPagamento,
+                        'valor_troco'            => $trocoParaPagamento !== null ? round($trocoParaPagamento - $valorPagamento, 2) : null,
+                    ]);
+                }
+            }
 
             if ($cupomValidado && $clienteAutenticado) {
                 DB::table('promocao_usada')->insert([

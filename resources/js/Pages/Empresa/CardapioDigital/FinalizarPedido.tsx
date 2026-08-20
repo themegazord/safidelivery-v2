@@ -41,6 +41,12 @@ export type TFormaPagamento = {
     tipo: string
 }
 
+export type TPagamentoMultiplo = {
+    forma_pagamento_id: string | undefined,
+    valor: string,
+    troco_para: string,
+}
+
 export default function FinalizarPedido() {
     const { interacao_id, tipo_funcionamento, nome_fantasia, auth, mesa, enderecoFormatadoEmpresa, configuracoes, formasPagamentos, nome, telefone, cupomDesconto, cuponsVisiveis, cashbackDisponivel, progressoFidelidade, recompensaFidelidade } = usePage<{
         interacao_id: string;
@@ -63,6 +69,8 @@ export default function FinalizarPedido() {
     const [numeroMesa, setNumeroMesa] = useState<number | undefined>(mesa)
     const [formaPagamento, setFormaPagamento] = useState<string | undefined>(undefined)
     const [trocoPara, setTrocoPara] = useState<number | undefined>(undefined)
+    const [usarMultiplasFormas, setUsarMultiplasFormas] = useState<boolean>(false)
+    const [pagamentosMultiplos, setPagamentosMultiplos] = useState<TPagamentoMultiplo[]>([])
     const [cupomPedido, setCupomPedido] = useState<string | undefined>(cupomDesconto ?? undefined)
     const [cupomAplicado, setCupomAplicado] = useState<ICupomAplicado | null>(null)
     const [validandoCupom, setValidandoCupom] = useState<boolean>(false)
@@ -169,9 +177,31 @@ export default function FinalizarPedido() {
     async function finalizarPedido() {
         if (isFinalizando) return;
 
-        if (pagaEmDinheiro && trocoPara !== undefined && trocoPara < total) {
+        if (!usarMultiplasFormas && pagaEmDinheiro && trocoPara !== undefined && trocoPara < total) {
             toast.error(`O valor para troco deve ser maior ou igual ao total do pedido (R$ ${total.toFixed(2).replace(".", ",")}).`);
             return;
+        }
+
+        if (usarMultiplasFormas) {
+            if (pagamentosMultiplos.some((p) => !p.forma_pagamento_id || !p.valor || Number(p.valor) <= 0)) {
+                toast.error("Selecione a forma de pagamento e informe o valor em todas as entradas.");
+                return;
+            }
+
+            const somaPagamentos = pagamentosMultiplos.reduce((acc, p) => acc + Number(p.valor), 0);
+            if (Math.abs(somaPagamentos - total) > 0.01) {
+                toast.error("A soma dos valores das formas de pagamento deve ser igual ao total do pedido.");
+                return;
+            }
+
+            const linhaComTrocoInsuficiente = pagamentosMultiplos.some((p) => {
+                if (!p.troco_para) return false;
+                return Number(p.troco_para) < Number(p.valor);
+            });
+            if (linhaComTrocoInsuficiente) {
+                toast.error("O valor do troco deve ser maior ou igual ao valor informado na respectiva forma de pagamento.");
+                return;
+            }
         }
 
         setIsFinalizando(true);
@@ -179,8 +209,15 @@ export default function FinalizarPedido() {
         try {
             const response = await axios.post(route('aplicacao.empresa.finalizar-pedido.store'), {
                 pedido: carrinho,
-                forma_pagamento: formaPagamento,
-                troco_para: pagaEmDinheiro ? trocoPara : undefined,
+                forma_pagamento: usarMultiplasFormas ? undefined : formaPagamento,
+                troco_para: !usarMultiplasFormas && pagaEmDinheiro ? trocoPara : undefined,
+                pagamentos: usarMultiplasFormas
+                    ? pagamentosMultiplos.map((p) => ({
+                          forma_pagamento_id: Number(p.forma_pagamento_id),
+                          valor: Number(p.valor),
+                          troco_para: p.troco_para ? Number(p.troco_para) : undefined,
+                      }))
+                    : undefined,
                 frete: dadosDistanciaRota?.dadosDistanciaRota.taxaFrete,
                 subtotal: subtotal,
                 total: total,
@@ -269,6 +306,11 @@ export default function FinalizarPedido() {
                                     total={total}
                                     trocoPara={trocoPara}
                                     setTrocoPara={setTrocoPara}
+                                    multiplasFormasHabilitado={Boolean(Number(configuracoes.multiplas_formas_pagamento ?? '0'))}
+                                    usarMultiplasFormas={usarMultiplasFormas}
+                                    setUsarMultiplasFormas={setUsarMultiplasFormas}
+                                    pagamentosMultiplos={pagamentosMultiplos}
+                                    setPagamentosMultiplos={setPagamentosMultiplos}
                                 />
                                 <CupomPedido
                                     cupomPedido={cupomPedido}
