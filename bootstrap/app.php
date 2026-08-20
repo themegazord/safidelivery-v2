@@ -24,7 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->preventRequestForgery(except: [
             '*/desempenho/buscaPedidosPorData',
             '*/configuracoes',
-            'autenticacao/empresa/login',
+            'login/empresa',
             'loja/*',
             'finalizar-pedido/altera-endereco-principal',
         ]);
