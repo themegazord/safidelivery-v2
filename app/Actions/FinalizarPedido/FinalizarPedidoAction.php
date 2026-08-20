@@ -4,13 +4,17 @@ namespace App\Actions\FinalizarPedido;
 
 use App\Models\CategoriaBorda;
 use App\Models\CategoriaMassa;
+use App\Models\CategoriaTamanho;
 use App\Models\Cliente;
+use App\Models\Combo;
+use App\Models\ComboEntrada;
 use App\Models\Complemento;
 use App\Models\FinanceiroPedido;
 use App\Models\FinanceiroPedidoPagamento;
 use App\Models\FormaPagamento;
 use App\Models\Integracao;
 use App\Models\Item;
+use App\Models\ItemPreco;
 use App\Models\Mesa;
 use App\Models\Notificacao;
 use App\Models\Pedido;
@@ -142,17 +146,21 @@ class FinalizarPedidoAction
 
             $ehModoAtendente = $tipo_funcionamento === 'mesa' && boolval($configuracoes['modo_atendente'] ?? false);
 
+            // cliente_id, endereco_entrega_id, nome e telefone vêm do cliente autenticado
+            // (nunca do array $cliente enviado no corpo da requisição) — do contrário, um
+            // pedido poderia ser forjado em nome de outro cliente_id ou com o endereço de
+            // entrega de outra pessoa, bastando alterar o payload da requisição.
             $dadosPedido = [
                 'empresa_id'          => $empresa_id,
-                'cliente_id'          => $ehModoAtendente ? null : ($cliente['id'] ?? null),
+                'cliente_id'          => $ehModoAtendente ? null : $clienteAutenticado?->id,
                 'tipo'                => $this->defineTipoParaPedido($tipo_funcionamento),
                 'observacao'          => $observacao,
                 'valor_frete'         => $tipo_funcionamento === 'delivery' ? $frete : null,
-                'endereco_entrega_id' => ($tipo_funcionamento === 'delivery' && Auth::check())
-                    ? ($cliente['endereco']['id'] ?? null)
+                'endereco_entrega_id' => ($tipo_funcionamento === 'delivery' && $clienteAutenticado)
+                    ? $clienteAutenticado->enderecos()->where('enderecos.id', $cliente['endereco']['id'] ?? null)->value('enderecos.id')
                     : null,
-                'nome'     => $ehModoAtendente ? session('nome_cliente_modoatendente') : ($cliente['nome'] ?? null),
-                'telefone' => $ehModoAtendente ? session('telefone_cliente_modoatendente') : ($cliente['telefone'] ?? null),
+                'nome'     => $ehModoAtendente ? session('nome_cliente_modoatendente') : ($clienteAutenticado->nome ?? null),
+                'telefone' => $ehModoAtendente ? session('telefone_cliente_modoatendente') : ($clienteAutenticado->telefone ?? null),
             ];
 
             if ($tipo_funcionamento === 'mesa') {
@@ -245,13 +253,23 @@ class FinalizarPedidoAction
                 (new ConsomeCashbackAction())->handle($clienteAutenticado->id, $cashbackUtilizado);
             }
 
+            $subtotalRecalculado = 0.0;
+
             foreach ($pedido as $item) {
-                match ($item['tipo']) {
-                    'PRE', 'BEB', 'IND' => $this->salvaItemRegular($pedidoCadastrado->id, $item),
-                    'PIZ'               => $this->salvaItemPizza($pedidoCadastrado->id, $item),
-                    'CON'               => $this->salvaItemCombo($pedidoCadastrado->id, $item),
+                $subtotalRecalculado += match ($item['tipo']) {
+                    'PRE', 'BEB', 'IND' => $this->salvaItemRegular($pedidoCadastrado->id, $empresa_id, $item),
+                    'PIZ'               => $this->salvaItemPizza($pedidoCadastrado->id, $empresa_id, $item),
+                    'CON'               => $this->salvaItemCombo($pedidoCadastrado->id, $empresa_id, $item),
                     default             => throw new Exception('Tipo de item inválido: ' . $item['tipo']),
                 };
+            }
+
+            // Os preços de cada item são sempre recalculados a partir do banco (acima) — aqui
+            // conferimos que o subtotal que o cliente enviou bate com o que foi de fato salvo.
+            // Sem essa checagem, o subtotal/total do pedido (usado inclusive para gerar a
+            // cobrança Pix via Pagar.me) continuaria vindo direto do payload da requisição.
+            if (abs($subtotalRecalculado - $subtotal) > 0.01) {
+                throw new Exception('O valor dos itens não confere com o valor calculado pelo servidor. Atualize a página e tente novamente.');
             }
 
             $cashbackGerado = 0.0;
@@ -306,26 +324,52 @@ class FinalizarPedidoAction
         });
     }
 
-    private function salvaItemRegular(int $pedidoId, array $item): void
-    {
-        $itemBD = Item::find($item['id']);
-        $precoUnitario = $itemBD
-            ? ($itemBD->desconto ? floatval($itemBD->valor_desconto) : floatval($itemBD->preco))
-            : floatval($item['preco_unitario'] ?? 0);
+    // Os três métodos abaixo NUNCA confiam em preço vindo do payload — cada preço é
+    // relido do banco pelo id enviado. O valor do payload só é usado como último recurso,
+    // se o registro correspondente já não existir mais (ex.: item excluído do cardápio),
+    // caso em que a divergência resultante é pega pela checagem de subtotal em handle().
 
-        $totalComplementos = array_sum(array_map(
-            fn ($grupo) => array_sum(array_map(
-                fn ($c) => $c['quantidade'] * floatval($c['preco']),
-                array_filter($grupo['complementos'] ?? [], fn ($c) => ($c['quantidade'] ?? 0) > 0)
-            )),
-            $item['grupo_complemento'] ?? []
-        ));
+    private function salvaItemRegular(int $pedidoId, int $empresaId, array $item): float
+    {
+        $itemBD = Item::where('id', $item['id'])
+            ->whereHas('categoria.cardapio', fn ($q) => $q->where('empresa_id', $empresaId))
+            ->first();
+
+        if (! $itemBD) {
+            throw new Exception('O item "' . ($item['nome'] ?? 'desconhecido') . '" não está disponível nesta loja. Atualize a página e tente novamente.');
+        }
+
+        $precoUnitario = $itemBD->desconto ? floatval($itemBD->valor_desconto) : floatval($itemBD->preco);
+
+        $gruposComplemento = $item['grupo_complemento'] ?? [];
+        $idsComplementos = collect($gruposComplemento)
+            ->flatMap(fn ($g) => $g['complementos'] ?? [])
+            ->pluck('id')
+            ->filter()
+            ->unique()
+            ->values();
+        $complementosBD = Complemento::whereIn('id', $idsComplementos)
+            ->whereHas('grupos.item.categoria.cardapio', fn ($q) => $q->where('empresa_id', $empresaId))
+            ->get()
+            ->keyBy('id');
+
+        $totalComplementos = 0.0;
+
+        foreach ($gruposComplemento as $grupo) {
+            foreach (array_filter($grupo['complementos'] ?? [], fn ($c) => ($c['quantidade'] ?? 0) > 0) as $complemento) {
+                $complementoBD = $complementosBD->get($complemento['id']);
+                if (! $complementoBD) {
+                    throw new Exception('Um dos complementos selecionados não está disponível nesta loja. Atualize a página e tente novamente.');
+                }
+                $totalComplementos += $complemento['quantidade'] * floatval($complementoBD->preco);
+            }
+        }
 
         $pedidoItem = PedidoItem::create([
             'pedido_id'      => $pedidoId,
-            'item_id'        => $item['id'],
+            'item_id'        => $itemBD->id,
             'uuid'           => uuid_create(),
-            'nome'           => $item['nome'],
+            'nome'           => $itemBD->nome,
             'quantidade'     => $item['quantidade'],
             'preco_unitario' => $precoUnitario,
             'subtotal'       => $item['quantidade'] * $precoUnitario + $totalComplementos,
@@ -333,35 +377,59 @@ class FinalizarPedidoAction
             'observacao'     => $item['observacao'] ?? null,
         ]);
 
-        foreach ($item['grupo_complemento'] ?? [] as $grupo) {
+        foreach ($gruposComplemento as $grupo) {
             foreach (array_filter($grupo['complementos'] ?? [], fn ($c) => ($c['quantidade'] ?? 0) > 0) as $complemento) {
-                $complementoBD = Complemento::find($complemento['id']);
+                $complementoBD = $complementosBD->get($complemento['id']);
                 PedidoComplemento::create([
                     'pedido_item_id' => $pedidoItem->id,
-                    'complemento_id' => $complemento['id'],
+                    'complemento_id' => $complementoBD->id,
                     'uuid'           => uuid_create(),
-                    'nome'           => $complementoBD?->nome ?? $complemento['nome'],
+                    'nome'           => $complementoBD->nome,
                     'qtde'           => $complemento['quantidade'],
-                    'preco_unitario' => $complementoBD ? floatval($complementoBD->preco) : floatval($complemento['preco']),
+                    'preco_unitario' => floatval($complementoBD->preco),
                 ]);
             }
         }
+
+        return $item['quantidade'] * $precoUnitario + $totalComplementos;
     }
 
-    private function salvaItemPizza(int $pedidoId, array $item): void
+    private function salvaItemPizza(int $pedidoId, int $empresaId, array $item): float
     {
+        $tamanhoBD = CategoriaTamanho::where('id', $item['id'])
+            ->whereHas('categoria.cardapio', fn ($q) => $q->where('empresa_id', $empresaId))
+            ->first();
+
+        if (! $tamanhoBD) {
+            throw new Exception('O tamanho de pizza selecionado não está disponível nesta loja. Atualize a página e tente novamente.');
+        }
+
+        // Borda e massa são opcionais: se o id não pertencer a esta empresa, tratamos como "não
+        // selecionado" (preço 0) em vez de confiar no preço enviado pelo cliente.
+        $precoBorda = 0.0;
+        if (isset($item['bordaSelecionada']['id'])) {
+            $bordaBD = CategoriaBorda::where('id', $item['bordaSelecionada']['id'])
+                ->whereHas('categoria.cardapio', fn ($q) => $q->where('empresa_id', $empresaId))
+                ->first();
+            $precoBorda = (float) ($bordaBD?->preco ?? 0);
+        }
+
+        $precoMassa = 0.0;
+        if (isset($item['massaSelecionada']['id'])) {
+            $massaBD = CategoriaMassa::where('id', $item['massaSelecionada']['id'])
+                ->whereHas('categoria.cardapio', fn ($q) => $q->where('empresa_id', $empresaId))
+                ->first();
+            $precoMassa = (float) ($massaBD?->preco ?? 0);
+        }
+
         $pedidoItem = PedidoItem::create([
             'pedido_id'      => $pedidoId,
             'item_id'        => null,
             'borda_id'       => $item['bordaSelecionada']['id'] ?? null,
             'massa_id'       => $item['massaSelecionada']['id'] ?? null,
-            'preco_borda'    => isset($item['bordaSelecionada']['id'])
-                ? (CategoriaBorda::find($item['bordaSelecionada']['id'])?->preco ?? 0)
-                : 0,
-            'preco_massa'    => isset($item['massaSelecionada']['id'])
-                ? (CategoriaMassa::find($item['massaSelecionada']['id'])?->preco ?? 0)
-                : 0,
-            'tamanho_id'     => $item['id'],
+            'preco_borda'    => $precoBorda,
+            'preco_massa'    => $precoMassa,
+            'tamanho_id'     => $tamanhoBD->id,
             'uuid'           => uuid_create(),
             'nome'           => $item['nome'] ?? 'Pizza',
             'quantidade'     => $item['quantidade'],
@@ -375,66 +443,148 @@ class FinalizarPedidoAction
         );
         $qtdeSabores = count($saboresSelecionados);
 
+        $itensPrecoBD = ItemPreco::whereIn('id', array_column($saboresSelecionados, 'id'))
+            ->where('tamanho_id', $tamanhoBD->id)
+            ->get()
+            ->keyBy('id');
+
+        $totalSabores = 0.0;
+
         foreach ($saboresSelecionados as $sabor) {
+            $itemPrecoBD = $itensPrecoBD->get($sabor['id']);
+            if (! $itemPrecoBD) {
+                throw new Exception('Um dos sabores selecionados não está disponível nesta loja. Atualize a página e tente novamente.');
+            }
+            $precoUnitario = $qtdeSabores > 0
+                ? round(floatval($itemPrecoBD->preco) / $qtdeSabores, 2)
+                : floatval($itemPrecoBD->preco);
+
             PedidoSaborPizza::create([
                 'pedido_item_id' => $pedidoItem->id,
                 'sabor_id'       => $sabor['item_id'] ?? $sabor['id'],
                 'uuid'           => uuid_create(),
                 'nome'           => $sabor['nome'],
                 'descricao'      => $sabor['descricao'] ?? null,
-                'preco_unitario' => floatval($sabor['preco']),
+                'preco_unitario' => $precoUnitario,
                 'qtde'           => $sabor['quantidade'],
                 'qtde_fracionada' => $qtdeSabores > 0
                     ? round($sabor['quantidade'] / $qtdeSabores, 4)
                     : 1,
             ]);
+
+            $totalSabores += $sabor['quantidade'] * $precoUnitario;
         }
+
+        return $item['quantidade'] * ($totalSabores + $precoMassa + $precoBorda);
     }
 
-    private function salvaItemCombo(int $pedidoId, array $item): void
+    private function salvaItemCombo(int $pedidoId, int $empresaId, array $item): float
     {
-        $pedidoItem = PedidoItem::create([
-            'pedido_id'      => $pedidoId,
-            'item_id'        => $item['id'],
-            'uuid'           => uuid_create(),
-            'nome'           => $item['nome'],
-            'quantidade'     => $item['quantidade'],
-            'preco_unitario' => floatval($item['preco_fixo'] ?? $item['preco_unitario'] ?? 0),
-            'subtotal'       => $item['quantidade'] * floatval($item['preco_unitario'] ?? 0),
-            'tipo'           => 'C',
-            'tipo_preco'     => $item['tipo_preco'] ?? 'preco_combo',
-            'observacao'     => $item['observacao'] ?? null,
-        ]);
+        $combo = Combo::with('meta')
+            ->where('id', $item['id'])
+            ->whereHas('categoria.cardapio', fn ($q) => $q->where('empresa_id', $empresaId))
+            ->first();
 
-        foreach ($item['grupos'] ?? [] as $grupo) {
-            foreach (array_filter($grupo['itens'] ?? [], fn ($i) => ($i['quantidade'] ?? 0) > 0) as $itemCombo) {
-                PedidoComboItem::create([
-                    'pedido_item_id' => $pedidoItem->id,
-                    'uuid'           => uuid_create(),
-                    'referencia_id'  => $itemCombo['referencia_id'],
-                    'tipo'           => 'item',
-                    'grupo_nome'     => $grupo['nome'],
-                    'item_nome'      => $itemCombo['nome'],
-                    'preco_unitario' => floatval($itemCombo['preco']),
-                    'qtde'           => $itemCombo['quantidade'],
-                ]);
+        if (! $combo) {
+            throw new Exception('O combo selecionado não está disponível nesta loja. Atualize a página e tente novamente.');
+        }
+
+        $tipoPreco = $combo->tipo_preco;
+
+        $entradasPorTipo = ComboEntrada::where('combo_id', $combo->id)->get()->groupBy('tipo');
+        $entradasItem = ($entradasPorTipo->get('item') ?? collect())->keyBy('referencia_id');
+        $entradasComplemento = ($entradasPorTipo->get('complemento') ?? collect())->keyBy('referencia_id');
+
+        $precoBase = $tipoPreco === 'preco_combo'
+            ? (float) ($combo->meta?->preco_combo ?? $combo->preco ?? 0)
+            : 0.0;
+
+        $itensCombo = [];
+        $totalGrupos = 0.0;
+
+        if ($tipoPreco === 'preco_item') {
+            foreach ($item['grupos'] ?? [] as $grupo) {
+                foreach (array_filter($grupo['itens'] ?? [], fn ($i) => ($i['quantidade'] ?? 0) > 0) as $itemCombo) {
+                    $entrada = $entradasItem->get($itemCombo['referencia_id']);
+                    if (! $entrada) {
+                        throw new Exception('Um dos itens do combo não está disponível nesta loja. Atualize a página e tente novamente.');
+                    }
+                    $preco = (float) $entrada->preco_snapshot;
+                    $totalGrupos += $itemCombo['quantidade'] * $preco;
+                    $itensCombo[] = [
+                        'referencia_id'  => $itemCombo['referencia_id'],
+                        'grupo_nome'     => $grupo['nome'],
+                        'nome'           => $entrada->nome_snapshot,
+                        'preco_unitario' => $preco,
+                        'quantidade'     => $itemCombo['quantidade'],
+                    ];
+                }
             }
         }
+
+        $complementosCombo = [];
+        $totalComplementos = 0.0;
 
         foreach ($item['grupos_complemento'] ?? [] as $gc) {
             foreach (array_filter($gc['complementos'] ?? [], fn ($c) => ($c['quantidade'] ?? 0) > 0) as $complemento) {
-                PedidoComboItem::create([
-                    'pedido_item_id' => $pedidoItem->id,
-                    'uuid'           => uuid_create(),
+                $entrada = $entradasComplemento->get($complemento['referencia_id']);
+                if (! $entrada) {
+                    throw new Exception('Um dos complementos do combo não está disponível nesta loja. Atualize a página e tente novamente.');
+                }
+                $preco = (float) $entrada->preco_snapshot;
+                $totalComplementos += $complemento['quantidade'] * $preco;
+                $complementosCombo[] = [
                     'referencia_id'  => $complemento['referencia_id'],
-                    'tipo'           => 'complemento',
                     'grupo_nome'     => $gc['nome'],
-                    'item_nome'      => $complemento['nome'],
-                    'preco_unitario' => floatval($complemento['preco']),
-                    'qtde'           => $complemento['quantidade'],
-                ]);
+                    'nome'           => $entrada->nome_snapshot,
+                    'preco_unitario' => $preco,
+                    'quantidade'     => $complemento['quantidade'],
+                ];
             }
         }
+
+        $precoUnitario = $precoBase + $totalGrupos + $totalComplementos;
+
+        $pedidoItem = PedidoItem::create([
+            'pedido_id'      => $pedidoId,
+            'item_id'        => $combo->id,
+            'uuid'           => uuid_create(),
+            'nome'           => $combo->nome,
+            'quantidade'     => $item['quantidade'],
+            'preco_unitario' => $precoUnitario,
+            'subtotal'       => $item['quantidade'] * $precoUnitario,
+            'tipo'           => 'C',
+            'tipo_preco'     => $tipoPreco,
+            'observacao'     => $item['observacao'] ?? null,
+        ]);
+
+        foreach ($itensCombo as $itemCombo) {
+            PedidoComboItem::create([
+                'pedido_item_id' => $pedidoItem->id,
+                'uuid'           => uuid_create(),
+                'referencia_id'  => $itemCombo['referencia_id'],
+                'tipo'           => 'item',
+                'grupo_nome'     => $itemCombo['grupo_nome'],
+                'item_nome'      => $itemCombo['nome'],
+                'preco_unitario' => $itemCombo['preco_unitario'],
+                'qtde'           => $itemCombo['quantidade'],
+            ]);
+        }
+
+        foreach ($complementosCombo as $complemento) {
+            PedidoComboItem::create([
+                'pedido_item_id' => $pedidoItem->id,
+                'uuid'           => uuid_create(),
+                'referencia_id'  => $complemento['referencia_id'],
+                'tipo'           => 'complemento',
+                'grupo_nome'     => $complemento['grupo_nome'],
+                'item_nome'      => $complemento['nome'],
+                'preco_unitario' => $complemento['preco_unitario'],
+                'qtde'           => $complemento['quantidade'],
+            ]);
+        }
+
+        return $item['quantidade'] * $precoUnitario;
     }
 
     private function defineTipoParaPedido(string $tipo_funcionamento): string

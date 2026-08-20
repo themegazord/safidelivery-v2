@@ -166,9 +166,15 @@ class FinalizarPedidoController extends Controller
     }
 
     public function alteraEnderecoPrincipal(Request $request): JsonResponse {
+        if (! Auth::check() || ! Auth::user()->cliente) {
+            return response()->json(['mensagem' => 'Não autenticado.'], Response::HTTP_UNAUTHORIZED);
+        }
+
         $action = new AlteraEnderecoPrincipalAction();
 
-        $action->handle($request->input('cliente_id'), $request->input('novo_endereco_principal_id'));
+        // O cliente sempre vem do usuário autenticado — nunca do corpo da requisição,
+        // que poderia ser forjado para alterar o endereço principal de outro cliente.
+        $action->handle(Auth::user()->cliente->id, $request->input('novo_endereco_principal_id'));
 
         return response()->json(['mensagem' => "Endereço principal alterado com sucesso."]);
     }

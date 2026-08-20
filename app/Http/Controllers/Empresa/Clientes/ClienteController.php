@@ -67,7 +67,11 @@ class ClienteController extends Controller
 
     public function detalhe(string $cnpj, int $cliente_id, DetalheClienteAction $action): JsonResponse
     {
-        $cliente = Cliente::query()->findOrFail($cliente_id);
+        // Sem essa checagem, qualquer empresa autenticada poderia ver nome, telefone e
+        // endereços de um cliente que nunca comprou dela, só sabendo o cliente_id.
+        $cliente = Cliente::query()
+            ->whereHas('pedidos', fn ($query) => $query->where('empresa_id', $this->empresa->id))
+            ->findOrFail($cliente_id);
 
         try {
             $dados = $action->handle($this->empresa, $cliente, $this->fidelidadeConfig, $this->cashbackConfig);

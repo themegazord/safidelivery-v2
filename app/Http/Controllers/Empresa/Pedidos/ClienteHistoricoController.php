@@ -20,7 +20,11 @@ class ClienteHistoricoController extends Controller
 
     public function show(Request $request, string $cnpj, int $cliente_id, HistoricoPedidosClienteAction $action): JsonResponse
     {
-        $cliente = Cliente::findOrFail($cliente_id);
+        // Sem essa checagem, qualquer empresa autenticada poderia ver nome, telefone, CPF
+        // e data de nascimento de um cliente que nunca comprou dela, só sabendo o cliente_id.
+        $cliente = Cliente::query()
+            ->whereHas('pedidos', fn ($query) => $query->where('empresa_id', $this->empresa->id))
+            ->findOrFail($cliente_id);
         $porPagina = (int) $request->input('por_pagina', 10);
 
         return response()->json($action->handle($this->empresa, $cliente, $porPagina));

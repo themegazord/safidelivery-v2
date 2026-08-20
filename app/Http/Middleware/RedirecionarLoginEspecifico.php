@@ -17,10 +17,12 @@ class RedirecionarLoginEspecifico
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if ($cnpj = $request->route('cnpj')) {
+        $cnpj = $request->route('cnpj');
+
+        if ($cnpj) {
             Context::add('cnpj', $cnpj);
         }
-        
+
         if (!Auth::check()) {
             // Verificar o prefixo da rota para determinar o tipo de login
             $routeName = $request->route()->getName();
@@ -28,6 +30,15 @@ class RedirecionarLoginEspecifico
             if (str_contains($routeName, 'empresa')) {
                 return redirect()->route('aplicacao.autenticacao.empresa.login');
             }
+
+            return $next($request);
+        }
+
+        // O usuário está autenticado, mas isso não significa que ele tenha acesso
+        // à empresa informada na URL — sem essa checagem, trocar o {cnpj} na URL
+        // dava acesso ao painel de qualquer outra empresa (ou de um cliente logado).
+        if ($cnpj && Auth::user()->empresa?->cnpj !== $cnpj) {
+            abort(403);
         }
 
         return $next($request);
