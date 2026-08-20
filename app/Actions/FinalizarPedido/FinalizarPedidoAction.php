@@ -101,8 +101,8 @@ class FinalizarPedidoAction
                     throw new Exception('Deve ser informado uma mesa.');
                 }
 
-                $qtdMaximaMesa = Mesa::query()->where('empresa_id', $empresa_id)->max('mesa');
-                if ($mesa > $qtdMaximaMesa) {
+                $mesaCadastrada = Mesa::query()->where('empresa_id', $empresa_id)->where('mesa', $mesa)->exists();
+                if (! $mesaCadastrada) {
                     throw new Exception('Mesa não cadastrada.');
                 }
             }

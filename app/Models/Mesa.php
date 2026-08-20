@@ -19,6 +19,11 @@ class Mesa extends Model
     return $this->belongsTo(Empresa::class);
   }
 
+  public static function geraLink(string $interacaoId, int $numeroMesa): string
+  {
+    return config('app.url') . '/loja/' . $interacaoId . '/mesa?mesa=' . $numeroMesa;
+  }
+
   public function pedidosAbertosDaMesa(): ?Collection {
     return Pedido::whereMesa($this->mesa)->where('status', '!=', 'finalizado')->get();
   }

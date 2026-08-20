@@ -27,6 +27,7 @@ use App\Http\Controllers\Empresa\Pedidos\NotificacaoController;
 use App\Http\Controllers\Empresa\Pedidos\PedidosController;
 use App\Http\Controllers\Empresa\Pedidos\TodosPedidosController;
 use App\Http\Controllers\Empresa\Promocoes\PromocaoController;
+use App\Http\Controllers\Empresa\QrCodeMesa\QrCodeMesaController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PedidoImpressaoController;
 use App\Http\Controllers\Empresa\Clientes\ClienteController;
@@ -104,6 +105,12 @@ Route::group([], function () {
             Route::post('/', [FormaPagamentoController::class, 'store'])->name('aplicacao.empresa.formapagamento.store');
             Route::put('/{forma_pagamento_id}', [FormaPagamentoController::class, 'update'])->name('aplicacao.empresa.formapagamento.update');
             Route::delete('/{forma_pagamento_id}', [FormaPagamentoController::class, 'destroy'])->name('aplicacao.empresa.formapagamento.destroy');
+        });
+        Route::prefix('qrcodemesa')->group(function () {
+            Route::get('/', [QrCodeMesaController::class, 'index'])->name('aplicacao.empresa.qrcodemesa.index');
+            Route::post('/', [QrCodeMesaController::class, 'store'])->name('aplicacao.empresa.qrcodemesa.store');
+            Route::put('/{mesa_id}', [QrCodeMesaController::class, 'update'])->name('aplicacao.empresa.qrcodemesa.update');
+            Route::delete('/{mesa_id}', [QrCodeMesaController::class, 'destroy'])->name('aplicacao.empresa.qrcodemesa.destroy');
         });
         Route::prefix('configempresa')->group(function () {
             Route::get('loja', [LojaController::class, 'index'])->name('aplicacao.empresa.configempresa.loja');

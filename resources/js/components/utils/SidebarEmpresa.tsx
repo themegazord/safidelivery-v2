@@ -78,7 +78,11 @@ export default function SidebarEmpresa() {
                     icon: <CreditCard />,
                     label: "Formas de pagamento",
                 },
-                { link: "#", icon: <QrCode />, label: "QR Code das mesas" },
+                {
+                    link: route('aplicacao.empresa.qrcodemesa.index', {cnpj: cnpj}),
+                    icon: <QrCode />,
+                    label: "QR Code das mesas",
+                },
                 {
                     icon: <Building2 />,
                     label: "Sua loja",
