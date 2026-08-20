@@ -21,6 +21,7 @@ use App\Http\Controllers\Empresa\ConfigEmpresa\LojaController;
 use App\Http\Controllers\Empresa\ConfiguracaoController;
 use App\Http\Controllers\Empresa\DesempenhoController;
 use App\Http\Controllers\Empresa\Fidelidade\FidelidadeConfigController;
+use App\Http\Controllers\Empresa\FormaPagamento\FormaPagamentoController;
 use App\Http\Controllers\Empresa\Pedidos\ClienteHistoricoController;
 use App\Http\Controllers\Empresa\Pedidos\NotificacaoController;
 use App\Http\Controllers\Empresa\Pedidos\PedidosController;
@@ -97,6 +98,12 @@ Route::group([], function () {
             Route::post('/grade/{tipo_funcionamento}', [HorariosController::class, 'salvarGrade'])->name('aplicacao.empresa.horarios.grade');
             Route::post('/indisponibilidades', [HorariosController::class, 'cadastraIndisponibilidade'])->name('aplicacao.empresa.horarios.indisponibilidades.store');
             Route::delete('/indisponibilidades/{indisponibilidade_id}', [HorariosController::class, 'removeIndisponibilidade'])->name('aplicacao.empresa.horarios.indisponibilidades.destroy');
+        });
+        Route::prefix('formapagamento')->group(function () {
+            Route::get('/', [FormaPagamentoController::class, 'index'])->name('aplicacao.empresa.formapagamento.index');
+            Route::post('/', [FormaPagamentoController::class, 'store'])->name('aplicacao.empresa.formapagamento.store');
+            Route::put('/{forma_pagamento_id}', [FormaPagamentoController::class, 'update'])->name('aplicacao.empresa.formapagamento.update');
+            Route::delete('/{forma_pagamento_id}', [FormaPagamentoController::class, 'destroy'])->name('aplicacao.empresa.formapagamento.destroy');
         });
         Route::prefix('configempresa')->group(function () {
             Route::get('loja', [LojaController::class, 'index'])->name('aplicacao.empresa.configempresa.loja');

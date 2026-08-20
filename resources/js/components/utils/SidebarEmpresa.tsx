@@ -74,7 +74,7 @@ export default function SidebarEmpresa() {
                 { link: route('aplicacao.empresa.horarios.index', {cnpj: cnpj}), icon: <Clock />, label: "Horários" },
                 { link: "#", icon: <CalendarDays />, label: "Agendamentos" },
                 {
-                    link: "#",
+                    link: route('aplicacao.empresa.formapagamento.index', {cnpj: cnpj}),
                     icon: <CreditCard />,
                     label: "Formas de pagamento",
                 },
