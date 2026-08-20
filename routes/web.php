@@ -15,6 +15,7 @@ use App\Http\Controllers\Empresa\Cardapios\ProdutoController;
 use App\Http\Controllers\Empresa\Cashback\CashbackConfigController;
 use App\Http\Controllers\Empresa\ConfigEmpresa\ConfiguracoesController;
 use App\Http\Controllers\Empresa\ConfigEntrega\ConfigEntregaController;
+use App\Http\Controllers\Empresa\Horarios\HorariosController;
 use App\Http\Controllers\Empresa\ConfigEmpresa\IntegracoesController;
 use App\Http\Controllers\Empresa\ConfigEmpresa\LojaController;
 use App\Http\Controllers\Empresa\ConfiguracaoController;
@@ -89,6 +90,13 @@ Route::group([], function () {
             Route::get('/', [ConfigEntregaController::class, 'index'])->name('aplicacao.empresa.configentrega.index');
             Route::post('/geral', [ConfigEntregaController::class, 'atualizaConfiguracoesGerais'])->name('aplicacao.empresa.configentrega.geral');
             Route::post('/taxas', [ConfigEntregaController::class, 'salvarTaxas'])->name('aplicacao.empresa.configentrega.taxas');
+        });
+        Route::prefix('horarios')->group(function () {
+            Route::get('/', [HorariosController::class, 'index'])->name('aplicacao.empresa.horarios.index');
+            Route::post('/funcionamento', [HorariosController::class, 'atualizaFuncionamento'])->name('aplicacao.empresa.horarios.funcionamento');
+            Route::post('/grade/{tipo_funcionamento}', [HorariosController::class, 'salvarGrade'])->name('aplicacao.empresa.horarios.grade');
+            Route::post('/indisponibilidades', [HorariosController::class, 'cadastraIndisponibilidade'])->name('aplicacao.empresa.horarios.indisponibilidades.store');
+            Route::delete('/indisponibilidades/{indisponibilidade_id}', [HorariosController::class, 'removeIndisponibilidade'])->name('aplicacao.empresa.horarios.indisponibilidades.destroy');
         });
         Route::prefix('configempresa')->group(function () {
             Route::get('loja', [LojaController::class, 'index'])->name('aplicacao.empresa.configempresa.loja');

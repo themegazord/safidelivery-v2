@@ -71,7 +71,7 @@ export default function SidebarEmpresa() {
                     icon: <MapPin />,
                     label: "Configurações de entrega",
                 },
-                { link: "#", icon: <Clock />, label: "Horários" },
+                { link: route('aplicacao.empresa.horarios.index', {cnpj: cnpj}), icon: <Clock />, label: "Horários" },
                 { link: "#", icon: <CalendarDays />, label: "Agendamentos" },
                 {
                     link: "#",
