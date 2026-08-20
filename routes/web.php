@@ -2,9 +2,11 @@
 
 use App\Http\Controllers\Autenticacao\LoginClienteController;
 use App\Http\Controllers\Autenticacao\LoginEmpresaController;
+use App\Http\Controllers\Cliente\ChatController as ClienteChatController;
 use App\Http\Controllers\Cliente\MeusPedidosController;
 use App\Http\Controllers\Empresa\AjudaBug\BugReportController;
 use App\Http\Controllers\Empresa\CardapioDigital\CardapioController;
+use App\Http\Controllers\Empresa\Chat\ChatController as EmpresaChatController;
 use App\Http\Controllers\Empresa\CardapioDigital\FinalizarPedidoController;
 use App\Http\Controllers\Empresa\Cardapios\CardapioController as EmpresaCardapioController;
 use App\Http\Controllers\Empresa\Cardapios\Categorias\CategoriaController;
@@ -93,6 +95,11 @@ Route::group([], function () {
             Route::get('/', [ConfigEntregaController::class, 'index'])->name('aplicacao.empresa.configentrega.index');
             Route::post('/geral', [ConfigEntregaController::class, 'atualizaConfiguracoesGerais'])->name('aplicacao.empresa.configentrega.geral');
             Route::post('/taxas', [ConfigEntregaController::class, 'salvarTaxas'])->name('aplicacao.empresa.configentrega.taxas');
+        });
+        Route::prefix('chat')->group(function () {
+            Route::get('/conversas', [EmpresaChatController::class, 'conversas'])->name('aplicacao.empresa.chat.conversas');
+            Route::get('/{pedido_id}/mensagens', [EmpresaChatController::class, 'mensagens'])->name('aplicacao.empresa.chat.mensagens');
+            Route::post('/{pedido_id}/mensagens', [EmpresaChatController::class, 'enviarMensagem'])->name('aplicacao.empresa.chat.mensagens.store');
         });
         Route::prefix('horarios')->group(function () {
             Route::get('/', [HorariosController::class, 'index'])->name('aplicacao.empresa.horarios.index');
@@ -212,6 +219,12 @@ Route::group([], function () {
 
 Route::group([], function () {
     Route::get('/meus-pedidos', [MeusPedidosController::class, 'index'])->name('aplicacao.cliente.meus-pedidos');
+
+    Route::prefix('chat')->group(function () {
+        Route::get('/conversas', [ClienteChatController::class, 'conversas'])->name('aplicacao.cliente.chat.conversas');
+        Route::get('/{pedido_id}/mensagens', [ClienteChatController::class, 'mensagens'])->name('aplicacao.cliente.chat.mensagens');
+        Route::post('/{pedido_id}/mensagens', [ClienteChatController::class, 'enviarMensagem'])->name('aplicacao.cliente.chat.mensagens.store');
+    });
 
     Route::prefix('loja/{interacao_id}/{tipo_funcionamento}')->group(function () {
         Route::get('/', [CardapioController::class, 'index'])->name('aplicacao.empresa.cardapio-digital');

@@ -1,3 +1,4 @@
+import ChatWidgetCliente from "@/components/Chat/ChatWidgetCliente";
 import Carrinho from "@/components/Empresa/CardapioDigital/Carrinho";
 import DialogAutenticacaoCliente from "@/components/Empresa/CardapioDigital/Dialogs/DialogAutenticacaoCliente";
 import MenuUsuarioCliente from "@/components/Empresa/CardapioDigital/MenuUsuarioCliente";
@@ -73,6 +74,7 @@ function LayoutCardapioContent({ children }: { children: ReactNode }) {
             <main className="container mx-auto">{children}</main>
             <Carrinho open={carrinhoStatus} setOpen={setCarrinhoStatus} setOpenAutenticacao={setAutenticacaoDialogStatus}/>
             <DialogAutenticacaoCliente open={autenticacaoDialogStatus} setOpen={setAutenticacaoDialogStatus}/>
+            <ChatWidgetCliente />
             <Toaster />
         </div>
     );

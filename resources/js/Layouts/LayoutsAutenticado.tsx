@@ -1,5 +1,6 @@
 import SidebarEmpresa from "@/components/utils/SidebarEmpresa";
 import EscutaNovosPedidos from "@/components/utils/EscutaNovosPedidos";
+import ChatWidgetEmpresa from "@/components/Chat/ChatWidgetEmpresa";
 import {
     SidebarInset,
     SidebarProvider,
@@ -21,6 +22,7 @@ export default function LayoutAutenticado({ children }: IProps) {
             </SidebarInset>
             <Toaster />
             <EscutaNovosPedidos />
+            <ChatWidgetEmpresa />
         </SidebarProvider>
     );
 }

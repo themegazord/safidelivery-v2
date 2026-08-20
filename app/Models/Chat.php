@@ -2,19 +2,21 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Chat extends Model
 {
-  use HasFactory;
-  protected $fillable = ['pedido_id'];
-  public function mensagens()
-  {
-    return $this->hasMany(Mensagem::class);
-  }
-  public function pedido()
-  {
-    return $this->belongsTo(Pedido::class);
-  }
+    protected $fillable = ['pedido_id'];
+
+    public function pedido(): BelongsTo
+    {
+        return $this->belongsTo(Pedido::class);
+    }
+
+    public function mensagens(): HasMany
+    {
+        return $this->hasMany(Mensagem::class);
+    }
 }

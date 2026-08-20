@@ -2,30 +2,54 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Mensagem extends Model
 {
-  use HasFactory;
+    use HasUuids;
 
-  protected $fillable = ['uuid', 'chat_id', 'usuario_id', 'mensagem', 'visualizado_em'];
+    protected $table = 'mensagens';
 
-  protected $table = 'mensagens';
+    protected $primaryKey = 'uuid';
 
-  protected $primaryKey = 'uuid';
+    protected $keyType = 'string';
 
-  public $incrementing = false;
+    public $incrementing = false;
 
-  protected $keyType = 'string';
+    protected $fillable = ['uuid', 'chat_id', 'usuario_id', 'mensagem', 'visualizado_em'];
 
-  public function chat()
-  {
-    return $this->belongsTo(Chat::class);
-  }
+    protected function casts(): array
+    {
+        return [
+            'visualizado_em' => 'datetime',
+        ];
+    }
 
-  public function usuario()
-  {
-    return $this->belongsTo(User::class);
-  }
+    public function chat(): BelongsTo
+    {
+        return $this->belongsTo(Chat::class);
+    }
+
+    public function usuario(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'usuario_id');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function paraArray(): array
+    {
+        return [
+            'uuid' => $this->getAttribute('uuid'),
+            'chat_id' => $this->getAttribute('chat_id'),
+            'usuario_id' => $this->getAttribute('usuario_id'),
+            'usuario_nome' => $this->usuario?->name,
+            'mensagem' => $this->getAttribute('mensagem'),
+            'visualizado_em' => $this->getAttribute('visualizado_em'),
+            'created_at' => $this->getAttribute('created_at'),
+        ];
+    }
 }

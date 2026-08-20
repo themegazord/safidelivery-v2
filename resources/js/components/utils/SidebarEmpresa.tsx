@@ -20,12 +20,10 @@ import {
     BookOpen,
     Bug,
     Building2,
-    CalendarDays,
     ChevronRight,
     Clock,
     CreditCard,
     FileText,
-    HelpCircle,
     LogOut,
     MapPin,
     Plug,
@@ -72,7 +70,6 @@ export default function SidebarEmpresa() {
                     label: "Configurações de entrega",
                 },
                 { link: route('aplicacao.empresa.horarios.index', {cnpj: cnpj}), icon: <Clock />, label: "Horários" },
-                { link: "#", icon: <CalendarDays />, label: "Agendamentos" },
                 {
                     link: route('aplicacao.empresa.formapagamento.index', {cnpj: cnpj}),
                     icon: <CreditCard />,
@@ -97,7 +94,6 @@ export default function SidebarEmpresa() {
         {
             grupo: "Ajuda",
             itens: [
-                { link: "#", icon: <HelpCircle />, label: "Chamados e ajuda" },
                 {
                     link: route('aplicacao.empresa.ajuda.bug.index', {cnpj: cnpj}),
                     icon: <Bug />,
