@@ -14,6 +14,7 @@ use App\Http\Controllers\Empresa\Cardapios\ComplementoController;
 use App\Http\Controllers\Empresa\Cardapios\ProdutoController;
 use App\Http\Controllers\Empresa\Cashback\CashbackConfigController;
 use App\Http\Controllers\Empresa\ConfigEmpresa\ConfiguracoesController;
+use App\Http\Controllers\Empresa\ConfigEntrega\ConfigEntregaController;
 use App\Http\Controllers\Empresa\ConfigEmpresa\IntegracoesController;
 use App\Http\Controllers\Empresa\ConfigEmpresa\LojaController;
 use App\Http\Controllers\Empresa\ConfiguracaoController;
@@ -83,6 +84,11 @@ Route::group([], function () {
             Route::get('/topCompradoresPorValor', [ClienteController::class, 'topCompradoresPorValor'])->name('aplicacao.empresa.clientes.topCompradoresPorValor');
             Route::get('/topCompradoresPorQuantidade', [ClienteController::class, 'topCompradoresPorQuantidade'])->name('aplicacao.empresa.clientes.topCompradoresPorQuantidade');
             Route::get('/{cliente_id}/detalhe', [ClienteController::class, 'detalhe'])->name('aplicacao.empresa.clientes.detalhe');
+        });
+        Route::prefix('configentrega')->group(function () {
+            Route::get('/', [ConfigEntregaController::class, 'index'])->name('aplicacao.empresa.configentrega.index');
+            Route::post('/geral', [ConfigEntregaController::class, 'atualizaConfiguracoesGerais'])->name('aplicacao.empresa.configentrega.geral');
+            Route::post('/taxas', [ConfigEntregaController::class, 'salvarTaxas'])->name('aplicacao.empresa.configentrega.taxas');
         });
         Route::prefix('configempresa')->group(function () {
             Route::get('loja', [LojaController::class, 'index'])->name('aplicacao.empresa.configempresa.loja');

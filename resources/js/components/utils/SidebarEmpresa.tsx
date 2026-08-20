@@ -67,7 +67,7 @@ export default function SidebarEmpresa() {
             itens: [
                 { link: route('aplicacao.empresa.cardapios.index', {cnpj: cnpj}), icon: <BookOpen />, label: "Cardápios" },
                 {
-                    link: "#",
+                    link: route('aplicacao.empresa.configentrega.index', {cnpj: cnpj}),
                     icon: <MapPin />,
                     label: "Configurações de entrega",
                 },
