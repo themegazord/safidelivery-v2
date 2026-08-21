@@ -107,7 +107,7 @@ export default function ChatConversa({
                 <p className="truncate font-semibold">{titulo}</p>
             </div>
 
-            <ScrollArea className="flex-1 px-4">
+            <ScrollArea className="min-h-0 flex-1 px-4">
                 <div className="flex flex-col gap-3 py-4">
                     {carregando ? (
                         <div className="flex justify-center py-8">

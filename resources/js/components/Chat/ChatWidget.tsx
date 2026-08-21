@@ -53,6 +53,15 @@ export default function ChatWidget({ usuarioId, rotaConversas, rotaMensagens, ro
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // O widget fica montado durante toda a navegação (layout persistente do Inertia), então sem
+    // isso um pedido feito depois da primeira renderização nunca apareceria até um reload da página.
+    useEffect(() => {
+        if (aberto) {
+            buscarConversas();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [aberto]);
+
     function marcaConversaComoLida(pedidoId: number) {
         setConversas((atual) =>
             atual.map((conversa) =>
@@ -133,7 +142,7 @@ export default function ChatWidget({ usuarioId, rotaConversas, rotaMensagens, ro
                             <SheetHeader>
                                 <SheetTitle>Conversas</SheetTitle>
                             </SheetHeader>
-                            <ScrollArea className="flex-1 px-4">
+                            <ScrollArea className="min-h-0 flex-1 px-4">
                                 {conversas.length === 0 ? (
                                     <p className="py-8 text-center text-sm text-muted-foreground">
                                         Nenhuma conversa disponível no momento.
