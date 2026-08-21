@@ -19,7 +19,7 @@ class LimparImagensTemporariasCommand extends Command
   public function handle(): int
   {
     $horas = (int) $this->option('horas');
-    $bucket = env('MGC_BUCKET');
+    $bucket = config('services.mgc.bucket');
 
     $imagensOrfas = ImagemTemporaria::query()
       ->whereNull('item_id')

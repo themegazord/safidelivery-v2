@@ -75,8 +75,8 @@ class ConfigEntregaController extends Controller
                 'frete_gratis_acima' => isset($configuracoes['frete_gratis_acima']) ? (float) $configuracoes['frete_gratis_acima'] : null,
                 'prioridade_zona_sobreposicao' => $configuracoes['prioridade_zona_sobreposicao'] ?? 'poligono',
             ],
-            'googleMapsApiKey' => env('GOOGLE_API_TOKEN'),
-            'googleMapsMapId' => env('GOOGLE_MAPS_MAP_ID', 'DEMO_MAP_ID'),
+            'googleMapsApiKey' => config('services.google.api_token'),
+            'googleMapsMapId' => config('services.google.maps_map_id'),
         ]);
     }
 

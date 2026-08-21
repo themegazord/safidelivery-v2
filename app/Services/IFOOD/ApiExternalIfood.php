@@ -814,7 +814,7 @@ final class ApiExternalIfood
             'classificacao' => $this->mapearClassificacoesIfood($item['dietaryRestrictions'] ?? []),
             'dias_funcionamento' => $dias_funcionamento,
             'imagem' => $importar_imagem && ! empty($item['imagePath'])
-                ? $this->importarImagemUrl(env('MGC_BUCKET'), $item['imagePath'])
+                ? $this->importarImagemUrl(config('services.mgc.bucket'), $item['imagePath'])
                 : null,
         ]);
 
@@ -856,7 +856,7 @@ final class ApiExternalIfood
             'classificacao' => $this->mapearClassificacoesIfood($dataItem['dietaryRestrictions'] ?? []),
             'dias_funcionamento' => $dias_funcionamento,
             'imagem' => $importar_imagem && ! empty($dataItem['image'])
-                ? $this->importarImagemUrl(env('MGC_BUCKET'), $dataItem['image'])
+                ? $this->importarImagemUrl(config('services.mgc.bucket'), $dataItem['image'])
                 : null,
         ]);
 
@@ -1167,7 +1167,7 @@ final class ApiExternalIfood
             'classificacao' => $this->mapearClassificacoesIfood($item['dietaryRestrictions'] ?? []),
             'dias_funcionamento' => $dias_funcionamento,
             'imagem' => $importar_imagem && ! empty($item['imagePath'])
-                ? $this->importarImagemUrl(env('MGC_BUCKET'), $item['imagePath'])
+                ? $this->importarImagemUrl(config('services.mgc.bucket'), $item['imagePath'])
                 : null,
         ]);
 

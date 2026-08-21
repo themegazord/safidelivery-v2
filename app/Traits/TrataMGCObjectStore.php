@@ -15,14 +15,14 @@ trait TrataMGCObjectStore
   protected function criarClienteS3(): S3Client
   {
     return new S3Client([
-      'region' => env('MGC_REGION'),
+      'region' => config('services.mgc.region'),
       'version' => 'latest',
       'credentials' => [
-        'key' => env('MGC_ID'),
-        'secret' => env('MGC_SECRET_ACCESS_KEY')
+        'key' => config('services.mgc.id'),
+        'secret' => config('services.mgc.secret_access_key')
       ],
-      'endpoint' => env('MGC_ENDPOINT'),
-      'use_path_style_endpoint' => filter_var(env('MGC_USE_PATH_STYLE_ENDPOINT'), FILTER_VALIDATE_BOOLEAN),
+      'endpoint' => config('services.mgc.endpoint'),
+      'use_path_style_endpoint' => filter_var(config('services.mgc.use_path_style_endpoint'), FILTER_VALIDATE_BOOLEAN),
     ]);
   }
 

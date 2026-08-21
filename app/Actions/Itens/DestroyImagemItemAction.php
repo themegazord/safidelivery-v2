@@ -24,7 +24,7 @@ class DestroyImagemItemAction {
     $registro = ImagemTemporaria::query()->where('url', $url)->first();
 
     try {
-      $this->removeImagem(env('MGC_BUCKET'), $url);
+      $this->removeImagem(config('services.mgc.bucket'), $url);
     } catch (Exception $e) {
       Log::warning('Falha ao remover imagem pendente do bucket MGC; será removida pela limpeza agendada.', [
         'url' => $url,

@@ -44,4 +44,20 @@ return [
         'repo' => env('GITHUB_REPO', 'themegazord/safidelivery-v2'),
     ],
 
+    'mgc' => [
+        'region' => env('MGC_REGION'),
+        'id' => env('MGC_ID'),
+        'secret_access_key' => env('MGC_SECRET_ACCESS_KEY'),
+        'endpoint' => env('MGC_ENDPOINT'),
+        'use_path_style_endpoint' => env('MGC_USE_PATH_STYLE_ENDPOINT', false),
+        'bucket' => env('MGC_BUCKET'),
+    ],
+
+    'google' => [
+        'geocoding_api' => env('GOOGLE_GEOCODING_API'),
+        'distance_matrix_api' => env('GOOGLE_DISTANCE_MATRIX_API'),
+        'api_token' => env('GOOGLE_API_TOKEN'),
+        'maps_map_id' => env('GOOGLE_MAPS_MAP_ID', 'DEMO_MAP_ID'),
+    ],
+
 ];

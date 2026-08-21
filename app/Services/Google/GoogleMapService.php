@@ -35,9 +35,9 @@ class GoogleMapService
       'endereco' => $endereco_formatado
     ]);
 
-    $response = Http::get(env('GOOGLE_GEOCODING_API'), [
+    $response = Http::get(config('services.google.geocoding_api'), [
       'address' => $enderecoFormatadoApi,
-      'key' => env('GOOGLE_API_TOKEN')
+      'key' => config('services.google.api_token')
     ]);
 
     if ($response->ok()) {
@@ -111,9 +111,9 @@ class GoogleMapService
 
     $response = Http::withHeaders([
       'Content-Type' => 'application/json',
-      'X-Goog-Api-Key' => env('GOOGLE_API_TOKEN'),
+      'X-Goog-Api-Key' => config('services.google.api_token'),
       'X-Goog-FieldMask' => 'originIndex,destinationIndex,duration,distanceMeters,status,condition',
-    ])->post(env('GOOGLE_DISTANCE_MATRIX_API'), [
+    ])->post(config('services.google.distance_matrix_api'), [
       'origins' => [
         [
           'waypoint' => [

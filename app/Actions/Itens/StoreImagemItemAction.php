@@ -10,7 +10,7 @@ class StoreImagemItemAction {
   use TrataMGCObjectStore;
 
   public function handle(UploadedFile $file): string {
-    $bucket = env('MGC_BUCKET');
+    $bucket = config('services.mgc.bucket');
     $url = $this->uploadImagem($bucket, $file);
 
     // Registrada como pendente: só deixa de ser candidata à limpeza

@@ -19,7 +19,10 @@ Route::prefix('v1')->group(function () {
             Route::post('/', [\App\Http\Controllers\Empresas::class, 'cadastroEmpresa'])->name('api.cadastro.empresa');
         });
         Route::prefix('formapgto')->group(function () {
-            Route::post('/', [\App\Http\Controllers\Empresas::class, 'upsertFormaPgto'])->name('api.cadastro.empresa');
+            // Nome de rota diferente do endpoint de cadastro (que reaproveita 'api.cadastro.empresa',
+            // igual ao legado): nomes duplicados fazem `route:cache` falhar. A URL, o método e o
+            // controller continuam idênticos — só o nome interno da rota muda, nada usa route() aqui.
+            Route::post('/', [\App\Http\Controllers\Empresas::class, 'upsertFormaPgto'])->name('api.cadastro.empresa.formapgto');
         });
     });
 });

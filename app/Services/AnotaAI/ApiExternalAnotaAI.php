@@ -123,7 +123,7 @@ class ApiExternalAnotaAI extends Endpoints
                                         'tipo' => 'PIZ',
                                         'tipo_preco' => 'preco_item',
                                         'descricao' => $sabor['description'],
-                                        'imagem' => !empty($item['link_image']) ? $this->importarImagemUrl(env('MGC_BUCKET'), $item['link_image']) : null
+                                        'imagem' => !empty($item['link_image']) ? $this->importarImagemUrl(config('services.mgc.bucket'), $item['link_image']) : null
                                     ]);
 
                                     ItemPreco::query()->create([
@@ -147,7 +147,7 @@ class ApiExternalAnotaAI extends Endpoints
                             'tipo' => 'PRE',
                             'tipo_preco' => 'fixo',
                             'preco' => $item['week_prices'][0]['price'],
-                            'imagem' => !empty($item['link_image']) ? $this->importarImagemUrl(env('MGC_BUCKET'), $item['link_image']) : null
+                            'imagem' => !empty($item['link_image']) ? $this->importarImagemUrl(config('services.mgc.bucket'), $item['link_image']) : null
                         ]);
 
                         foreach ($item['next_steps'] as $passo) {
