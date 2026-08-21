@@ -1,5 +1,11 @@
 import axios from "axios";
 
+// Instância isolada: o axios padrão ganha um interceptor global do Laravel Echo que injeta o
+// header X-Socket-Id em toda requisição (usado para excluir o remetente de broadcasts). APIs de
+// terceiros como o ViaCEP não liberam esse header no CORS e bloqueiam a chamada inteira por causa
+// dele — então chamadas externas precisam de uma instância própria, sem esse interceptor.
+const axiosExterno = axios.create();
+
 type TCEP = {
     logradouro: string,
     numero: string,
@@ -21,7 +27,7 @@ export function converteReal(valor?: number | string) {
 }
 
 export async function consultaCEP(cep: string): Promise<TCEP | null> {
-    const { data: resposta } = await axios.get(`https://viacep.com.br/ws/${cep}/json/`);
+    const { data: resposta } = await axiosExterno.get(`https://viacep.com.br/ws/${cep}/json/`);
 
     if (resposta.erro) {
         return null;

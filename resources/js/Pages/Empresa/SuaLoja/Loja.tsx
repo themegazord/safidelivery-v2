@@ -264,6 +264,8 @@ function CamposEndereco({ endereco, errors }: CamposEnderecoProps) {
                 cidade: encontrado.cidade,
                 uf: encontrado.uf ?? atual.uf,
             }));
+        } catch {
+            toast.error("Não foi possível consultar o CEP. Tente novamente ou preencha o endereço manualmente.");
         } finally {
             setLoadingCEP(false);
         }

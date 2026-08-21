@@ -72,6 +72,8 @@ export default function AdicionarEnderecoNovo({ open, setOpen }: IProps) {
           cep: form.data.cep,
           ...endereco
         })
+      } catch {
+        toast.error("Não foi possível consultar o CEP. Tente novamente ou preencha o endereço manualmente.")
       } finally {
         setLoadingViaCEP(false)
       }
