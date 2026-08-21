@@ -34,6 +34,7 @@ class ListaConversasAction
 
                 return [
                     'pedido_id' => $pedido->getAttribute('id'),
+                    'pedido_codigo' => $pedido->getAttribute('ifood_display_id') ?? $pedido->getAttribute('id'),
                     'pedido_status' => $pedido->getAttribute('status'),
                     'titulo' => $ladoEmpresa
                         ? ($pedido->cliente?->nome ?? $pedido->getAttribute('nome') ?? 'Cliente')

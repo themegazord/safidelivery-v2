@@ -10,6 +10,7 @@ export type TMensagemChat = {
 
 export type TConversa = {
     pedido_id: number;
+    pedido_codigo: number | string;
     pedido_status: string;
     titulo: string;
     ultima_mensagem: TMensagemChat | null;

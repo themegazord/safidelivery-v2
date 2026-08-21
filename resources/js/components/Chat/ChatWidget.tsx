@@ -129,6 +129,7 @@ export default function ChatWidget({ usuarioId, rotaConversas, rotaMensagens, ro
                     {conversaAberta ? (
                         <ChatConversa
                             pedidoId={conversaAberta.pedido_id}
+                            pedidoCodigo={conversaAberta.pedido_codigo}
                             usuarioId={usuarioId}
                             titulo={conversaAberta.titulo}
                             rotaMensagens={rotaMensagens}
@@ -157,7 +158,12 @@ export default function ChatWidget({ usuarioId, rotaConversas, rotaMensagens, ro
                                                 className="flex items-center justify-between gap-3 py-3 text-left hover:bg-muted/40"
                                             >
                                                 <div className="min-w-0">
-                                                    <p className="truncate font-semibold">{conversa.titulo}</p>
+                                                    <p className="truncate font-semibold">
+                                                        {conversa.titulo}{" "}
+                                                        <span className="font-normal text-muted-foreground">
+                                                            · Pedido #{conversa.pedido_codigo}
+                                                        </span>
+                                                    </p>
                                                     <p className="truncate text-sm text-muted-foreground">
                                                         {conversa.ultima_mensagem?.mensagem ??
                                                             "Nenhuma mensagem ainda"}

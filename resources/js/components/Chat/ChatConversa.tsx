@@ -21,6 +21,7 @@ import { TEventoNovaMensagem, TMensagemChat } from "@/types/chat/types";
 
 interface IProps {
     pedidoId: number;
+    pedidoCodigo: number | string;
     usuarioId: number;
     titulo: string;
     rotaMensagens: (pedidoId: number) => string;
@@ -39,6 +40,7 @@ function formataHora(dataIso: string) {
 
 export default function ChatConversa({
     pedidoId,
+    pedidoCodigo,
     usuarioId,
     titulo,
     rotaMensagens,
@@ -104,7 +106,10 @@ export default function ChatConversa({
                 <Button type="button" variant="ghost" size="icon" onClick={onVoltar}>
                     <ArrowLeft className="h-4 w-4" />
                 </Button>
-                <p className="truncate font-semibold">{titulo}</p>
+                <div className="min-w-0">
+                    <p className="truncate font-semibold">{titulo}</p>
+                    <p className="truncate text-xs text-muted-foreground">Pedido #{pedidoCodigo}</p>
+                </div>
             </div>
 
             <ScrollArea className="min-h-0 flex-1 px-4">
