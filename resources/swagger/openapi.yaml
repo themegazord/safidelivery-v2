@@ -1,0 +1,2089 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: SAFI Delivery
+  license:
+    name: MIT
+servers:
+  - url: http://localhost:8000/api/v1
+paths:
+  /pedidos:
+    post:
+      summary: Lista todos os pedidos sendo preparados, entregues ou cancelados que ainda não foram consultados.
+      operationId: listaPedidosEntregues
+      tags:
+        - pedidos
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DadosConsultaListaPedidos'
+        required: true
+      responses:
+        '200':
+          description: Uma lista de pedidos entregues que ainda não foram consultados.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidosEntregues'
+        '422':
+          description: Todos os erros possiveis nessa validação.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidacaoConsultaPedidosEntregues'
+  /pedidos/{pedido_id}:
+    get:
+      summary: Consulta o dados do pedido que foi solicitado
+      operationId: consultaPedido
+      tags:
+        - pedidos
+      parameters:
+        - in: header
+          name: companyToken
+          required: true
+          schema:
+            type: string
+          description: Token da empresa necessário para autenticação
+        - name: pedido_id
+          in: path
+          description: Código do pedido que deseja ser consultado
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Detalhes do pedido
+          content:
+            application/json:
+              examples:
+                pedido_normal:
+                  summary: Pedido com itens normais
+                  value:
+                    pedido_id: 15
+                    tipo: D
+                    eh_prioridade: false
+                    eh_ifood: false
+                    mesa: 5
+                    comanda: ed83cf05-9fa5-4526-b6f4-c4cbf1929471
+                    status: entregue
+                    realizado_em: '2025-01-30 10:10:57'
+                    valor_total_produtos: 15
+                    valor_frete: 25
+                    cliente:
+                      nome: Giovanni Joaquim Moura
+                      email: giovannijoaquimmoura@unipsicotaubate.com.br
+                      cpf_cnpj: '80867787899'
+                      telefone: '87987079605'
+                      endereco:
+                        logradouro: Rua Carlos Eugênio Muniz
+                        numero: 15
+                        cep: '55425970'
+                        bairro: Centro
+                        cidade: Paquevira
+                        uf: PE
+                        complemento: null
+                    itens:
+                    - item_id: 13
+                      tipo: I
+                      external_id: 2
+                      uuid: 0f3ac57e-7e05-465d-aa3c-13431eb9ef44
+                      nome: Marmita
+                      quantidade: 1
+                      preco_unitario: 10
+                      preco_original: null
+                      valor_desconto: null
+                      subtotal: 10
+                      item_premio: false
+                      complementos: []
+                    financeiro:
+                      uuid: 64277299-d189-46e8-b260-3861d6d75539
+                      total: 40
+                      valor_desconto: null
+                      cashback_gerado: null
+                      data_vencimento_cashback: null
+                      cashback_utilizado: null
+                      pagamentos:
+                      - forma_pagamento: dinheiro
+                        tipo_pagamento: DIN
+                        codigo_pdv: 1
+                        valor: 40
+                        troco_para: null
+                        valor_troco: null
+                pedido_prioridade:
+                  summary: Pedido com prioridade
+                  value:
+                    pedido_id: 15
+                    tipo: D
+                    eh_prioridade: true
+                    eh_ifood: false
+                    mesa: 5
+                    comanda: ed83cf05-9fa5-4526-b6f4-c4cbf1929471
+                    status: entregue
+                    realizado_em: '2025-01-30 10:10:57'
+                    valor_total_produtos: 15
+                    valor_frete: 25
+                    cliente:
+                      nome: Giovanni Joaquim Moura
+                      email: giovannijoaquimmoura@unipsicotaubate.com.br
+                      cpf_cnpj: '80867787899'
+                      telefone: '87987079605'
+                      endereco:
+                        logradouro: Rua Carlos Eugênio Muniz
+                        numero: 15
+                        cep: '55425970'
+                        bairro: Centro
+                        cidade: Paquevira
+                        uf: PE
+                        complemento: null
+                    itens:
+                    - item_id: 13
+                      tipo: I
+                      external_id: 2
+                      uuid: 0f3ac57e-7e05-465d-aa3c-13431eb9ef44
+                      nome: Marmita
+                      quantidade: 1
+                      preco_unitario: 10
+                      preco_original: null
+                      valor_desconto: null
+                      subtotal: 10
+                      item_premio: false
+                      complementos: []
+                    financeiro:
+                      uuid: 64277299-d189-46e8-b260-3861d6d75539
+                      total: 40
+                      valor_desconto: null
+                      cashback_gerado: null
+                      data_vencimento_cashback: null
+                      cashback_utilizado: null
+                      pagamentos:
+                      - forma_pagamento: dinheiro
+                        tipo_pagamento: DIN
+                        codigo_pdv: 1
+                        valor: 40
+                        troco_para: null
+                        valor_troco: null
+                pedido_pizza:
+                  summary: Pedido com item de pizza
+                  value:
+                    pedido_id: 15
+                    tipo: D
+                    eh_prioridade: false
+                    eh_ifood: false
+                    mesa: 5
+                    comanda: ed83cf05-9fa5-4526-b6f4-c4cbf1929471
+                    status: entregue
+                    realizado_em: '2025-01-30 10:10:57'
+                    valor_total_produtos: 30
+                    valor_frete: 0
+                    cliente:
+                      nome: Giovanni Joaquim Moura
+                      email: giovannijoaquimmoura@unipsicotaubate.com.br
+                      cpf_cnpj: '80867787899'
+                      telefone: '87987079605'
+                      endereco:
+                        logradouro: Rua Carlos Eugênio Muniz
+                        numero: 15
+                        cep: '55425970'
+                        bairro: Centro
+                        cidade: Paquevira
+                        uf: PE
+                        complemento: null
+                    itens:
+                    - item_id: 57
+                      tipo: P
+                      uuid: 56759af4-4578-4af8-a19e-d953a16736f1
+                      nome: Pizza Calabresa
+                      quantidade: 1
+                      preco_unitario: 30
+                      preco_original: null
+                      valor_desconto: null
+                      subtotal: 30
+                      item_premio: false
+                      massa:
+                        external_id: 10
+                        nome: Integral
+                        preco: 10
+                      borda:
+                        external_id: 12
+                        nome: Catupiry
+                        preco: 5
+                      sabores:
+                      - id: 47
+                        external_id: 476
+                        uuid: 13822f00-6b18-4d29-8da5-4033327488e5
+                        nome: 1/2 Margherita
+                        quantidade: 2
+                        quantidade_fracionada: 1
+                        preco_unitario: 13.5
+                    financeiro:
+                      uuid: 64277299-d189-46e8-b260-3861d6d75539
+                      total: 45
+                      valor_desconto: null
+                      cashback_gerado: null
+                      data_vencimento_cashback: null
+                      cashback_utilizado: null
+                      pagamentos:
+                      - forma_pagamento: visa_credito
+                        tipo_pagamento: CTC
+                        codigo_pdv: 1
+                        valor: 45
+                        troco_para: null
+                        valor_troco: null
+                pedido_com_cashback_utilizado:
+                  summary: Pedido com cashback utilizado como forma de pagamento
+                  value:
+                    pedido_id: 22
+                    tipo: D
+                    eh_prioridade: false
+                    eh_ifood: false
+                    mesa: null
+                    comanda: null
+                    status: entregue
+                    realizado_em: '2025-06-10 14:22:00'
+                    valor_total_produtos: 60
+                    valor_frete: 10
+                    cliente:
+                      nome: Maria da Silva
+                      email: maria@email.com
+                      cpf_cnpj: '12345678900'
+                      telefone: '11999990000'
+                      endereco:
+                        logradouro: Av. Paulista
+                        numero: 1000
+                        cep: '01310100'
+                        bairro: Bela Vista
+                        cidade: São Paulo
+                        uf: SP
+                        complemento: null
+                    itens:
+                    - item_id: 20
+                      tipo: I
+                      external_id: 5
+                      uuid: aaaaaaaa-0000-4000-a000-000000000001
+                      nome: Frango Grelhado
+                      quantidade: 2
+                      preco_unitario: 30
+                      preco_original: null
+                      valor_desconto: null
+                      subtotal: 60
+                      item_premio: false
+                      complementos: []
+                    financeiro:
+                      uuid: bbbbbbbb-0000-4000-b000-000000000001
+                      total: 65
+                      valor_desconto: 5.00
+                      cashback_gerado: 3.50
+                      data_vencimento_cashback: "2026-06-13"
+                      cashback_utilizado: 5.00
+                      pagamentos:
+                      - forma_pagamento: dinheiro
+                        tipo_pagamento: DIN
+                        codigo_pdv: 1
+                        valor: 65
+                        troco_para: 70
+                        valor_troco: 5
+                      - forma_pagamento: cashback
+                        tipo_pagamento: VIR
+                        codigo_pdv: null
+                        valor: 5.00
+                        troco_para: null
+                        valor_troco: null
+                pedido_multiplos_pagamentos:
+                  summary: Pedido com múltiplas formas de pagamento sem cashback
+                  value:
+                    pedido_id: 30
+                    tipo: D
+                    eh_prioridade: false
+                    eh_ifood: false
+                    mesa: null
+                    comanda: null
+                    status: entregue
+                    realizado_em: '2025-06-10 18:05:00'
+                    valor_total_produtos: 80
+                    valor_frete: 10
+                    cliente:
+                      nome: Carlos Souza
+                      email: carlos@email.com
+                      cpf_cnpj: '98765432100'
+                      telefone: '21988880000'
+                      endereco:
+                        logradouro: Rua das Laranjeiras
+                        numero: 200
+                        cep: '22240010'
+                        bairro: Laranjeiras
+                        cidade: Rio de Janeiro
+                        uf: RJ
+                        complemento: apto 3
+                    itens:
+                    - item_id: 35
+                      tipo: I
+                      external_id: 8
+                      uuid: cccccccc-0000-4000-c000-000000000001
+                      nome: Combo Família
+                      quantidade: 1
+                      preco_unitario: 80
+                      preco_original: null
+                      valor_desconto: null
+                      subtotal: 80
+                      item_premio: false
+                      complementos: []
+                    financeiro:
+                      uuid: dddddddd-0000-4000-d000-000000000001
+                      total: 90
+                      valor_desconto: null
+                      cashback_gerado: null
+                      data_vencimento_cashback: null
+                      cashback_utilizado: null
+                      pagamentos:
+                      - forma_pagamento: dinheiro
+                        tipo_pagamento: DIN
+                        codigo_pdv: 1
+                        valor: 50
+                        troco_para: 60
+                        valor_troco: 10
+                      - forma_pagamento: visa_debito
+                        tipo_pagamento: CTD
+                        codigo_pdv: 1
+                        valor: 40
+                        troco_para: null
+                        valor_troco: null
+                pedido_multiplos_pagamentos_com_cashback:
+                  summary: Pedido com múltiplas formas de pagamento e cashback utilizado
+                  value:
+                    pedido_id: 45
+                    tipo: D
+                    eh_prioridade: false
+                    eh_ifood: false
+                    mesa: null
+                    comanda: null
+                    status: entregue
+                    realizado_em: '2025-06-11 12:30:00'
+                    valor_total_produtos: 100
+                    valor_frete: 15
+                    cliente:
+                      nome: Ana Lima
+                      email: ana@email.com
+                      cpf_cnpj: '11122233344'
+                      telefone: '31977770000'
+                      endereco:
+                        logradouro: Rua da Bahia
+                        numero: 50
+                        cep: '30160011'
+                        bairro: Centro
+                        cidade: Belo Horizonte
+                        uf: MG
+                        complemento: null
+                    itens:
+                    - item_id: 50
+                      tipo: I
+                      external_id: 12
+                      uuid: eeeeeeee-0000-4000-e000-000000000001
+                      nome: Marmitex Grande
+                      quantidade: 2
+                      preco_unitario: 50
+                      preco_original: null
+                      valor_desconto: null
+                      subtotal: 100
+                      item_premio: false
+                      complementos: []
+                    financeiro:
+                      uuid: ffffffff-0000-4000-f000-000000000001
+                      total: 105
+                      valor_desconto: 10.00
+                      cashback_gerado: 5.75
+                      data_vencimento_cashback: "2026-06-13"
+                      cashback_utilizado: 10.00
+                      pagamentos:
+                      - forma_pagamento: master_credito
+                        tipo_pagamento: CTC
+                        codigo_pdv: 1
+                        valor: 60
+                        troco_para: null
+                        valor_troco: null
+                      - forma_pagamento: pix
+                        tipo_pagamento: PIX
+                        codigo_pdv: 1
+                        valor: 45
+                        troco_para: null
+                        valor_troco: null
+                      - forma_pagamento: cashback
+                        tipo_pagamento: VIR
+                        codigo_pdv: null
+                        valor: 10.00
+                        troco_para: null
+                        valor_troco: null
+                pedido_com_item_premio_fidelidade:
+                  summary: Pedido com item grátis do programa de fidelidade
+                  value:
+                    pedido_id: 60
+                    tipo: D
+                    eh_prioridade: false
+                    eh_ifood: false
+                    mesa: null
+                    comanda: null
+                    observacao: null
+                    comanda_manual: null
+                    status: entregue
+                    realizado_em: '2025-06-15 19:30:00'
+                    valor_total_produtos: 40
+                    valor_frete: 5
+                    cliente:
+                      nome: Pedro Alves
+                      email: pedro@email.com
+                      cpf_cnpj: '55544433322'
+                      telefone: '41988887777'
+                      endereco:
+                        logradouro: Rua das Acácias
+                        numero: 80
+                        cep: '80010000'
+                        bairro: Centro
+                        cidade: Curitiba
+                        uf: PR
+                        complemento: null
+                    itens:
+                    - item_id: 10
+                      tipo: I
+                      external_id: 3
+                      uuid: 11111111-aaaa-4000-bbbb-000000000001
+                      nome: Marmita Fitness
+                      quantidade: 1
+                      preco_unitario: 30
+                      preco_original: 0
+                      valor_desconto: 0
+                      subtotal: 30
+                      item_premio: false
+                      observacao: null
+                      complementos: []
+                    - item_id: 11
+                      tipo: I
+                      external_id: 4
+                      uuid: 22222222-aaaa-4000-bbbb-000000000002
+                      nome: Suco Natural
+                      quantidade: 1
+                      preco_unitario: 10
+                      preco_original: 10
+                      valor_desconto: 10
+                      subtotal: 10
+                      item_premio: true
+                      observacao: null
+                      complementos: []
+                    financeiro:
+                      uuid: 33333333-aaaa-4000-bbbb-000000000003
+                      total: 35
+                      valor_desconto: 10
+                      cashback_gerado: null
+                      data_vencimento_cashback: null
+                      cashback_utilizado: null
+                      pagamentos:
+                      - forma_pagamento: pix
+                        tipo_pagamento: PIX
+                        codigo_pdv: 1
+                        valor: 35
+                        troco_para: null
+                        valor_troco: null
+                pedido_com_pizza_premio_fidelidade:
+                  summary: Pedido com pizza grátis do programa de fidelidade
+                  value:
+                    pedido_id: 1129
+                    tipo: D
+                    eh_prioridade: false
+                    eh_ifood: false
+                    mesa: null
+                    comanda: null
+                    observacao: null
+                    comanda_manual: null
+                    status: entregue
+                    realizado_em: '2026-01-10 20:15:00'
+                    valor_total_produtos: 67
+                    valor_frete: 5
+                    cliente:
+                      nome: Ana Souza
+                      email: ana@email.com
+                      cpf_cnpj: '12312312300'
+                      telefone: '41999998888'
+                      endereco:
+                        logradouro: Av. das Flores
+                        numero: 200
+                        cep: '80020000'
+                        bairro: Jardim
+                        cidade: Curitiba
+                        uf: PR
+                        complemento: null
+                    itens:
+                    - item_id: 201
+                      tipo: I
+                      external_id: 15
+                      uuid: aaaaaaaa-1111-4000-bbbb-000000000001
+                      nome: Marmita Fitness
+                      quantidade: 1
+                      preco_unitario: 25
+                      preco_original: null
+                      valor_desconto: 0
+                      subtotal: 25
+                      item_premio: false
+                      observacao: null
+                      complementos: []
+                    - item_id: 202
+                      tipo: P
+                      external_id: null
+                      uuid: bbbbbbbb-2222-4000-bbbb-000000000002
+                      nome: Pizzas Salgadas Pequeno
+                      quantidade: 1
+                      preco_unitario: 0
+                      preco_original: 42
+                      valor_desconto: 42
+                      subtotal: 0
+                      item_premio: true
+                      observacao: null
+                      borda:
+                        external_id: null
+                        nome: Chocolate
+                        preco: 12.5
+                      massa:
+                        external_id: null
+                        nome: Integral
+                        preco: 10
+                      sabores:
+                      - id: 55
+                        external_id: null
+                        uuid: cccccccc-3333-4000-bbbb-000000000003
+                        nome: Alho
+                        quantidade: 1
+                        quantidade_fracionada: 1
+                        preco_unitario: 19.5
+                    financeiro:
+                      uuid: dddddddd-4444-4000-bbbb-000000000004
+                      total: 30
+                      valor_desconto: 42
+                      cashback_gerado: null
+                      data_vencimento_cashback: null
+                      cashback_utilizado: null
+                      pagamentos:
+                      - forma_pagamento: pix
+                        tipo_pagamento: PIX
+                        codigo_pdv: null
+                        valor: 30
+                        troco_para: null
+                        valor_troco: null
+                pedido_com_item_premio_fidelidade_com_complemento:
+                  summary: Pedido com item grátis com complemento do programa de fidelidade
+                  value:
+                    pedido_id: 1127
+                    tipo: D
+                    eh_prioridade: false
+                    eh_ifood: false
+                    mesa: null
+                    comanda: null
+                    observacao: null
+                    comanda_manual: null
+                    status: entregue
+                    realizado_em: '2026-01-10 19:00:00'
+                    valor_total_produtos: 26.5
+                    valor_frete: 0
+                    cliente:
+                      nome: Carlos Lima
+                      email: carlos@email.com
+                      cpf_cnpj: '98765432100'
+                      telefone: '41911112222'
+                      endereco:
+                        logradouro: Rua dos Pinheiros
+                        numero: 55
+                        cep: '80030000'
+                        bairro: Batel
+                        cidade: Curitiba
+                        uf: PR
+                        complemento: Apto 12
+                    itens:
+                    - item_id: 301
+                      tipo: I
+                      external_id: 20
+                      uuid: eeeeeeee-5555-4000-bbbb-000000000005
+                      nome: Poke Salmon
+                      quantidade: 1
+                      preco_unitario: 18.5
+                      preco_original: null
+                      valor_desconto: 0
+                      subtotal: 18.5
+                      item_premio: false
+                      observacao: null
+                      complementos: []
+                    - item_id: 302
+                      tipo: I
+                      external_id: 21
+                      uuid: ffffffff-6666-4000-bbbb-000000000006
+                      nome: Nigiri de Salmão
+                      quantidade: 1
+                      preco_unitario: 6.5
+                      preco_original: 6.5
+                      valor_desconto: 8
+                      subtotal: 8
+                      item_premio: true
+                      observacao: null
+                      complementos:
+                      - external_id: null
+                        complemento_id: 45
+                        uuid: gggggggg-7777-4000-bbbb-000000000007
+                        grupo_complemento: Molhos
+                        nome: Shoyu Extra
+                        quantidade: 1
+                        preco_unitario: 1.5
+                    financeiro:
+                      uuid: hhhhhhhh-8888-4000-bbbb-000000000008
+                      total: 18.5
+                      valor_desconto: 8
+                      cashback_gerado: null
+                      data_vencimento_cashback: null
+                      cashback_utilizado: null
+                      pagamentos:
+                      - forma_pagamento: Cartão de Crédito
+                        tipo_pagamento: CREDITO
+                        codigo_pdv: 3
+                        valor: 18.5
+                        troco_para: null
+                        valor_troco: null
+                pedido_ifood_sem_cliente_identificado:
+                  summary: Pedido com itens de iFood com cliente sem identificação no sistema
+                  value:
+                    pedido_id: 15
+                    tipo: D
+                    eh_prioridade: false
+                    eh_ifood: true
+                    status: entregue
+                    realizado_em: "2025-05-07 16:42:06"
+                    valor_total_produtos: 45
+                    valor_frete: 7.5
+                    cliente:
+                      nome: PEDIDO DE TESTE - Gustavo de Camargo Campos
+                      telefone: '08007003021'
+                      cpf_cnpj: null
+                      email: null
+                      endereco:
+                        logradouro: Rua TESTE
+                        numero: 999999
+                        cep: '99999999'
+                        bairro: Bairro TESTE
+                        cidade: TESTE
+                        uf: XX
+                        complemento: null
+                    itens:
+                    - item_id: 99
+                      tipo: P
+                      uuid: abcd5678-e123-4fgh-ijkl-999999999999
+                      nome: Pizza Meia Portuguesa Meia Calabresa
+                      quantidade: 1
+                      preco_unitario: 45
+                      preco_original: null
+                      valor_desconto: null
+                      subtotal: 45
+                      item_premio: false
+                      massa: null
+                      borda: null
+                      sabores:
+                      - external_id: null
+                        complemento_id: null
+                        uuid: 50a13f6d-a319-42b7-96b0-87ab067d7c8e
+                        nome: Massa Integral + Borda Catupiry
+                        quantidade: 1
+                        quantidade_fracionada: 1
+                        preco_unitario: 10.0
+                      - external_id: null
+                        complemento_id: null
+                        uuid: e0374a89-6c2e-4d81-8b0e-f0d119e2d8c2
+                        nome: 1/2 Calabresa
+                        quantidade: 1
+                        quantidade_fracionada: 0.5
+                        preco_unitario: 17.5
+                      - external_id: null
+                        complemento_id: null
+                        uuid: b6f10a2b-55ca-4018-9a6e-1da7a7b3f796
+                        nome: 1/2 Calabresa
+                        quantidade: 1
+                        quantidade_fracionada: 0.5
+                        preco_unitario: 17.5
+                    financeiro:
+                      uuid: 27fa4d88-6e3d-4757-93f0-9c88e03a123e
+                      total: 52.5
+                      valor_desconto: null
+                      cashback_gerado: null
+                      data_vencimento_cashback: null
+                      cashback_utilizado: null
+                      pagamentos:
+                      - forma_pagamento: dinheiro
+                        tipo_pagamento: DIN
+                        codigo_pdv: 1
+                        valor: 52.5
+                        troco_para: null
+                        valor_troco: null
+                pedido_ifood_cliente_identificado:
+                  summary: Pedido com itens de iFood com cliente identificado
+                  value:
+                    pedido_id: 15
+                    tipo: D
+                    eh_prioridade: false
+                    eh_ifood: true
+                    status: entregue
+                    realizado_em: "2025-05-07 16:42:06"
+                    valor_total_produtos: 45
+                    valor_frete: 7.5
+                    cliente:
+                      nome: Fulano da Silva
+                      email: ifood@cliente.com
+                      cpf_cnpj: '12345678900'
+                      telefone: '11999999999'
+                      endereco:
+                        logradouro: Av. Ifood Delivery
+                        numero: 100
+                        cep: '01234567'
+                        bairro: Centro
+                        cidade: São Paulo
+                        uf: SP
+                        complemento: apto 101
+                    itens:
+                    - item_id: 99
+                      tipo: P
+                      uuid: abcd5678-e123-4fgh-ijkl-999999999999
+                      nome: Pizza Meia Portuguesa Meia Calabresa
+                      quantidade: 1
+                      preco_unitario: 45
+                      preco_original: null
+                      valor_desconto: null
+                      subtotal: 45
+                      item_premio: false
+                      massa: null
+                      borda: null
+                      sabores:
+                      - external_id: null
+                        complemento_id: null
+                        uuid: 50a13f6d-a319-42b7-96b0-87ab067d7c8e
+                        nome: Massa Integral + Borda Catupiry
+                        quantidade: 1
+                        quantidade_fracionada: 1
+                        preco_unitario: 10.0
+                      - external_id: null
+                        complemento_id: null
+                        uuid: e0374a89-6c2e-4d81-8b0e-f0d119e2d8c2
+                        nome: 1/2 Calabresa
+                        quantidade: 1
+                        quantidade_fracionada: 0.5
+                        preco_unitario: 17.5
+                      - external_id: null
+                        complemento_id: null
+                        uuid: b6f10a2b-55ca-4018-9a6e-1da7a7b3f796
+                        nome: 1/2 Calabresa
+                        quantidade: 1
+                        quantidade_fracionada: 0.5
+                        preco_unitario: 17.5
+                    financeiro:
+                      uuid: 27fa4d88-6e3d-4757-93f0-9c88e03a123e
+                      total: 52.5
+                      valor_desconto: null
+                      cashback_gerado: null
+                      data_vencimento_cashback: null
+                      cashback_utilizado: null
+                      pagamentos:
+                      - forma_pagamento: dinheiro
+                        tipo_pagamento: DIN
+                        codigo_pdv: 1
+                        valor: 52.5
+                        troco_para: null
+                        valor_troco: null
+                pedido_com_combo_preco_fixo:
+                  summary: Pedido com item combo (precificação por preço fixo)
+                  description: |
+                    No modo `preco_combo`, o campo `preco_unitario` do combo representa o preço base fixo configurado.
+                    O `subtotal` é `preco_unitario_base + extras_de_complementos * quantidade`.
+                    Sub-itens do tipo `item` têm `preco_unitario: 0` (incluídos no preço fixo);
+                    sub-itens do tipo `complemento` exibem seu valor adicional.
+                  value:
+                    pedido_id: 1287
+                    tipo: D
+                    eh_prioridade: false
+                    eh_ifood: false
+                    mesa: null
+                    comanda: null
+                    observacao: null
+                    comanda_manual: null
+                    status: sendo preparado
+                    realizado_em: '2026-04-06 11:00:00'
+                    valor_total_produtos: 46.00
+                    valor_frete: 5.00
+                    cliente:
+                      nome: Gustavo de Camargo Campos
+                      email: gustavo@email.com
+                      cpf_cnpj: '05081039160'
+                      telefone: '67981590619'
+                      endereco:
+                        logradouro: Rua Quinze de Novembro
+                        numero: 1859
+                        cep: '79020300'
+                        bairro: Jardim dos Estados
+                        cidade: Campo Grande
+                        uf: MS
+                        complemento: null
+                    itens:
+                    - item_id: 42
+                      tipo: C
+                      tipo_precificacao_combo: preco_combo
+                      external_id: combo-001
+                      uuid: aaaaaaaa-cccc-4000-dddd-000000000001
+                      nome: Combo Hotdog com Suco
+                      quantidade: 1
+                      preco_unitario: 35.00
+                      preco_original: 35.00
+                      subtotal: 46.00
+                      observacao: null
+                      complementos:
+                      - external_id: item-101
+                        complemento_id: null
+                        tipo_item_combo: item
+                        uuid: bbbbbbbb-cccc-4000-dddd-000000000002
+                        grupo_complemento: Escolha seu hotdog
+                        nome: Hot Dog
+                        quantidade: 1
+                        preco_unitario: 0.00
+                      - external_id: item-102
+                        complemento_id: null
+                        tipo_item_combo: item
+                        uuid: cccccccc-cccc-4000-dddd-000000000003
+                        grupo_complemento: Sucos
+                        nome: Suco de abacaxi 1L
+                        quantidade: 1
+                        preco_unitario: 0.00
+                      - external_id: comp-201
+                        complemento_id: null
+                        tipo_item_combo: complemento
+                        uuid: dddddddd-cccc-4000-dddd-000000000004
+                        grupo_complemento: Adicionais
+                        nome: Mussarela
+                        quantidade: 1
+                        preco_unitario: 7.00
+                      - external_id: comp-202
+                        complemento_id: null
+                        tipo_item_combo: complemento
+                        uuid: eeeeeeee-cccc-4000-dddd-000000000005
+                        grupo_complemento: Adicionais
+                        nome: Catupiry
+                        quantidade: 1
+                        preco_unitario: 4.00
+                    financeiro:
+                      uuid: ffffffff-cccc-4000-dddd-000000000006
+                      total: 51.00
+                      valor_desconto: 0.00
+                      cashback_gerado: null
+                      data_vencimento_cashback: null
+                      cashback_utilizado: null
+                      pagamentos:
+                      - forma_pagamento: Cartão de Débito
+                        tipo_pagamento: CTD
+                        codigo_pdv: 2
+                        valor: 51.00
+                        troco_para: null
+                        valor_troco: null
+                pedido_com_combo_preco_itens:
+                  summary: Pedido com item combo (precificação soma dos itens)
+                  description: |
+                    No modo `preco_itens`, o campo `preco_unitario` do combo é `0.00` (sem preço base fixo).
+                    O `subtotal` é a soma dos preços individuais dos itens selecionados × quantidade.
+                    Todos os sub-itens do tipo `item` exibem seu `preco_unitario` individual.
+                  value:
+                    pedido_id: 1300
+                    tipo: D
+                    eh_prioridade: false
+                    eh_ifood: false
+                    mesa: null
+                    comanda: null
+                    observacao: null
+                    comanda_manual: null
+                    status: sendo preparado
+                    realizado_em: '2026-04-06 12:00:00'
+                    valor_total_produtos: 42.00
+                    valor_frete: 5.00
+                    cliente:
+                      nome: Maria Souza
+                      email: maria@email.com
+                      cpf_cnpj: '12345678900'
+                      telefone: '67999990000'
+                      endereco:
+                        logradouro: Rua Dom Aquino
+                        numero: 1230
+                        cep: '79002180'
+                        bairro: Centro
+                        cidade: Campo Grande
+                        uf: MS
+                        complemento: null
+                    itens:
+                    - item_id: 55
+                      tipo: C
+                      tipo_precificacao_combo: preco_itens
+                      external_id: combo-002
+                      uuid: 11111111-cccc-4000-eeee-000000000001
+                      nome: Combo 2 Marmitex + Refri
+                      quantidade: 1
+                      preco_unitario: 0.00
+                      preco_original: 0.00
+                      subtotal: 42.00
+                      observacao: sem cebola
+                      complementos:
+                      - external_id: item-201
+                        complemento_id: null
+                        tipo_item_combo: item
+                        uuid: 22222222-cccc-4000-eeee-000000000002
+                        grupo_complemento: Escolha sua marmitex
+                        nome: Marmitex Frango
+                        quantidade: 1
+                        preco_unitario: 18.00
+                      - external_id: item-202
+                        complemento_id: null
+                        tipo_item_combo: item
+                        uuid: 33333333-cccc-4000-eeee-000000000003
+                        grupo_complemento: Escolha sua marmitex
+                        nome: Marmitex Carne
+                        quantidade: 1
+                        preco_unitario: 20.00
+                      - external_id: item-203
+                        complemento_id: null
+                        tipo_item_combo: item
+                        uuid: 44444444-cccc-4000-eeee-000000000004
+                        grupo_complemento: Bebida
+                        nome: Coca-Cola 600ml
+                        quantidade: 1
+                        preco_unitario: 4.00
+                    financeiro:
+                      uuid: 55555555-cccc-4000-eeee-000000000005
+                      total: 47.00
+                      valor_desconto: 0.00
+                      cashback_gerado: null
+                      data_vencimento_cashback: null
+                      cashback_utilizado: null
+                      pagamentos:
+                      - forma_pagamento: pix
+                        tipo_pagamento: PIX
+                        codigo_pdv: 1
+                        valor: 47.00
+                        troco_para: null
+                        valor_troco: null
+                pedido_com_combo_premio_fidelidade:
+                  summary: Pedido com combo grátis do programa de fidelidade
+                  value:
+                    pedido_id: 1350
+                    tipo: D
+                    eh_prioridade: false
+                    eh_ifood: false
+                    mesa: null
+                    comanda: null
+                    observacao: null
+                    comanda_manual: null
+                    status: sendo preparado
+                    realizado_em: '2026-04-06 13:00:00'
+                    valor_total_produtos: 35.00
+                    valor_frete: 5.00
+                    cliente:
+                      nome: João Lima
+                      email: joao@email.com
+                      cpf_cnpj: '98765432100'
+                      telefone: '67988880000'
+                      endereco:
+                        logradouro: Av. Afonso Pena
+                        numero: 500
+                        cep: '79010000'
+                        bairro: Centro
+                        cidade: Campo Grande
+                        uf: MS
+                        complemento: null
+                    itens:
+                    - item_id: 10
+                      tipo: I
+                      tipo_precificacao_combo: null
+                      external_id: item-999
+                      uuid: aaaaaaaa-ffff-4000-cccc-000000000001
+                      nome: Frango à Parmegiana
+                      quantidade: 1
+                      preco_unitario: 35.00
+                      preco_original: 35.00
+                      subtotal: 35.00
+                      item_premio: false
+                      observacao: null
+                      complementos: []
+                    - item_id: 42
+                      tipo: C
+                      tipo_precificacao_combo: preco_combo
+                      external_id: combo-001
+                      uuid: bbbbbbbb-ffff-4000-cccc-000000000002
+                      nome: Combo Hotdog com Suco
+                      quantidade: 1
+                      preco_unitario: 0.00
+                      preco_original: 35.00
+                      subtotal: 0.00
+                      observacao: null
+                      complementos:
+                      - external_id: item-101
+                        complemento_id: null
+                        tipo_item_combo: item
+                        uuid: cccccccc-ffff-4000-cccc-000000000003
+                        grupo_complemento: Escolha seu hotdog
+                        nome: Hot Dog
+                        quantidade: 1
+                        preco_unitario: 0.00
+                      - external_id: item-102
+                        complemento_id: null
+                        tipo_item_combo: item
+                        uuid: dddddddd-ffff-4000-cccc-000000000004
+                        grupo_complemento: Sucos
+                        nome: Suco de Limão 1L
+                        quantidade: 1
+                        preco_unitario: 0.00
+                    financeiro:
+                      uuid: eeeeeeee-ffff-4000-cccc-000000000005
+                      total: 40.00
+                      valor_desconto: 35.00
+                      cashback_gerado: null
+                      data_vencimento_cashback: null
+                      cashback_utilizado: null
+                      pagamentos:
+                      - forma_pagamento: Cartão de Crédito
+                        tipo_pagamento: CTC
+                        codigo_pdv: 3
+                        valor: 40.00
+                        troco_para: null
+                        valor_troco: null
+                pedido_ifood_combo_customizacoes:
+                  summary: Pedido vindo do iFood com combo e customizações
+                  value:
+                    pedido_id: 1436
+                    tipo: D
+                    eh_ifood: true
+                    eh_prioridade: false
+                    status: entregue
+                    realizado_em: '2026-04-07 14:30:31'
+                    valor_total_produtos: null
+                    valor_frete: 5
+                    comanda_manual: null
+                    mesa: null
+                    comanda: b0ed089b-5a16-4c03-a7dc-84a42f0a0081
+                    observacao: Este pedido foi gerado automaticamente pelo Developer Portal.
+                    cliente:
+                      nome: PEDIDO DE TESTE - Gustavo de Camargo Campos
+                      telefone: '08007056070'
+                      email: null
+                      cpf_cnpj: null
+                      endereco:
+                        logradouro: Rua TESTE
+                        numero: 999999
+                        cep: '99999999'
+                        bairro: Bairro TESTE
+                        cidade: TESTE
+                        uf: XX
+                        complemento: null
+                    itens:
+                      - item_id: 659
+                        tipo: I
+                        tipo_precificacao_combo: null
+                        external_id: '8189'
+                        uuid: 6fd72ea6-14a1-4e4c-9008-9bb64d5e1da3
+                        nome: PRODUTO 1 - NÃO ENTREGAR - Primeiro Nível
+                        quantidade: 1
+                        preco_unitario: 5
+                        preco_original: 0
+                        subtotal: 5
+                        item_premio: false
+                        observacao: null
+                        complementos: []
+                      - item_id: 660
+                        tipo: C
+                        tipo_precificacao_combo: preco_itens
+                        external_id: null
+                        uuid: bc0e6c07-c32b-417d-a2ce-3461a0947051
+                        nome: PRODUTO 2 (COMBO) - NÃO ENTREGAR - Primeiro Nível
+                        quantidade: 1
+                        preco_unitario: 5
+                        preco_original: 0
+                        subtotal: 16
+                        observacao: null
+                        complementos:
+                          - external_id: null
+                            complemento_id: null
+                            tipo_item_combo: complemento
+                            uuid: f036562e-7296-4456-91ca-607305551ac5
+                            grupo_complemento: Adicione mais ingredientes
+                            nome: Complemento 1 - Segundo Nível
+                            quantidade: 1
+                            preco_unitario: 2
+                          - external_id: null
+                            complemento_id: null
+                            tipo_item_combo: complemento
+                            uuid: c45d91ef-781a-4a5d-b136-1ab1e93f98e5
+                            grupo_complemento: Deseja adicionar molhos?
+                            nome: Complemento 2 - Segundo Nível
+                            quantidade: 1
+                            preco_unitario: 2
+                          - external_id: null
+                            complemento_id: null
+                            tipo_item_combo: complemento
+                            uuid: 98efc129-81a8-456b-b756-0af1d8df65e4
+                            grupo_complemento: Escolha seu acompanhamento
+                            nome: Complemento 3 - Segundo Nível
+                            quantidade: 1
+                            preco_unitario: 2
+                          - external_id: null
+                            complemento_id: null
+                            tipo_item_combo: item
+                            uuid: ca287bae-de43-48cc-9b1d-766c4d12fac7
+                            grupo_complemento: Meu sanduíche favorito
+                            nome: Complemento 4 - Segundo Nível
+                            quantidade: 1
+                            preco_unitario: 2
+                            customizacoes:
+                              - external_id: '8589'
+                                uuid: 203b3a4c-6da0-439e-b18d-9d040368e8b2
+                                grupo_complemento: Grupo de Complemento Obrigatório
+                                nome: Customização 1 do Complemento 4 - Terceiro Nível
+                                preco_unitario: '1.00'
+                                qtde: 1
+                              - external_id: '9155'
+                                uuid: 5a730399-dac9-4cf9-aa42-60a146201511
+                                grupo_complemento: Grupo de Complemento Opcional
+                                nome: Customização 2 do Complemento 4 - Terceiro Nível
+                                preco_unitario: '1.00'
+                                qtde: 1
+                              - external_id: '7037'
+                                uuid: 5cdf0117-582e-4c9f-8786-74b32c151cfc
+                                grupo_complemento: Escolha seu acompanhamento
+                                nome: Customização 3 do Complemento 4 - Terceiro Nível
+                                preco_unitario: '1.00'
+                                qtde: 1
+                    financeiro:
+                      uuid: 71565b81-f9ca-44b5-a616-a826f1363e60
+                      total: 27
+                      valor_desconto: 0
+                      cashback_gerado: null
+                      data_vencimento_cashback: null
+                      cashback_utilizado: 0
+                      pagamentos:
+                        - forma_pagamento: Cartão de Crédito - Visa
+                          tipo_pagamento: DIN
+                          codigo_pdv: null
+                          valor: 27
+                          troco_para: null
+                          valor_troco: null
+                    url_impressao_txt: https://homologdel.sfsistemas.com/pedidos/imprimir/1436/txt?signature=3d74332ff4c9d63672490cd0c6c46e2bd0cade1ced7753d8fd1bed24e7266460
+
+        '401':
+          description: Erro de autenticação
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidacaoCompanyToken'
+        '422':
+          description: Erro de validação
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidacaoConsultaPedidoID'
+  /pedidos/diario:
+    post:
+      summary: Lista todos os pedidos entregues que ainda não foram consultados.
+      operationId: listaPedidosEntreguesDiarios
+      tags:
+        - pedidos
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DadosConsultaListaPedidosDiario'
+        required: true
+      responses:
+        '200':
+          description: Uma lista de pedidos entregues feitos no dia da consulta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidosEntregues'
+        '422':
+          description: Todos os erros possiveis nessa validação.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidacaoConsultaPedidosDiario'
+  /empresa/cadastro:
+    post:
+      summary: Cadastra uma nova empresa no sistema
+      operationId: cadastroEmpresa
+      tags:
+        - empresa
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CadastroEmpresaRequest'
+      responses:
+        '201':
+          description: Empresa cadastrada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sucesso:
+                    type: string
+                    example: Empresa cadastrada com sucesso!
+        '422':
+          description: Erro de validacao
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidacaoCadastroEmpresa'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  erro:
+                    type: string
+                    example: Mensagem de erro interno
+  /empresa/formapgto:
+    post:
+      summary: Cadastra ou atualiza formas de pagamento da empresa
+      description: >
+        Realiza upsert das formas de pagamento com base no `codigo_pdv`.
+        Se já existir uma forma com o mesmo `codigo_pdv` para a empresa, ela será atualizada. Caso contrário, será criada.
+      operationId: upsertFormaPgto
+      tags:
+        - empresa
+      parameters:
+        - in: header
+          name: companyToken
+          required: true
+          schema:
+            type: string
+          description: Token da empresa necessário para autenticação
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpsertFormaPgtoRequest'
+            example:
+              formas:
+                - codigo_pdv: 1
+                  descricao: Pix
+                  tipo: PIX
+                  ativo: true
+                - codigo_pdv: 2
+                  descricao: Dinheiro
+                  tipo: DIN
+                  ativo: true
+                - codigo_pdv: 3
+                  descricao: Cartão de Débito
+                  tipo: CTD
+                  ativo: true
+                - codigo_pdv: 4
+                  descricao: Cartão de Crédito
+                  tipo: CTC
+                  ativo: false
+                - codigo_pdv: 5
+                  descricao: Vale Refeição
+                  tipo: VRE
+                  ativo: true
+      responses:
+        '201':
+          description: Formas de pagamento cadastradas/atualizadas com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mensagem:
+                    type: string
+                    example: Formas de pagamento cadastradas com sucesso
+        '401':
+          description: Erro de autenticação
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidacaoCompanyToken'
+        '422':
+          description: Erro de validação
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidacaoUpsertFormaPgto'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  erro:
+                    type: string
+                    example: Mensagem de erro interno
+components:
+  schemas:
+    DadosConsultaListaPedidos:
+      type: object
+      required:
+        - cnpj
+        - data_hora
+      properties:
+        cnpj:
+          type: string
+        data_hora:
+          type: string
+    DadosConsultaListaPedidosDiario:
+      type: object
+      required:
+        - cnpj
+      properties:
+        cnpj:
+          type: string
+    CabecalhoPedido:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 15
+        status:
+          type: string
+          example: entregue ou cancelado
+        created_at:
+          type: string
+          format: date-time
+          example: '2025-01-30T14:10:57.000000Z'
+    PedidosEntregues:
+      type: object
+      properties:
+        pedidos:
+          type: array
+          items:
+            $ref: '#/components/schemas/CabecalhoPedido'
+    PedidosDiarioEntregues:
+      type: object
+      properties:
+        pedidos:
+          type: array
+          items:
+            $ref: '#/components/schemas/CabecalhoPedido'
+    Cliente:
+      type: object
+      properties:
+        nome:
+          type: string
+          example: Giovanni Joaquim Moura
+        email:
+          type: string
+          format: email
+          example: giovannijoaquimmoura@unipsicotaubate.com.br
+        cpf_cnpj:
+          type: string
+          example: '80867787899'
+        telefone:
+          type: string
+          example: '87987079605'
+        endereco:
+          $ref: '#/components/schemas/Endereco'
+    Endereco:
+      type: object
+      properties:
+        logradouro:
+          type: string
+          example: Rua Carlos Eugênio Muniz
+        numero:
+          type: integer
+          example: 15
+        cep:
+          type: string
+          example: '55425970'
+        bairro:
+          type: string
+          example: Centro
+        cidade:
+          type: string
+          example: Paquevira
+        uf:
+          type: string
+          example: PE
+        complemento:
+          type: string
+          nullable: true
+    Item:
+      type: object
+      properties:
+        item_id:
+          type: integer
+          example: 13
+        tipo:
+          type: string
+          example: I
+        external_id:
+          type: integer
+          example: 2
+        uuid:
+          type: string
+          example: 0f3ac57e-7e05-465d-aa3c-13431eb9ef44
+        nome:
+          type: string
+          example: Marmita
+        quantidade:
+          type: integer
+          example: 1
+        preco_unitario:
+          type: number
+          format: float
+          example: 10
+          description: Preço unitário cobrado. Zero quando o item é um prêmio de fidelidade gratuito.
+        preco_original:
+          type: number
+          format: float
+          nullable: true
+          example: null
+          description: Preço original do item antes do desconto de fidelidade. Preenchido apenas quando item_premio é true.
+        valor_desconto:
+          type: number
+          format: float
+          nullable: true
+          example: null
+          description: Desconto aplicado neste item (preco_original - preco_unitario). Preenchido apenas quando item_premio é true.
+        subtotal:
+          type: number
+          format: float
+          example: 10
+          description: Valor total cobrado por este item (preco_unitario × quantidade). Zero para itens prêmio gratuitos.
+        item_premio:
+          type: boolean
+          example: false
+          description: Indica se o item foi concedido como prêmio do programa de fidelidade (gratuito).
+        complementos:
+          type: array
+          items:
+            $ref: '#/components/schemas/Complemento'
+    Complemento:
+      type: object
+      properties:
+        external_id:
+          type: integer
+          example: 258
+        complemento_id:
+          type: integer
+          example: 6
+        uuid:
+          type: string
+          example: 3646a1e6-f3b9-429f-bdac-2cc607f51f3e
+        grupo_complemento:
+          type: string
+          example: Precisa de ketchup?
+        nome:
+          type: string
+          example: Queijo Coalho Grelhado
+        quantidade:
+          type: integer
+          example: 1
+        preco_unitario:
+          type: number
+          format: float
+          example: 5
+    ComplementoPedidoIfood:
+      type: object
+      properties:
+        external_id:
+          type: integer
+        complemento_id:
+          type: integer
+        uuid:
+          type: string
+        grupo_complemento:
+          type: string
+        nome:
+          type: string
+        quantidade:
+          type: integer
+        preco_unitario:
+          type: number
+          format: float
+    PagamentoItem:
+      type: object
+      properties:
+        forma_pagamento:
+          type: string
+          example: Dinheiro
+          description: Descrição da forma de pagamento
+        tipo_pagamento:
+          type: string
+          enum: [PIX, DIN, CTD, CTC, VRE, VIR]
+          example: DIN
+          description: >
+            Categoria da forma de pagamento:
+            PIX = Pix,
+            DIN = Dinheiro,
+            CTD = Cartão de débito,
+            CTC = Cartão de crédito,
+            VRE = Vale refeição,
+            VIR = Crédito virtual (cashback)
+        codigo_pdv:
+          type: integer
+          nullable: true
+          example: 5
+          description: Código identificador da forma de pagamento no PDV. Null quando não cadastrado.
+        valor:
+          type: number
+          format: float
+          example: 40
+        troco_para:
+          type: number
+          format: float
+          nullable: true
+          example: null
+        valor_troco:
+          type: number
+          format: float
+          nullable: true
+          example: null
+    Financeiro:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          example: 64277299-d189-46e8-b260-3861d6d75539
+        total:
+          type: number
+          format: float
+          example: 40
+        valor_desconto:
+          type: number
+          format: float
+          nullable: true
+          example: null
+          description: >
+            Soma de todos os descontos aplicados no pedido (cupom + cashback utilizado + fidelidade).
+            Null quando nenhum desconto foi aplicado.
+        cashback_gerado:
+          type: number
+          format: float
+          nullable: true
+          example: null
+          description: Valor de cashback gerado por este pedido (crédito para uso futuro)
+        data_vencimento_cashback:
+          type: string
+          format: date
+          nullable: true
+          example: null
+          description: Data de vencimento do cashback gerado (formato Y-m-d). Null quando não há cashback gerado.
+        cashback_utilizado:
+          type: number
+          format: float
+          nullable: true
+          example: null
+          description: Valor de cashback descontado neste pedido
+        pagamentos:
+          type: array
+          description: >
+            Lista de formas de pagamento usadas, incluindo cashback quando utilizado
+            (forma_pagamento = "cashback", tipo_pagamento = "VIR").
+            A soma dos valores representa o valor bruto original do pedido (total + cashback_utilizado).
+          items:
+            $ref: '#/components/schemas/PagamentoItem'
+    RespostaPedido:
+      type: object
+      properties:
+        pedido:
+          $ref: '#/components/schemas/Pedido'
+    Sabor:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 47
+        external_id:
+          type: integer
+          example: 476
+        uuid:
+          type: string
+          format: uuid
+          example: 13822f00-6b18-4d29-8da5-4033327488e5
+        nome:
+          type: string
+          example: 1/2 Margherita
+        quantidade:
+          type: integer
+          example: 2
+        quantidade_fracionada:
+          type: number
+          format: float
+          nullable: true
+          example: 1
+        preco_unitario:
+          type: number
+          format: float
+          example: 13.5
+    ItemPedidoPizza:
+      type: object
+      properties:
+        item_id:
+          type: integer
+          example: 57
+        tipo:
+          type: string
+          example: P
+        uuid:
+          type: string
+          format: uuid
+          example: 56759af4-4578-4af8-a19e-d953a16736f1
+        nome:
+          type: string
+          example: Pizzas Salgadas Media 2 SABORES (6 PEDAÇOS)
+        quantidade:
+          type: integer
+          example: 1
+        preco_unitario:
+          type: number
+          format: float
+          example: 30
+          description: Preço unitário cobrado. Zero quando o item é um prêmio de fidelidade gratuito.
+        preco_original:
+          type: number
+          format: float
+          nullable: true
+          example: null
+          description: Preço original do item antes do desconto de fidelidade. Preenchido apenas quando item_premio é true.
+        valor_desconto:
+          type: number
+          format: float
+          nullable: true
+          example: null
+          description: Desconto aplicado neste item (preco_original - preco_unitario). Preenchido apenas quando item_premio é true.
+        subtotal:
+          type: number
+          format: float
+          example: 30
+          description: Valor total cobrado por este item (preco_unitario × quantidade). Zero para itens prêmio gratuitos.
+        item_premio:
+          type: boolean
+          example: false
+          description: Indica se o item foi concedido como prêmio do programa de fidelidade (gratuito).
+        massa:
+          type: object
+          properties:
+            external_id:
+              type: integer
+            nome:
+              type: string
+            preco:
+              type: number
+              format: float
+          example:
+            external_id: 10
+            nome: Integral
+            preco: 10
+        borda:
+          type: object
+          properties:
+            external_id:
+              type: integer
+            nome:
+              type: string
+            preco:
+              type: number
+              format: float
+          example:
+            external_id: 12
+            nome: Chocolate
+            preco: 12.5
+        sabores:
+          type: array
+          items:
+            $ref: '#/components/schemas/Sabor'
+    ItemPedidoPizzaIfood:
+      type: object
+      properties:
+        item_id:
+          type: integer
+          example: 57
+        tipo:
+          type: string
+          example: P
+        uuid:
+          type: string
+          format: uuid
+          example: 56759af4-4578-4af8-a19e-d953a16736f1
+        nome:
+          type: string
+          example: Pizzas Salgadas Media 2 SABORES (6 PEDAÇOS)
+        quantidade:
+          type: integer
+          example: 1
+        preco_unitario:
+          type: number
+          format: float
+          example: 45
+          description: Preço unitário cobrado. Zero quando o item é um prêmio de fidelidade gratuito.
+        preco_original:
+          type: number
+          format: float
+          nullable: true
+          example: null
+          description: Preço original do item antes do desconto de fidelidade. Preenchido apenas quando item_premio é true.
+        valor_desconto:
+          type: number
+          format: float
+          nullable: true
+          example: null
+          description: Desconto aplicado neste item (preco_original - preco_unitario). Preenchido apenas quando item_premio é true.
+        subtotal:
+          type: number
+          format: float
+          example: 45
+          description: Valor total cobrado por este item (preco_unitario × quantidade). Zero para itens prêmio gratuitos.
+        item_premio:
+          type: boolean
+          example: false
+          description: Indica se o item foi concedido como prêmio do programa de fidelidade (gratuito).
+        massa:
+          type: object
+          nullable: true
+          example: null
+        borda:
+          type: object
+          nullable: true
+          example: null
+        complementos:
+          type: array
+          items:
+            $ref: '#/components/schemas/ComplementoPedidoIfood'
+          example:
+            - external_id: null
+              complemento_id: null
+              uuid: 50a13f6d-a319-42b7-96b0-87ab067d7c8e
+              grupo_complemento: '[]'
+              nome: Massa Integral + Borda Borda de catupiry
+              quantidade: 1
+              preco_unitario: 10
+            - external_id: null
+              complemento_id: null
+              uuid: e0374a89-6c2e-4d81-8b0e-f0d119e2d8c2
+              grupo_complemento: '[]'
+              nome: 1/2 Calabresaa
+              quantidade: 1
+              preco_unitario: 17.5
+            - external_id: null
+              complemento_id: null
+              uuid: b6f10a2b-55ca-4018-9a6e-1da7a7b3f796
+              grupo_complemento: '[]'
+              nome: 1/2 Calabresaa
+              quantidade: 1
+              preco_unitario: 17.5
+    ValidacaoConsultaPedidosEntregues:
+      type: object
+      properties:
+        erro:
+          type: string
+          example: Erro de validação
+        mensagens:
+          type: object
+          properties:
+            data_hora:
+              type: array
+              items:
+                type: string
+              example:
+                - Data e hora requeridos.
+                - O campo data_hora deve estar no formato Y-m-d H:i:s.
+            cnpj:
+              type: array
+              items:
+                type: string
+              example:
+                - CNPJ requerido
+                - O CNPJ não existe no banco de dados
+                - O CNPJ deve conter 14 caracteres.
+      example:
+        erro: Erro de validação
+        mensagens:
+          data_hora:
+            - Data e hora requeridos.
+            - O campo data_hora deve estar no formato Y-m-d H:i:s.
+          cnpj:
+            - CNPJ requerido
+            - O CNPJ não existe no banco de dados
+            - O CNPJ deve conter 14 caracteres.
+    ValidacaoConsultaPedidosDiario:
+      type: object
+      properties:
+        erro:
+          type: string
+          example: Erro de validação
+        mensagens:
+          type: object
+          properties:
+            cnpj:
+              type: array
+              items:
+                type: string
+              example:
+                - CNPJ requerido
+                - O CNPJ não existe no banco de dados
+                - O CNPJ deve conter 14 caracteres.
+      example:
+        erro: Erro de validação
+        mensagens:
+          cnpj:
+            - CNPJ requerido
+            - O CNPJ não existe no banco de dados
+            - O CNPJ deve conter 14 caracteres.
+    ValidacaoCompanyToken:
+      type: object
+      properties:
+        erro:
+          type: string
+          example: Erro de autenticação
+        mensagens:
+          type: object
+          properties:
+            companyToken:
+              type: array
+              items:
+                type: string
+              example:
+                - Company token não foi encaminhado
+                - Company token não existe
+    ValidacaoConsultaPedidoID:
+      type: object
+      properties:
+        erro:
+          type: string
+          example: Erro de validação
+        mensagens:
+          type: object
+          properties:
+            pedido_id:
+              type: array
+              items:
+                type: string
+              example:
+                - Pedido solicitado não condiz com a empresa
+    CadastroEmpresaRequest:
+      type: object
+      required:
+        - razao_social
+        - nome_fantasia
+        - cnpj
+        - email
+        - logradouro
+        - numero
+        - cep
+        - bairro
+        - cidade
+        - uf
+      properties:
+        razao_social:
+          type: string
+          maxLength: 255
+          example: Restaurante Bom Sabor LTDA
+        nome_fantasia:
+          type: string
+          maxLength: 255
+          example: Restaurante Bom Sabor
+        cnpj:
+          type: string
+          minLength: 14
+          maxLength: 14
+          example: '12345678000190'
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          example: contato@bomsabor.com.br
+        logradouro:
+          type: string
+          maxLength: 255
+          example: Rua das Flores
+        numero:
+          type: integer
+          maximum: 99999
+          example: 150
+        cep:
+          type: string
+          minLength: 8
+          maxLength: 8
+          example: '79000000'
+        bairro:
+          type: string
+          maxLength: 255
+          example: Centro
+        cidade:
+          type: string
+          maxLength: 255
+          example: Campo Grande
+        uf:
+          type: string
+          minLength: 2
+          maxLength: 2
+          example: MS
+        complemento:
+          type: string
+          maxLength: 255
+          nullable: true
+          example: Sala 10
+        telefone_contato:
+          type: string
+          maxLength: 15
+          nullable: true
+          example: '67999998888'
+        telefone_comercial:
+          type: string
+          maxLength: 15
+          nullable: true
+          example: '6733221100'
+        telefone_whatsapp:
+          type: string
+          maxLength: 15
+          nullable: true
+          example: '67999998888'
+    ValidacaoCadastroEmpresa:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Campo obrigatório (and 3 more errors)
+        errors:
+          type: object
+          properties:
+            razao_social:
+              type: array
+              items:
+                type: string
+              example:
+                - Campo obrigatório
+            nome_fantasia:
+              type: array
+              items:
+                type: string
+              example:
+                - Campo obrigatório
+            cnpj:
+              type: array
+              items:
+                type: string
+              example:
+                - Campo obrigatório
+                - O CNPJ deve conter 14 caracteres
+                - Esse CNPJ já está sendo usado por outra empresa.
+            email:
+              type: array
+              items:
+                type: string
+              example:
+                - Campo obrigatório
+                - Esse email já está sendo usado por outra empresa.
+            logradouro:
+              type: array
+              items:
+                type: string
+              example:
+                - Campo obrigatório
+            numero:
+              type: array
+              items:
+                type: string
+              example:
+                - O número deve ser numérico
+            cep:
+              type: array
+              items:
+                type: string
+              example:
+                - Campo obrigatório
+                - O CEP deve conter 8 caracteres
+            bairro:
+              type: array
+              items:
+                type: string
+              example:
+                - Campo obrigatório
+            cidade:
+              type: array
+              items:
+                type: string
+              example:
+                - Campo obrigatório
+            uf:
+              type: array
+              items:
+                type: string
+              example:
+                - Campo obrigatório
+                - A UF deve conter 2 caracteres
+    FormaPagamentoItem:
+      type: object
+      required:
+        - descricao
+        - tipo
+      properties:
+        codigo_pdv:
+          type: integer
+          nullable: true
+          example: 1
+          description: Código identificador da forma de pagamento no PDV
+        descricao:
+          type: string
+          maxLength: 100
+          example: Pix
+          description: Nome descritivo da forma de pagamento
+        tipo:
+          type: string
+          enum: [PIX, DIN, CTD, CTC, VRE, VIR]
+          example: PIX
+          description: >
+            Categoria da forma de pagamento:
+            PIX = Pix,
+            DIN = Dinheiro,
+            CTD = Cartão de débito,
+            CTC = Cartão de crédito,
+            VRE = Vale refeição,
+            VIR = Crédito virtual (cashback)
+        ativo:
+          type: boolean
+          example: true
+          description: >
+            Indica se a forma de pagamento está ativa.
+            Quando não informado, o padrão é true.
+    UpsertFormaPgtoRequest:
+      type: object
+      required:
+        - formas
+      properties:
+        formas:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/FormaPagamentoItem'
+    ValidacaoUpsertFormaPgto:
+      type: object
+      properties:
+        message:
+          type: string
+          example: O campo código do SAFI é obrigatório (and 2 more errors)
+        errors:
+          type: object
+          properties:
+            'formas.0.codigo_pdv':
+              type: array
+              items:
+                type: string
+              example:
+                - O campo código do SAFI é obrigatório
+            'formas.0.descricao':
+              type: array
+              items:
+                type: string
+              example:
+                - O campo descrição é obrigatório
+            'formas.0.tipo':
+              type: array
+              items:
+                type: string
+              example:
+                - O campo tipo é obrigatório

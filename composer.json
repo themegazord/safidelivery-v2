@@ -17,7 +17,8 @@
         "laravel/reverb": "^1.11",
         "laravel/tinker": "^3.0.2",
         "predis/predis": "^3.5",
-        "tightenco/ziggy": "^2.6"
+        "tightenco/ziggy": "^2.6",
+        "wotz/laravel-swagger-ui": "^2.1"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^3.7",
