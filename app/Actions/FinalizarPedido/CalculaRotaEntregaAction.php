@@ -33,7 +33,7 @@ class CalculaRotaEntregaAction
 
     $dadosDistanciaRota['latCliente'] = $latlgnCliente['latitude'];
     $dadosDistanciaRota['lngCliente'] = $latlgnCliente['longitude'];
-    $dadosDistanciaRota['taxaFrete'] = $this->defineTaxaEntrega($distanciaKm);
+    $dadosDistanciaRota['taxaFrete'] = $this->defineTaxaEntrega($distanciaKm, $latlgnCliente['latitude'], $latlgnCliente['longitude']);
     $dadosDistanciaRota['duracao'] = $service->segundosParaTempoLegivel($this->calculaDuracaoEntrega($totais['duracao'], $distanciaKm));
     $dadosDistanciaRota['valorMaximoDesconto'] = false;
 
@@ -43,7 +43,7 @@ class CalculaRotaEntregaAction
     ];
   }
 
-  private function defineTaxaEntrega(float $distancia_km): float
+  private function defineTaxaEntrega(float $distancia_km, ?float $latCliente = null, ?float $lngCliente = null): float
   {
     $this->foraAreaEntrega = false;
     // Frete grátis condicional — verifica subtotal antes de calcular taxa
@@ -63,8 +63,6 @@ class CalculaRotaEntregaAction
     }
 
     $prioridade = $this->configuracoes['prioridade_zona_sobreposicao'] ?? 'poligono';
-    $latCliente = $this->dadosDistanciaRota['latCliente'] ?? null;
-    $lngCliente = $this->dadosDistanciaRota['lngCliente'] ?? null;
 
     // Verifica se o cliente está dentro de algum polígono
     $taxaPoligono = null;
