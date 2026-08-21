@@ -4,6 +4,7 @@ namespace App\Actions\ConfigEmpresa;
 
 use App\Models\Empresa;
 use App\Models\Endereco;
+use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -33,6 +34,20 @@ class AtualizaLojaAction
             } else {
                 $endereco = Endereco::create($dadosEndereco);
                 $dadosEmpresa['endereco_id'] = $endereco->getAttribute('id');
+            }
+
+            // O login da empresa busca o registro em `users` pelo mesmo e-mail (User::empresa()).
+            // Sem sincronizar aqui, trocar o e-mail só na empresa quebra o login: o e-mail antigo
+            // não encontra mais a empresa, e o novo não encontra o usuário.
+            $emailAntigo = $empresa->getAttribute('email');
+            $emailNovo = $dadosEmpresa['email'] ?? $emailAntigo;
+
+            if ($emailNovo !== $emailAntigo) {
+                $usuario = User::where('email', $emailAntigo)->first();
+
+                if ($usuario && ! User::where('email', $emailNovo)->exists()) {
+                    $usuario->update(['email' => $emailNovo]);
+                }
             }
 
             $empresa->update($dadosEmpresa);

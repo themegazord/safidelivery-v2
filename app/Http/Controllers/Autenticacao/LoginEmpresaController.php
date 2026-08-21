@@ -25,6 +25,14 @@ class LoginEmpresaController extends Controller
 
         $empresa = Empresa::where('email', $request->input('email'))->first();
 
+        if (! $empresa) {
+            Auth::logout();
+
+            return back()->withErrors([
+                'email' => 'Não encontramos uma empresa vinculada a este login. Entre em contato com o suporte.',
+            ]);
+        }
+
         return to_route('aplicacao.empresa.desempenho', ['cnpj' => $empresa->getAttribute('cnpj')]);
     }
 }
