@@ -11,7 +11,7 @@ class ConfiguracaoController extends Controller
 {
     public function configuraRecebimentoPedidoIfood(Request $request) {
         $empresa = Auth::user()->empresa;
-        $valor = $request->only('esta_recebendo_pedidos_ifood');
+        $valor = $request->boolean('esta_recebendo_pedidos_ifood');
 
         $empresa->update([
             'esta_recebendo_pedidos_ifood' => $valor,
