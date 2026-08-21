@@ -30,9 +30,10 @@ class ChatController extends Controller
             return response()->json(['conversas' => []]);
         }
 
+        // Sem filtro por status: o chat de um pedido concluído/cancelado continua acessível —
+        // é justamente ali que costuma surgir reclamação ou dúvida sobre o que já aconteceu.
         $pedidos = Pedido::query()
             ->where('cliente_id', $clienteId)
-            ->whereNotIn('status', [...Pedido::STATUS_FINALIZADOS_SUCESSO, ...Pedido::STATUS_CANCELADOS])
             ->with(['empresa'])
             ->orderByDesc('created_at')
             ->get();

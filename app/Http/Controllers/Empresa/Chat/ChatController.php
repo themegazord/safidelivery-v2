@@ -23,9 +23,10 @@ class ChatController extends Controller
 
     public function conversas(ListaConversasAction $action): JsonResponse
     {
+        // Sem filtro por status: o chat de um pedido concluído/cancelado continua acessível —
+        // é justamente ali que costuma surgir reclamação ou dúvida sobre o que já aconteceu.
         $pedidos = Pedido::query()
             ->where('empresa_id', $this->empresa->getAttribute('id'))
-            ->whereNotIn('status', [...Pedido::STATUS_FINALIZADOS_SUCESSO, ...Pedido::STATUS_CANCELADOS])
             ->with(['cliente'])
             ->orderByDesc('created_at')
             ->get();
