@@ -11,6 +11,10 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+// Precisa bater com IntegracoesController::SEGREDO_MASCARADO no backend: quando o campo
+// chega com esse valor, é só um placeholder — o segredo real nunca é reenviado ao front.
+const SEGREDO_MASCARADO = '••••••••'
+
 export default function Integracoes() {
   const { cnpj, integracoes } = usePage<{cnpj: string, integracoes: IIntegracao[]}>().props
 
@@ -55,10 +59,15 @@ export default function Integracoes() {
   }
 
   async function salvarPagarme() {
+    const alterado = integracaoPagarme?.chavesecreta_pagarme && integracaoPagarme.chavesecreta_pagarme !== SEGREDO_MASCARADO
     defaultCall({
         tipo: 'pagarme',
-        chavesecreta_pagarme: integracaoPagarme?.chavesecreta_pagarme ?? undefined,
+        ...(alterado ? { chavesecreta_pagarme: integracaoPagarme!.chavesecreta_pagarme! } : {}),
       }, setIntegracaoPagarme)
+  }
+
+  async function removerPagarme() {
+    defaultCall({ tipo: 'pagarme', remover: true }, setIntegracaoPagarme)
   }
 
   async function salvarIFOOD() {
@@ -71,17 +80,22 @@ export default function Integracoes() {
   }
 
   async function salvarAnotaai() {
+    const alterado = integracaoAnotaai?.companyToken && integracaoAnotaai.companyToken !== SEGREDO_MASCARADO
     defaultCall({
       tipo: 'anotaai',
-      companyToken: integracaoAnotaai?.companyToken ?? undefined
+      ...(alterado ? { companyToken: integracaoAnotaai!.companyToken! } : {}),
     }, setIntegracaoAnotaai)
+  }
+
+  async function removerAnotaai() {
+    defaultCall({ tipo: 'anotaai', remover: true }, setIntegracaoAnotaai)
   }
 
   type DadosIntegracao =
     | { tipo: 'safi', companyToken?: string }
-    | { tipo: 'pagarme', chavesecreta_pagarme?: string }
+    | { tipo: 'pagarme', chavesecreta_pagarme?: string, remover?: boolean }
     | { tipo: 'ifood', clientId?: string, clientSecret?: string, merchantId?: string }
-    | { tipo: 'anotaai', companyToken?: string }
+    | { tipo: 'anotaai', companyToken?: string, remover?: boolean }
 
   async function defaultCall(integracao: DadosIntegracao, setIntegracao: (integracao?: IIntegracao) => void) {
     setSaving(true)
@@ -137,12 +151,20 @@ export default function Integracoes() {
                   <FieldGroup className="flex flex-col md:flex-row gap-4">
                     <Field>
                       <FieldLabel>Chave secreta</FieldLabel>
-                      <Input value={integracaoPagarme?.chavesecreta_pagarme ?? undefined} onChange={(e) => setIntegracaoPagarme(prev => ({...prev!, chavesecreta_pagarme: e.target.value}))}/>
+                      <Input
+                        type="password"
+                        value={integracaoPagarme?.chavesecreta_pagarme === SEGREDO_MASCARADO ? '' : integracaoPagarme?.chavesecreta_pagarme ?? ''}
+                        placeholder={integracaoPagarme?.chavesecreta_pagarme === SEGREDO_MASCARADO ? 'Configurada — digite para alterar' : undefined}
+                        onChange={(e) => setIntegracaoPagarme(prev => ({...prev!, chavesecreta_pagarme: e.target.value}))}
+                      />
                     </Field>
                   </FieldGroup>
                 </CardContent>
-                <CardFooter className="flex flex-row-reverse">
+                <CardFooter className="flex flex-row-reverse gap-4">
                   <Button onClick={salvarPagarme}>{saving ? <><Spinner /> Salvando...</> : 'Salvar'}</Button>
+                  {integracaoPagarme?.chavesecreta_pagarme === SEGREDO_MASCARADO && (
+                    <Button variant="outline" type="button" onClick={removerPagarme} disabled={saving}>Remover</Button>
+                  )}
                 </CardFooter>
               </Card>
             </TabsContent>
@@ -183,11 +205,19 @@ export default function Integracoes() {
                 <CardContent>
                   <Field>
                     <FieldLabel>Token</FieldLabel>
-                    <Input value={integracaoAnotaai?.companyToken ?? undefined} onChange={(e) => setIntegracaoAnotaai(prev => ({...prev!, companyToken: e.target.value}))} />
+                    <Input
+                      type="password"
+                      value={integracaoAnotaai?.companyToken === SEGREDO_MASCARADO ? '' : integracaoAnotaai?.companyToken ?? ''}
+                      placeholder={integracaoAnotaai?.companyToken === SEGREDO_MASCARADO ? 'Configurado — digite para alterar' : undefined}
+                      onChange={(e) => setIntegracaoAnotaai(prev => ({...prev!, companyToken: e.target.value}))}
+                    />
                   </Field>
                 </CardContent>
-                <CardFooter className="flex flex-row-reverse">
+                <CardFooter className="flex flex-row-reverse gap-4">
                   <Button onClick={salvarAnotaai}>{saving ? <> <Spinner /> Salvando... </> : 'Salvar'}</Button>
+                  {integracaoAnotaai?.companyToken === SEGREDO_MASCARADO && (
+                    <Button variant="outline" type="button" onClick={removerAnotaai} disabled={saving}>Remover</Button>
+                  )}
                 </CardFooter>
               </Card>
             </TabsContent>

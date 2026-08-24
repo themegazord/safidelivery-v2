@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AdicionaSecurityHeaders;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RedirecionarLoginEspecifico;
 use Illuminate\Foundation\Application;
@@ -18,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             HandleInertiaRequests::class,
         ]);
+        $middleware->append(AdicionaSecurityHeaders::class);
         $middleware->alias([
             'auth.empresa' => RedirecionarLoginEspecifico::class,
         ]);

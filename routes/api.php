@@ -8,7 +8,7 @@ Route::prefix('webhook/pagarme/pedidos')->group(function () {
     Route::post('pix_aceito', [PixAceitoController::class, 'index'])->name('webhook.pagarme.pix-aceito');
 });
 
-Route::prefix('v1')->group(function () {
+Route::prefix('v1')->middleware('throttle:60,1')->group(function () {
     Route::prefix('pedidos')->group(function () {
         Route::get('/{pedido_id}', [Pedidos::class, 'consultaPedidos'])->name('api.pedidos.consulta_pedido');
         Route::post('/', [Pedidos::class, 'entregue'])->name('api.pedidos.entregue');

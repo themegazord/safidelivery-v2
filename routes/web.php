@@ -41,7 +41,7 @@ Route::get('/', [HomeController::class, 'index'])->name('aplicacao.home');
 
 Route::prefix('login')->group(function () {
     Route::get('empresa', [LoginEmpresaController::class, 'index'])->name('aplicacao.autenticacao.empresa.login');
-    Route::post('empresa', [LoginEmpresaController::class, 'store'])->name('aplicacao.autenticacao.empresa.login.post');
+    Route::post('empresa', [LoginEmpresaController::class, 'store'])->name('aplicacao.autenticacao.empresa.login.post')->middleware('throttle:6,1');
 });
 
 Route::prefix('autenticacao')->group(function () {
@@ -57,8 +57,8 @@ Route::prefix('autenticacao')->group(function () {
 
             return to_route('aplicacao.home');
         })->name('aplicacao.autenticacao.cliente.logout');
-        Route::post('consultaDadosCliente', [LoginClienteController::class, 'consultaDadosCliente'])->name('aplicacao.autenticacao.cliente.consultaDadosCliente');
-        Route::post('autenticaCliente', [LoginClienteController::class, 'autenticaCliente'])->name('aplicacao.autenticacao.cliente.autenticaCliente');
+        Route::post('consultaDadosCliente', [LoginClienteController::class, 'consultaDadosCliente'])->name('aplicacao.autenticacao.cliente.consultaDadosCliente')->middleware('throttle:15,1');
+        Route::post('autenticaCliente', [LoginClienteController::class, 'autenticaCliente'])->name('aplicacao.autenticacao.cliente.autenticaCliente')->middleware('throttle:15,1');
     });
 });
 

@@ -32,6 +32,7 @@ class AtualizaIntegracaoRequest extends FormRequest
             'integracao.clientId' => ['nullable', 'string'],
             'integracao.clientSecret' => ['nullable', 'string'],
             'integracao.merchantId' => ['nullable', 'string'],
+            'integracao.remover' => ['nullable', 'boolean'],
         ];
     }
 
