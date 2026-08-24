@@ -37,6 +37,9 @@ class RedefineSenhaRequest extends FormRequest
             'required' => 'Campo obrigatório',
             'email.email' => 'O :attribute é inválido',
             'password.confirmed' => 'A confirmação de senha não confere',
+            'password.min' => 'A :attribute deve ter no mínimo :min caracteres',
+            'password.letters' => 'A :attribute deve conter pelo menos uma letra',
+            'password.numbers' => 'A :attribute deve conter pelo menos um número',
         ];
     }
 
