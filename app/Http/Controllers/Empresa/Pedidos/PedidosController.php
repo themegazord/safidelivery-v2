@@ -79,7 +79,7 @@ class PedidosController extends Controller
         $dados = $request->validate(['novo_status' => ['required', 'string']]);
 
         try {
-            $resultado = $action->handle($pedido_id, $dados['novo_status']);
+            $resultado = $action->handle($this->empresa->id, $pedido_id, $dados['novo_status']);
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }

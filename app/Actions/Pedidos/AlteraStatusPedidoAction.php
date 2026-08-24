@@ -35,10 +35,11 @@ class AlteraStatusPedidoAction
         return in_array($novoStatus, self::TRANSICOES_VALIDAS[$statusAtual] ?? [], true);
     }
 
-    public function handle(int $pedido_id, string $novoStatus): array
+    public function handle(int $empresa_id, int $pedido_id, string $novoStatus): array
     {
-        return DB::transaction(function () use ($pedido_id, $novoStatus) {
+        return DB::transaction(function () use ($empresa_id, $pedido_id, $novoStatus) {
             $pedido = Pedido::where('id', $pedido_id)
+                ->where('empresa_id', $empresa_id)
                 ->with(['cliente', 'financeiro', 'dadosRetiradaPedido'])
                 ->lockForUpdate()
                 ->first();
