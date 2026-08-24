@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import axios from "axios";
 import { Loader } from "lucide-react";
 import { UsuarioAutenticadoContext } from "@/contexts/Usuario/UsuarioAutenticadoContext";
+import { obtemTokenRecaptcha } from "@/utils/recaptcha";
 
 interface IProps {
     open: boolean;
@@ -54,10 +55,11 @@ export default function DialogAutenticacaoCliente({ open, setOpen }: IProps) {
     const telefoneMaskRef = useMaskito({ options: telefoneMask });
     const [isLoading, setIsLoading] = useState(false);
 
-    const { interacao_id, tipo_funcionamento, configuracoes } = usePage<{
+    const { interacao_id, tipo_funcionamento, configuracoes, recaptchaSiteKey } = usePage<{
         interacao_id: string;
         tipo_funcionamento: string;
         configuracoes: { informa_mesa_comanda: string; modo_atendente: string };
+        recaptchaSiteKey: string;
     }>().props;
 
     const { adicionaUsuarioLogado } = useContext(UsuarioAutenticadoContext);
@@ -67,9 +69,10 @@ export default function DialogAutenticacaoCliente({ open, setOpen }: IProps) {
     async function consultaClientePorTelefone(telefone: string) {
         try {
             setIsLoading(true);
+            const recaptchaToken = await obtemTokenRecaptcha(recaptchaSiteKey, "consulta_cliente");
             const resposta = await axios.post<ClienteResponse>(
                 route("aplicacao.autenticacao.cliente.consultaDadosCliente"),
-                { telefone },
+                { telefone, "g-recaptcha-response": recaptchaToken },
             );
 
             if (resposta.data?.cliente) {
@@ -81,9 +84,11 @@ export default function DialogAutenticacaoCliente({ open, setOpen }: IProps) {
         }
     }
 
-    function validaCliente() {
+    async function validaCliente() {
         setIsLoading(true);
         form.clearErrors();
+
+        const recaptchaToken = await obtemTokenRecaptcha(recaptchaSiteKey, "login_cliente");
 
         router.post(
             route("aplicacao.autenticacao.cliente.autenticaCliente"),
@@ -94,9 +99,10 @@ export default function DialogAutenticacaoCliente({ open, setOpen }: IProps) {
                 interacao_id,
                 modo_atendente: Boolean(Number(configuracoes.modo_atendente)),
                 informa_mesa_comanda: Boolean(Number(configuracoes.informa_mesa_comanda)),
+                "g-recaptcha-response": recaptchaToken,
             },
             {
-                
+
                 onError: (errors) => {
                     form.setError(errors as Partial<Record<keyof typeof form.data, string>>);
                 },

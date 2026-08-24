@@ -38,6 +38,7 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'cnpj' => $request->route('cnpj'),
+            'recaptchaSiteKey' => config('services.recaptcha.site_key'),
             'auth' => [
                 'user' => fn () => $request->user()?->load('cliente.enderecos')
             ]

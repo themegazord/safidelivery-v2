@@ -60,4 +60,12 @@ return [
         'maps_map_id' => env('GOOGLE_MAPS_MAP_ID', 'DEMO_MAP_ID'),
     ],
 
+    // Credencial própria, diferente da API key do Maps acima — gerada em
+    // https://www.google.com/recaptcha/admin.
+    'recaptcha' => [
+        'site_key' => env('RECAPTCHA_SITE_KEY'),
+        'secret_key' => env('RECAPTCHA_SECRET_KEY'),
+        'min_score' => (float) env('RECAPTCHA_MIN_SCORE', 0.5),
+    ],
+
 ];
