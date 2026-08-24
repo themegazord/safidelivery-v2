@@ -1288,7 +1288,7 @@ final class ApiExternalIfood
     {
         $this->autenticacao($empresa_id);
 
-        foreach (PedidoIntegracaoIfood::query()->doesntHave('pedido')->where('fullCode', 'PLACED')->whereNot('viewed_at', null)->get() as $pedido) {
+        foreach (PedidoIntegracaoIfood::query()->doesntHave('pedido')->where('fullCode', 'PLACED')->where('empresa_id', $empresa_id)->whereNot('viewed_at', null)->get() as $pedido) {
             $resposta = Http::withToken(Empresa::query()->findOrFail($empresa_id)->tokenIfood)->withHeaders([
                 'accept' => 'application/json',
             ])->get($this->urlBaseOrders.$this->getDetailsOrderWithOrderID($pedido->orderId));
