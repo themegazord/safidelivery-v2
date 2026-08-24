@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Autenticacao\EsqueciSenhaController;
 use App\Http\Controllers\Autenticacao\LoginClienteController;
 use App\Http\Controllers\Autenticacao\LoginEmpresaController;
 use App\Http\Controllers\Cliente\ChatController as ClienteChatController;
@@ -54,6 +55,11 @@ Route::prefix('autenticacao')->group(function () {
 
             return to_route('aplicacao.autenticacao.empresa.login');
         })->name('aplicacao.autenticacao.empresa.logout');
+
+        Route::get('esqueci-senha', [EsqueciSenhaController::class, 'index'])->name('aplicacao.autenticacao.empresa.esqueci-senha');
+        Route::post('esqueci-senha', [EsqueciSenhaController::class, 'envia'])->name('aplicacao.autenticacao.empresa.esqueci-senha.post')->middleware('throttle:3,1');
+        Route::get('redefinir-senha/{token}', [EsqueciSenhaController::class, 'formularioRedefinicao'])->name('aplicacao.autenticacao.empresa.redefinir-senha');
+        Route::post('redefinir-senha', [EsqueciSenhaController::class, 'redefine'])->name('aplicacao.autenticacao.empresa.redefinir-senha.post')->middleware('throttle:6,1');
     });
     Route::prefix('cliente')->group(function () {
         Route::get('logout', function (Request $request) {

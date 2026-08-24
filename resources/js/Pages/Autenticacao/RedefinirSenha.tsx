@@ -13,15 +13,19 @@ import {
     InputGroupAddon,
     InputGroupInput,
 } from "@/components/ui/input-group";
-import { Form, Link, usePage } from "@inertiajs/react";
-import { Eye, EyeClosed, Loader, Lock, LogIn, Mail } from "lucide-react";
+import { Form, usePage } from "@inertiajs/react";
+import { Eye, EyeClosed, Loader, LockKeyhole, Mail } from "lucide-react";
 import { useEffect, useState } from "react";
 import { obtemTokenRecaptcha } from "@/utils/recaptcha";
 
-// Token v3 expira em ~2min — renovado periodicamente para sempre ter um válido pronto no submit.
 const INTERVALO_RENOVACAO_TOKEN_MS = 100_000;
 
-export default function LoginEmpresa() {
+interface IProps {
+    token: string;
+    email: string;
+}
+
+export default function RedefinirSenha({ token, email }: IProps) {
     const [senhaVisivel, setSenhaVisivel] = useState(false);
     const [recaptchaToken, setRecaptchaToken] = useState("");
     const { recaptchaSiteKey } = usePage<{ recaptchaSiteKey: string }>().props;
@@ -30,7 +34,7 @@ export default function LoginEmpresa() {
         if (!recaptchaSiteKey) return;
 
         const renovaToken = () =>
-            obtemTokenRecaptcha(recaptchaSiteKey, "login_empresa").then(setRecaptchaToken);
+            obtemTokenRecaptcha(recaptchaSiteKey, "redefinir_senha").then(setRecaptchaToken);
 
         renovaToken();
         const intervalId = window.setInterval(renovaToken, INTERVALO_RENOVACAO_TOKEN_MS);
@@ -42,15 +46,20 @@ export default function LoginEmpresa() {
         <main className="bg-primary/10 flex min-h-screen w-full items-center justify-center">
             <Card className="w-full md:w-md">
                 <CardHeader>
-                    <CardTitle>Login Empresa</CardTitle>
+                    <CardTitle>Redefinir senha</CardTitle>
                     <CardDescription>
-                        Acesse o painel administrativo
+                        Escolha uma nova senha para acessar o painel administrativo.
                     </CardDescription>
                 </CardHeader>
                 <Form
-                    action={route("aplicacao.autenticacao.empresa.login")}
+                    action={route("aplicacao.autenticacao.empresa.redefinir-senha.post")}
                     method="POST"
-                    transform={(data) => ({ ...data, "g-recaptcha-response": recaptchaToken })}
+                    transform={(data) => ({
+                        ...data,
+                        token,
+                        email,
+                        "g-recaptcha-response": recaptchaToken,
+                    })}
                 >
                     {({ processing, errors }) => (
                         <>
@@ -68,8 +77,8 @@ export default function LoginEmpresa() {
                                                 type="email"
                                                 id="email"
                                                 name="email"
-                                                placeholder="empresa@email.com"
-                                                required
+                                                defaultValue={email}
+                                                readOnly
                                                 aria-invalid={!!errors.email}
                                             />
                                         </InputGroup>
@@ -79,11 +88,11 @@ export default function LoginEmpresa() {
                                     </Field>
                                     <Field data-invalid={!!errors.password}>
                                         <FieldLabel htmlFor="password">
-                                            Sua senha:
+                                            Nova senha:
                                         </FieldLabel>
                                         <InputGroup className={errors.password ? "border-destructive" : ""}>
                                             <InputGroupAddon className={errors.password ? "text-destructive" : ""}>
-                                                <Lock />
+                                                <LockKeyhole />
                                             </InputGroupAddon>
                                             <InputGroupInput
                                                 type={senhaVisivel ? "text" : "password"}
@@ -107,6 +116,25 @@ export default function LoginEmpresa() {
                                         {!!errors.password && (
                                             <FieldError>{errors.password}</FieldError>
                                         )}
+                                        <p className="text-muted-foreground text-xs">
+                                            Mínimo de 8 caracteres, com letras e números.
+                                        </p>
+                                    </Field>
+                                    <Field>
+                                        <FieldLabel htmlFor="password_confirmation">
+                                            Confirme a nova senha:
+                                        </FieldLabel>
+                                        <InputGroup>
+                                            <InputGroupAddon>
+                                                <LockKeyhole />
+                                            </InputGroupAddon>
+                                            <InputGroupInput
+                                                type={senhaVisivel ? "text" : "password"}
+                                                id="password_confirmation"
+                                                name="password_confirmation"
+                                                required
+                                            />
+                                        </InputGroup>
                                     </Field>
                                 </FieldGroup>
                             </CardContent>
@@ -121,22 +149,14 @@ export default function LoginEmpresa() {
                                         <span className="flex items-center gap-2">
                                             {processing ? (
                                                 <>
-                                                    Entrando{" "}
+                                                    Salvando{" "}
                                                     <Loader className="animate-spin" />
                                                 </>
                                             ) : (
-                                                <>
-                                                    Entrar <LogIn />
-                                                </>
+                                                "Redefinir senha"
                                             )}
                                         </span>
                                     </Button>
-                                    <Link
-                                        href={route("aplicacao.autenticacao.empresa.esqueci-senha")}
-                                        className="text-center"
-                                    >
-                                        Esqueci minha senha
-                                    </Link>
                                 </div>
                             </CardFooter>
                         </>

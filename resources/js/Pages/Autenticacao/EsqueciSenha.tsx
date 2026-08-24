@@ -14,23 +14,24 @@ import {
     InputGroupInput,
 } from "@/components/ui/input-group";
 import { Form, Link, usePage } from "@inertiajs/react";
-import { Eye, EyeClosed, Loader, Lock, LogIn, Mail } from "lucide-react";
+import { Loader, Mail, Send } from "lucide-react";
 import { useEffect, useState } from "react";
 import { obtemTokenRecaptcha } from "@/utils/recaptcha";
 
-// Token v3 expira em ~2min — renovado periodicamente para sempre ter um válido pronto no submit.
 const INTERVALO_RENOVACAO_TOKEN_MS = 100_000;
 
-export default function LoginEmpresa() {
-    const [senhaVisivel, setSenhaVisivel] = useState(false);
+export default function EsqueciSenha() {
     const [recaptchaToken, setRecaptchaToken] = useState("");
-    const { recaptchaSiteKey } = usePage<{ recaptchaSiteKey: string }>().props;
+    const { recaptchaSiteKey, flash } = usePage<{
+        recaptchaSiteKey: string;
+        flash: { status?: string };
+    }>().props;
 
     useEffect(() => {
         if (!recaptchaSiteKey) return;
 
         const renovaToken = () =>
-            obtemTokenRecaptcha(recaptchaSiteKey, "login_empresa").then(setRecaptchaToken);
+            obtemTokenRecaptcha(recaptchaSiteKey, "esqueci_senha").then(setRecaptchaToken);
 
         renovaToken();
         const intervalId = window.setInterval(renovaToken, INTERVALO_RENOVACAO_TOKEN_MS);
@@ -42,13 +43,13 @@ export default function LoginEmpresa() {
         <main className="bg-primary/10 flex min-h-screen w-full items-center justify-center">
             <Card className="w-full md:w-md">
                 <CardHeader>
-                    <CardTitle>Login Empresa</CardTitle>
+                    <CardTitle>Esqueci minha senha</CardTitle>
                     <CardDescription>
-                        Acesse o painel administrativo
+                        Informe o e-mail cadastrado e enviaremos um link para redefinir sua senha.
                     </CardDescription>
                 </CardHeader>
                 <Form
-                    action={route("aplicacao.autenticacao.empresa.login")}
+                    action={route("aplicacao.autenticacao.empresa.esqueci-senha.post")}
                     method="POST"
                     transform={(data) => ({ ...data, "g-recaptcha-response": recaptchaToken })}
                 >
@@ -56,6 +57,11 @@ export default function LoginEmpresa() {
                         <>
                             <CardContent className="mb-4">
                                 <FieldGroup>
+                                    {!!flash.status && (
+                                        <p className="text-center text-sm text-green-600">
+                                            {flash.status}
+                                        </p>
+                                    )}
                                     <Field data-invalid={!!errors.email}>
                                         <FieldLabel htmlFor="email">
                                             Email corporativo:
@@ -77,37 +83,6 @@ export default function LoginEmpresa() {
                                             <FieldError>{errors.email}</FieldError>
                                         )}
                                     </Field>
-                                    <Field data-invalid={!!errors.password}>
-                                        <FieldLabel htmlFor="password">
-                                            Sua senha:
-                                        </FieldLabel>
-                                        <InputGroup className={errors.password ? "border-destructive" : ""}>
-                                            <InputGroupAddon className={errors.password ? "text-destructive" : ""}>
-                                                <Lock />
-                                            </InputGroupAddon>
-                                            <InputGroupInput
-                                                type={senhaVisivel ? "text" : "password"}
-                                                id="password"
-                                                name="password"
-                                                required
-                                                aria-invalid={!!errors.password}
-                                            />
-                                            <InputGroupAddon
-                                                align="inline-end"
-                                                onClick={() => setSenhaVisivel((prev) => !prev)}
-                                                className={errors.password ? "text-destructive" : ""}
-                                            >
-                                                {senhaVisivel ? (
-                                                    <EyeClosed className="cursor-pointer" />
-                                                ) : (
-                                                    <Eye className="cursor-pointer" />
-                                                )}
-                                            </InputGroupAddon>
-                                        </InputGroup>
-                                        {!!errors.password && (
-                                            <FieldError>{errors.password}</FieldError>
-                                        )}
-                                    </Field>
                                 </FieldGroup>
                             </CardContent>
                             <CardFooter>
@@ -121,21 +96,21 @@ export default function LoginEmpresa() {
                                         <span className="flex items-center gap-2">
                                             {processing ? (
                                                 <>
-                                                    Entrando{" "}
+                                                    Enviando{" "}
                                                     <Loader className="animate-spin" />
                                                 </>
                                             ) : (
                                                 <>
-                                                    Entrar <LogIn />
+                                                    Enviar link <Send />
                                                 </>
                                             )}
                                         </span>
                                     </Button>
                                     <Link
-                                        href={route("aplicacao.autenticacao.empresa.esqueci-senha")}
+                                        href={route("aplicacao.autenticacao.empresa.login")}
                                         className="text-center"
                                     >
-                                        Esqueci minha senha
+                                        Voltar para o login
                                     </Link>
                                 </div>
                             </CardFooter>
