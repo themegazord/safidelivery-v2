@@ -32,6 +32,14 @@ class Empresa extends Model
     'esta_recebendo_pedidos_ifood'
   ];
 
+  // Nunca vazar essas credenciais se a empresa for serializada inteira (props do Inertia,
+  // contexto de Log::error com $empresa->toArray(), etc).
+  protected $hidden = [
+    'chave_pix',
+    'tokenIfood',
+    'lifetimeTokenIfood',
+  ];
+
   public function fusosHorarios(): array
   {
     return [

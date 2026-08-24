@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Autenticacao;
 
+use App\Http\Requests\Autenticacao\ConsultaDadosClienteRequest;
 use App\Http\Requests\Autenticacao\LoginClienteRequest;
 use App\Http\Resources\ClienteResource;
 use App\Models\Empresa;
@@ -9,7 +10,6 @@ use App\Services\Autenticacao\LoginClienteService;
 use App\Traits\ResolveComandaAtual;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class LoginClienteController
@@ -18,9 +18,9 @@ class LoginClienteController
 
     public function __construct(private readonly LoginClienteService $service) {}
 
-    public function consultaDadosCliente(Request $request): JsonResponse
+    public function consultaDadosCliente(ConsultaDadosClienteRequest $request): JsonResponse
     {
-        $cliente = $this->service->consultaDadosCliente($request->input('telefone'));
+        $cliente = $this->service->consultaDadosCliente($request->validated('telefone'));
 
         return response()->json(['cliente' => $cliente ? new ClienteResource($cliente) : null]);
     }

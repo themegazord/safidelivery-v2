@@ -5,7 +5,7 @@ namespace App\Http\Requests\Autenticacao;
 use App\Rules\RecaptchaValido;
 use Illuminate\Foundation\Http\FormRequest;
 
-class LoginEmpresaRequest extends FormRequest
+class ConsultaDadosClienteRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,26 +23,22 @@ class LoginEmpresaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => 'required|max:255|email|exists:users',
-            'password' => 'required',
-            'g-recaptcha-response' => ['required', new RecaptchaValido('login_empresa')],
+            'telefone' => ['required', 'string'],
+            'g-recaptcha-response' => ['required', new RecaptchaValido('consulta_cliente')],
         ];
     }
+
     public function messages(): array
     {
         return [
             'required' => 'Campo obrigatório',
-            'email.email' => 'O :attribute é inválido',
-            'email.exists' => 'O :attribute é inexistente',
-            'email.max' => 'O :attribute deve conter no máximo 255 caracteres.'
         ];
     }
 
     public function attributes(): array
     {
         return [
-            'email' => 'email',
-            'password' => 'senha'
+            'telefone' => 'telefone',
         ];
     }
 }

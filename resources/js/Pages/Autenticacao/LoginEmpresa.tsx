@@ -13,12 +13,30 @@ import {
     InputGroupAddon,
     InputGroupInput,
 } from "@/components/ui/input-group";
-import { Form, Link } from "@inertiajs/react";
+import { Form, Link, usePage } from "@inertiajs/react";
 import { Eye, EyeClosed, Loader, Lock, LogIn, Mail } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { obtemTokenRecaptcha } from "@/utils/recaptcha";
+
+// Token v3 expira em ~2min — renovado periodicamente para sempre ter um válido pronto no submit.
+const INTERVALO_RENOVACAO_TOKEN_MS = 100_000;
 
 export default function LoginEmpresa() {
     const [senhaVisivel, setSenhaVisivel] = useState(false);
+    const [recaptchaToken, setRecaptchaToken] = useState("");
+    const { recaptchaSiteKey } = usePage<{ recaptchaSiteKey: string }>().props;
+
+    useEffect(() => {
+        if (!recaptchaSiteKey) return;
+
+        const renovaToken = () =>
+            obtemTokenRecaptcha(recaptchaSiteKey, "login_empresa").then(setRecaptchaToken);
+
+        renovaToken();
+        const intervalId = window.setInterval(renovaToken, INTERVALO_RENOVACAO_TOKEN_MS);
+
+        return () => window.clearInterval(intervalId);
+    }, [recaptchaSiteKey]);
 
     return (
         <main className="bg-primary/10 flex min-h-screen w-full items-center justify-center">
@@ -32,6 +50,7 @@ export default function LoginEmpresa() {
                 <Form
                     action={route("aplicacao.autenticacao.empresa.login")}
                     method="POST"
+                    transform={(data) => ({ ...data, "g-recaptcha-response": recaptchaToken })}
                 >
                     {({ processing, errors }) => (
                         <>
@@ -93,6 +112,11 @@ export default function LoginEmpresa() {
                             </CardContent>
                             <CardFooter>
                                 <div className="flex w-full flex-col gap-2">
+                                    {!!errors["g-recaptcha-response"] && (
+                                        <p className="text-destructive text-center text-sm">
+                                            {errors["g-recaptcha-response"]}
+                                        </p>
+                                    )}
                                     <Button type="submit" className="w-full" disabled={processing}>
                                         <span className="flex items-center gap-2">
                                             {processing ? (

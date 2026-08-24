@@ -46,9 +46,15 @@ class AtualizarIntegracaoAction
 
   private function handlePagarme(Empresa $empresa, array $dados_integracao): ?Integracao
   {
-    if (empty($dados_integracao['chavesecreta_pagarme'])) {
+    if (! empty($dados_integracao['remover'])) {
       $this->removeIntegracao($empresa->getAttribute('id'), $dados_integracao['tipo']);
       return null;
+    }
+
+    // A chave nunca é reenviada ao front (só um placeholder mascarado), então "vazio"
+    // aqui significa "o usuário não alterou o campo" — não apagar a integração existente.
+    if (empty($dados_integracao['chavesecreta_pagarme'])) {
+      return Integracao::query()->where('empresa_id', $empresa->getAttribute('id'))->where('tipo', $dados_integracao['tipo'])->first();
     }
 
     return $this->atualizaIntegracao($empresa->getAttribute('id'), $dados_integracao['tipo'], [
@@ -97,9 +103,15 @@ class AtualizarIntegracaoAction
 
   private function handleAnotaai(Empresa $empresa, array $dados_integracao): ?Integracao
   {
-    if (empty($dados_integracao['companyToken'])) {
+    if (! empty($dados_integracao['remover'])) {
       $this->removeIntegracao($empresa->getAttribute('id'), $dados_integracao['tipo']);
       return null;
+    }
+
+    // O token nunca é reenviado ao front (só um placeholder mascarado), então "vazio"
+    // aqui significa "o usuário não alterou o campo" — não apagar a integração existente.
+    if (empty($dados_integracao['companyToken'])) {
+      return Integracao::query()->where('empresa_id', $empresa->getAttribute('id'))->where('tipo', $dados_integracao['tipo'])->first();
     }
 
     return $this->atualizaIntegracao($empresa->getAttribute('id'), $dados_integracao['tipo'], [

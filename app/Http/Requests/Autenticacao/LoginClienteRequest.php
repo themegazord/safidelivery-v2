@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Autenticacao;
 
+use App\Rules\RecaptchaValido;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -30,6 +31,7 @@ class LoginClienteRequest extends FormRequest
             'tipo_funcionamento' => [Rule::in(['delivery', 'retirada', 'mesa']), 'required'],
             'modo_atendente' => ['required', 'boolean'],
             'informa_mesa_comanda' => ['required', 'boolean'],
+            'g-recaptcha-response' => ['required', new RecaptchaValido('login_cliente')],
         ];
     }
 
