@@ -34,6 +34,7 @@ use App\Http\Controllers\Empresa\QrCodeMesa\QrCodeMesaController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PedidoImpressaoController;
 use App\Http\Controllers\Empresa\Clientes\ClienteController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -46,14 +47,19 @@ Route::prefix('login')->group(function () {
 
 Route::prefix('autenticacao')->group(function () {
     Route::prefix('empresa')->group(function () {
-        Route::get('logout', function () {
+        Route::get('logout', function (Request $request) {
             Auth::logout();
-            redirect(route('aplicacao.autenticacao.empresa.login'));
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return to_route('aplicacao.autenticacao.empresa.login');
         })->name('aplicacao.autenticacao.empresa.logout');
     });
     Route::prefix('cliente')->group(function () {
-        Route::get('logout', function () {
+        Route::get('logout', function (Request $request) {
             Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
 
             return to_route('aplicacao.home');
         })->name('aplicacao.autenticacao.cliente.logout');
