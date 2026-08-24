@@ -27,6 +27,7 @@ class IndexNotificacoesAction
             $pedidoIfoodIds = $hsdNotificacoes->map(fn ($n) => $n->pedido_ifood_id)->filter()->values();
 
             $settledRegistros = PedidoIntegracaoIfood::query()
+                ->where('empresa_id', $empresa->id)
                 ->whereIn('orderId', $pedidoIfoodIds)
                 ->where('code', 'HSS')
                 ->orderByDesc('created_ifood_at')

@@ -169,26 +169,32 @@ final class ApiExternalIfood
                     ]);
 
                     if ($pedido['fullCode'] === 'CONCLUDED') {
-                        Pedido::query()->where('pedido_ifood_id', $pedido['orderId'])->update([
-                            'status' => 'entregue',
-                        ]);
+                        Pedido::query()
+                            ->where('empresa_id', $empresa_id)
+                            ->where('pedido_ifood_id', $pedido['orderId'])
+                            ->update(['status' => 'entregue']);
                     }
                     if ($pedido['fullCode'] === 'CANCELLED') {
-                        $pedidoCancelado = Pedido::query()->where('pedido_ifood_id', $pedido['orderId'])->first();
-                        $pedidoCancelado->update([
-                            'status' => 'cancelado',
-                        ]);
-                        $pedidoCancelado->delete();
+                        $pedidoCancelado = Pedido::query()
+                            ->where('empresa_id', $empresa_id)
+                            ->where('pedido_ifood_id', $pedido['orderId'])
+                            ->first();
+                        if ($pedidoCancelado) {
+                            $pedidoCancelado->update(['status' => 'cancelado']);
+                            $pedidoCancelado->delete();
+                        }
                     }
                     if ($pedido['fullCode'] === 'DISPATCHED') {
-                        Pedido::query()->where('pedido_ifood_id', $pedido['orderId'])->update([
-                            'status' => 'sendo entregue',
-                        ]);
+                        Pedido::query()
+                            ->where('empresa_id', $empresa_id)
+                            ->where('pedido_ifood_id', $pedido['orderId'])
+                            ->update(['status' => 'sendo entregue']);
                     }
                     if ($pedido['fullCode'] === 'CONFIRMED') {
-                        Pedido::query()->where('pedido_ifood_id', $pedido['orderId'])->update([
-                            'status' => 'sendo preparado',
-                        ]);
+                        Pedido::query()
+                            ->where('empresa_id', $empresa_id)
+                            ->where('pedido_ifood_id', $pedido['orderId'])
+                            ->update(['status' => 'sendo preparado']);
                     }
                 } catch (\Throwable $e) {
                     Log::error('Erro ao salvar pedido iFood', [

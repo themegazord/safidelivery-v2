@@ -139,7 +139,7 @@ class PedidosController extends Controller
     {
         Pedido::withTrashed()->where('empresa_id', $this->empresa->id)->findOrFail($pedido_id);
 
-        $url = URL::temporarySignedRoute('pedido.imprimir', now()->addMinutes(5), ['pedido_id' => $pedido_id]);
+        $url = URL::temporarySignedRoute('pedido.imprimir', now()->addMinutes(5), ['pedido_id' => $pedido_id, 'empresa_id' => $this->empresa->id]);
 
         return response()->json(['url' => $url]);
     }

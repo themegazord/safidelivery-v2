@@ -319,7 +319,7 @@ class Pedidos extends Controller
         }
       }
     }
-    $pedidoEnviado['url_impressao_txt'] = URL::signedRoute('pedido.imprimir.escpos', ['pedido_id' => $pedido_id]);
+    $pedidoEnviado['url_impressao_txt'] = URL::signedRoute('pedido.imprimir.escpos', ['pedido_id' => $pedido_id, 'empresa_id' => $empresa->id]);
 
     return response()->json(['pedido' => $pedidoEnviado]);
   }
