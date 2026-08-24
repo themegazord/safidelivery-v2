@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\RedefinicaoSenhaNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -56,5 +57,14 @@ class User extends Authenticatable
     public function empresa(): HasOne
     {
         return $this->hasOne(Empresa::class, 'email', 'email');
+    }
+
+    /**
+     * Substitui o e-mail padrão do Laravel (em inglês, sem marca) por um exclusivo do
+     * SAFI Delivery.
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new RedefinicaoSenhaNotification($token));
     }
 }
