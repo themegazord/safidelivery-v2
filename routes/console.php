@@ -16,15 +16,8 @@ Schedule::command('pedidos:cancela-pix-expirados')->everyMinute();
 
 Schedule::call(function () {
     try {
-        // Em ambientes que compartilham o banco com outra instância rodando a mesma
-        // integração (ex: dev/homolog apontando pro banco de produção), defina
-        // IFOOD_POLLING_EMPRESA_IDS=1,2,3 no .env pra restringir o polling deste
-        // ambiente só a essas empresas e não competir pelos eventos das demais.
-        $empresasPermitidas = array_filter(explode(',', (string) env('IFOOD_POLLING_EMPRESA_IDS', '')));
-
         Empresa::where('esta_recebendo_pedidos_ifood', true)
             ->whereNotNull('tokenIfood')
-            ->when($empresasPermitidas, fn ($q) => $q->whereIn('id', $empresasPermitidas))
             ->pluck('id')
             ->each(function ($empresaId) {
                 ConsultarPedidosIfoodJob::dispatch($empresaId);
