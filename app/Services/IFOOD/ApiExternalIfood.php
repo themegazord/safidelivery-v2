@@ -77,13 +77,13 @@ final class ApiExternalIfood
                 'refreshToken' => '',
             ]);
 
+            $dados = $resposta->json();
+
             Log::info('IFOOD autenticacao resposta', [
                 'empresa_id' => $empresa_id,
                 'status' => $resposta->status(),
-                'body' => $resposta->json(),
+                'body' => array_diff_key($dados ?? [], array_flip(['accessToken'])),
             ]);
-
-            $dados = $resposta->json();
 
             if (! isset($dados['accessToken'], $dados['expiresIn'])) {
                 throw new Exception('Resposta inválida do IFOOD');
@@ -156,7 +156,7 @@ final class ApiExternalIfood
 
         if ($resposta->ok()) {
             $pedidos = $resposta->json();
-            foreach ($pedidos as $pedido) {
+            foreach ($pedidos ?? [] as $pedido) {
                 try {
                     PedidoIntegracaoIfood::query()->updateOrCreate(['uuid' => $pedido['id']], [
                         'uuid' => $pedido['id'],
@@ -205,6 +205,12 @@ final class ApiExternalIfood
             }
 
             $this->enviaRespostaDeRecebimento($empresa_id);
+        } elseif ($resposta->status() !== 204) {
+            Log::error('IFOOD consultaListagemPedidos: falha ao consultar polling de eventos', [
+                'empresa_id' => $empresa_id,
+                'status' => $resposta->status(),
+                'body' => $resposta->body(),
+            ]);
         }
         $this->consultaDadosPedidoIFOOD($empresa_id);
     }
