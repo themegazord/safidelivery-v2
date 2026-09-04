@@ -18,6 +18,7 @@ class AtualizaConfiguracoesAction
         'periodo_inatividade_cliente',
         'fora_area_entrega',
         'multiplas_formas_pagamento',
+        'whatsapp_notificacao_status_pedido',
     ];
 
     public function handle(Empresa $empresa, array $configuracoes): void

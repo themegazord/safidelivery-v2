@@ -2,6 +2,7 @@
 
 namespace App\Observers;
 
+use App\Jobs\Empresa\EnviaNotificacaoWhatsappStatusPedidoJob;
 use App\Models\CashbackConfig;
 use App\Models\CashbackCredito;
 use App\Models\Pedido;
@@ -11,6 +12,16 @@ class PedidoObserver
 {
     private const DIAS_VALIDADE_ESTORNO_PADRAO = 90;
 
+    private const STATUS_NOTIFICAVEIS_WHATSAPP = [
+        'aceito',
+        'sendo preparado',
+        'pronto para entrega',
+        'pronto para retirada',
+        'sendo entregue',
+        'entregue',
+        'cancelado',
+    ];
+
     /**
      * Handle the Pedido "updated" event.
      */
@@ -19,6 +30,8 @@ class PedidoObserver
         if (! $pedido->wasChanged('status')) {
             return;
         }
+
+        $this->notificarStatusPedidoWhatsapp($pedido);
 
         $status = $pedido->getAttribute('status');
 
@@ -72,5 +85,14 @@ class PedidoObserver
             'data_vencimento' => now()->addDays($diasValidade),
             'liberado_em' => now(),
         ]);
+    }
+
+    private function notificarStatusPedidoWhatsapp(Pedido $pedido): void
+    {
+        if (! in_array($pedido->getAttribute('status'), self::STATUS_NOTIFICAVEIS_WHATSAPP, true)) {
+            return;
+        }
+
+        EnviaNotificacaoWhatsappStatusPedidoJob::dispatch($pedido->id)->afterCommit();
     }
 }

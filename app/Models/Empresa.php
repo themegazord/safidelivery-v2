@@ -171,4 +171,8 @@ class Empresa extends Model
 	public function fidelidadeConfig(): HasOne {
 		return $this->hasOne(FidelidadeConfig::class);
 	}
+
+	public function whatsappNotificacoesPedido(): HasMany {
+		return $this->hasMany(WhatsappNotificacaoPedido::class);
+	}
 }

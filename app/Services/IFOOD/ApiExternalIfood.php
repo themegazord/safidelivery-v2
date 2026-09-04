@@ -169,10 +169,13 @@ final class ApiExternalIfood
                     ]);
 
                     if ($pedido['fullCode'] === 'CONCLUDED') {
+                        // Update individual (não em massa) pra disparar os eventos do
+                        // Eloquent — PedidoObserver depende de wasChanged('status').
                         Pedido::query()
                             ->where('empresa_id', $empresa_id)
                             ->where('pedido_ifood_id', $pedido['orderId'])
-                            ->update(['status' => 'entregue']);
+                            ->get()
+                            ->each(fn (Pedido $p) => $p->update(['status' => 'entregue']));
                     }
                     if ($pedido['fullCode'] === 'CANCELLED') {
                         $pedidoCancelado = Pedido::query()
@@ -188,13 +191,15 @@ final class ApiExternalIfood
                         Pedido::query()
                             ->where('empresa_id', $empresa_id)
                             ->where('pedido_ifood_id', $pedido['orderId'])
-                            ->update(['status' => 'sendo entregue']);
+                            ->get()
+                            ->each(fn (Pedido $p) => $p->update(['status' => 'sendo entregue']));
                     }
                     if ($pedido['fullCode'] === 'CONFIRMED') {
                         Pedido::query()
                             ->where('empresa_id', $empresa_id)
                             ->where('pedido_ifood_id', $pedido['orderId'])
-                            ->update(['status' => 'sendo preparado']);
+                            ->get()
+                            ->each(fn (Pedido $p) => $p->update(['status' => 'sendo preparado']));
                     }
                 } catch (\Throwable $e) {
                     Log::error('Erro ao salvar pedido iFood', [

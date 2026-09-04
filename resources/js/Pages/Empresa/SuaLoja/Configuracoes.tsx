@@ -41,6 +41,7 @@ type ConfiguracoesData = {
     periodo_inatividade_cliente: number | null;
     fora_area_entrega: "bloquear" | "taxa_maxima";
     multiplas_formas_pagamento: boolean;
+    whatsapp_notificacao_status_pedido: boolean;
 };
 
 type ModoCalculoOption = {
@@ -135,6 +136,7 @@ export default function Configuracoes({
                         <TabsTrigger value="fidelidade">
                             Fidelidade e Cashback
                         </TabsTrigger>
+                        <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="pedidos" className="space-y-6 pb-4">
@@ -443,6 +445,34 @@ export default function Configuracoes({
                                         }
                                     />
                                 </div>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    <TabsContent value="whatsapp" className="pb-4">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Notificações de WhatsApp</CardTitle>
+                                <CardDescription>
+                                    Avise automaticamente o cliente por
+                                    WhatsApp a cada mudança de status do
+                                    pedido
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <ToggleRow
+                                    label="Notificações ativas"
+                                    descricao="Quando ativo, o cliente recebe uma mensagem de WhatsApp sempre que o pedido avançar de status (aceito, saiu para entrega, entregue etc.), se houver telefone cadastrado."
+                                    checked={
+                                        configuracoes.whatsapp_notificacao_status_pedido
+                                    }
+                                    onCheckedChange={(v) =>
+                                        atualiza(
+                                            "whatsapp_notificacao_status_pedido",
+                                            v,
+                                        )
+                                    }
+                                />
                             </CardContent>
                         </Card>
                     </TabsContent>

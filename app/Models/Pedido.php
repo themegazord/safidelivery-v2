@@ -86,6 +86,11 @@ class Pedido extends Model
         return $this->hasOne(CashbackCredito::class);
     }
 
+    public function whatsappNotificacoes(): HasMany
+    {
+        return $this->hasMany(WhatsappNotificacaoPedido::class);
+    }
+
     public function defineTipoPedido(): string
     {
         return match ($this->tipo) {
@@ -122,6 +127,7 @@ class Pedido extends Model
             'sendo preparado' => 'Pedido está sendo preparado',
             'sendo entregue' => 'Pedido está sendo entregue',
             'pronto para entrega' => 'Esperando entregador',
+            'pronto para retirada' => 'Pronto para retirada',
             'entregue' => 'Pedido entregue',
             'finalizado' => 'Pedido da mesa finalizado',
             'entregue para mesa' => 'Pedido entregue na mesa',

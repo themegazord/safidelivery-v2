@@ -68,4 +68,26 @@ return [
         'min_score' => (float) env('RECAPTCHA_MIN_SCORE', 0.5),
     ],
 
+    // Conta Twilio própria da SAFI (não por empresa) usada para notificar clientes
+    // por WhatsApp a cada mudança de status de pedido.
+    'twilio' => [
+        'sid' => env('TWILIO_ACCOUNT_SID'),
+        'token' => env('TWILIO_AUTH_TOKEN'),
+        'whatsapp_from' => env('TWILIO_WHATSAPP_FROM'),
+        // Um Content Template (WhatsApp) por status de pedido, aprovado pela Meta.
+        // Enquanto o SID de um status estiver vazio (ou o template ainda não tiver
+        // sido aprovado), o envio cai para texto livre (Body) nesse status — só
+        // funciona dentro da janela de 24h de conversa iniciada pelo cliente, ou no
+        // Sandbox após o número de destino enviar "join <código>".
+        'whatsapp_content_sids' => [
+            'aceito' => env('TWILIO_CONTENT_SID_ACEITO'),
+            'sendo preparado' => env('TWILIO_CONTENT_SID_PREPARO'),
+            'pronto para entrega' => env('TWILIO_CONTENT_SID_PRONTO_ENTREGA'),
+            'pronto para retirada' => env('TWILIO_CONTENT_SID_PRONTO_RETIRADA'),
+            'sendo entregue' => env('TWILIO_CONTENT_SID_A_CAMINHO'),
+            'entregue' => env('TWILIO_CONTENT_SID_ENTREGUE'),
+            'cancelado' => env('TWILIO_CONTENT_SID_CANCELADO'),
+        ],
+    ],
+
 ];

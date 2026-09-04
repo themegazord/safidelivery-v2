@@ -34,6 +34,7 @@ class AtualizaConfiguracoesRequest extends FormRequest
             'periodo_inatividade_cliente' => ['nullable', 'integer', 'min:0'],
             'fora_area_entrega' => ['required', Rule::in(['bloquear', 'taxa_maxima'])],
             'multiplas_formas_pagamento' => ['required', 'boolean'],
+            'whatsapp_notificacao_status_pedido' => ['required', 'boolean'],
         ];
     }
 
@@ -60,6 +61,7 @@ class AtualizaConfiguracoesRequest extends FormRequest
             'periodo_inatividade_cliente' => 'período de inatividade do cliente',
             'fora_area_entrega' => 'comportamento fora da área de entrega',
             'multiplas_formas_pagamento' => 'múltiplas formas de pagamento',
+            'whatsapp_notificacao_status_pedido' => 'notificações de WhatsApp',
         ];
     }
 }

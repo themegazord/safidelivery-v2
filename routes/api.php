@@ -2,10 +2,15 @@
 
 use App\Http\Controllers\Pedidos;
 use App\Http\Controllers\Webhook\Pagarme\Pedidos\PixAceitoController;
+use App\Http\Controllers\Webhook\Twilio\WhatsappStatusController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('webhook/pagarme/pedidos')->group(function () {
     Route::post('pix_aceito', [PixAceitoController::class, 'index'])->name('webhook.pagarme.pix-aceito');
+});
+
+Route::prefix('webhook/twilio')->group(function () {
+    Route::post('whatsapp-status', [WhatsappStatusController::class, 'index'])->name('webhook.twilio.whatsapp-status');
 });
 
 Route::prefix('v1')->middleware('throttle:60,1')->group(function () {

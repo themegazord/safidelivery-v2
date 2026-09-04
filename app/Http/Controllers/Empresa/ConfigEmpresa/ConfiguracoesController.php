@@ -19,6 +19,7 @@ class ConfiguracoesController extends Controller
         'informa_mesa_comanda',
         'modo_atendente',
         'multiplas_formas_pagamento',
+        'whatsapp_notificacao_status_pedido',
     ];
 
     private const CONFIGURACOES_PADRAO = [
@@ -32,6 +33,7 @@ class ConfiguracoesController extends Controller
         'periodo_inatividade_cliente' => null,
         'fora_area_entrega' => 'bloquear',
         'multiplas_formas_pagamento' => false,
+        'whatsapp_notificacao_status_pedido' => false,
     ];
 
     public Empresa $empresa;
